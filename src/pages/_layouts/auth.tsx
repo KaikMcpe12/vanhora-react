@@ -28,7 +28,7 @@ export function AuthLayout() {
       </main>
 
       <footer className="text-muted-foreground pb-8 text-center text-sm">
-        © 2024 VanHora.
+        © 2026 VanHora.
       </footer>
 
       <div className="fixed right-4 top-4 z-50 md:top-1/2 md:-translate-y-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow-lg backdrop-blur">

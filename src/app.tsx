@@ -6,7 +6,7 @@ import { router } from './routes'
 export function App() {
   return (
     <>
-      <ThemeProvider defaultTheme="dark" storageKey="vanhora-theme">
+      <ThemeProvider defaultTheme="light" storageKey="vanhora-theme">
         <RouterProvider router={router} />
       </ThemeProvider>
     </>

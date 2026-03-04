@@ -6,7 +6,7 @@ import { HeaderHome } from '@/components/header-home'
 
 export function Home() {
   return (
-    <div className="text-text-main-light dark:text-text-main-dark relative flex min-h-screen flex-col overflow-hidden antialiased shadow-xl transition-colors duration-300">
+    <div className="text-text-main-light dark:text-text-main-dark relative flex min-h-screen flex-col antialiased shadow-xl transition-colors duration-300">
       <HeaderHome />
 
       <div className="flex flex-1 flex-col">

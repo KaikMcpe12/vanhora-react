@@ -6,7 +6,7 @@ import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
 import { Dashboard } from './pages/app/dashboard'
 import { SignIn } from './pages/auth/sign-in'
-import { HomePage } from './pages/home/homepage'
+import { HomePage } from './pages/home/homepage/homepage'
 
 export const router = createBrowserRouter([
   {

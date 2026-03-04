@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# SKILS
+vercel-react-best-practices
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

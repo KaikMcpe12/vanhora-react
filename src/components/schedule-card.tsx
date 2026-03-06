@@ -31,7 +31,10 @@ const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
       label: 'Disponível',
     },
     upcoming: { badge: 'bg-blue-500 text-white', label: 'Em breve' },
-    past: { badge: 'bg-muted text-muted-foreground', label: 'Encerrado' },
+    past: {
+      badge: 'bg-muted text-muted-foreground ring-1 ring-border',
+      label: 'Encerrado',
+    },
   }
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
@@ -184,7 +187,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
         <Button
           asChild
           variant="outline"
-          className="rounded-xl border-2 border-emerald-500 font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950"
+          className={`rounded-xl ${isDimmed ? 'border-border text-muted-foreground' : 'border-emerald-500 text-emerald-600'} border-2 border-emerald-500 font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950`}
           disabled={isCancelled || isPast}
         >
           <Link to={`/schedules/${schedule.id}`}>Ver Detalhes</Link>

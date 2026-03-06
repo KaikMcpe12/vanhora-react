@@ -42,12 +42,12 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
       } `}
     >
       <div
-        className={`absolute top-0 left-0 h-full w-1.5 shrink-0 transition-all duration-200 ${STATUS_STRIPE[favorite.status]} ${!isDimmed ? 'group-hover:w-2' : ''} `}
+        className={`absolute top-0 left-0 h-full w-2 shrink-0 transition-all duration-200 ${STATUS_STRIPE[favorite.status]} ${!isDimmed ? 'group-hover:w-2.5' : ''}`}
       />
-      
+
       <div
-        className={`flex flex-1 items-center gap-3 py-3 pr-3 pl-5 transition-opacity duration-200 ${isDimmed ? 'opacity-60' : ''}`}
-      >        
+        className={`flex flex-1 items-center gap-3 py-3 pr-3 pl-6 transition-opacity duration-200 ${isDimmed ? 'opacity-60' : ''}`}
+      >
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
           {favorite.cooperativeImage ? (
             <img
@@ -69,7 +69,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
               </span>
             </div>
           )}
-          
+
           {!isCancelled && (
             <span
               className={`border-background absolute right-0.5 bottom-0.5 h-2 w-2 rounded-full border ${
@@ -82,7 +82,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
             />
           )}
         </div>
-        
+
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-1.5">
             <span
@@ -97,7 +97,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
               </span>
             )}
           </div>
-          
+
           <div className="mb-1.5 flex items-center gap-1.5">
             <span
               className={`text-sm font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
@@ -114,7 +114,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
               {favorite.arrivalTime}
             </span>
           </div>
-          
+
           <div className="text-muted-foreground flex items-center gap-2 text-[10px]">
             <span className="flex items-center gap-0.5">
               <MapPin className="h-2.5 w-2.5 shrink-0" />
@@ -126,7 +126,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
             </span>
           </div>
         </div>
-        
+
         <div className="flex shrink-0 flex-col items-end gap-2">
           <button
             onClick={() => onRemove?.(favorite.id)}

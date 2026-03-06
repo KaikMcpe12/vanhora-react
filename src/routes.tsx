@@ -6,6 +6,8 @@ import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
 import { Dashboard } from './pages/app/dashboard'
 import { SignIn } from './pages/auth/sign-in'
+import { About } from './pages/home/about/about'
+import { Author } from './pages/home/author/author'
 import { HomePage } from './pages/home/homepage/homepage'
 
 export const router = createBrowserRouter([
@@ -16,6 +18,14 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <HomePage />,
+      },
+      {
+        path: 'about',
+        element: <About />,
+      },
+      {
+        path: 'author',
+        element: <Author />,
       },
     ],
   },

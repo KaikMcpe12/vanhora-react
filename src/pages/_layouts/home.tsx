@@ -13,13 +13,13 @@ export function Home() {
         <Outlet />
       </div>
 
-      <footer className="bg-foreground flex h-20 w-full items-center justify-between px-8">
-        <span className="text-muted text-sm">
+      <footer className="bg-muted border-t border-border flex h-20 w-full items-center justify-between px-8">
+        <span className="text-muted-foreground text-sm">
           © 2026 VanHora. Todos os direitos reservados.
         </span>
         <Link
           to="/sign-in"
-          className="text-muted hover:text-primary-foreground text-sm font-medium transition-colors hover:underline"
+          className="text-muted-foreground hover:text-primary text-sm font-medium transition-colors hover:underline"
         >
           <span>Área Administrativa</span>
         </Link>

@@ -23,7 +23,7 @@ import {
 const navLinks = [
   { to: '/schedules', icon: Clock, label: 'Horários' },
   { to: '/about', icon: Info, label: 'Sobre' },
-  { to: '/auth', icon: User, label: 'Autor' },
+  { to: '/author', icon: User, label: 'Autor' },
 ]
 
 export function HeaderHome() {

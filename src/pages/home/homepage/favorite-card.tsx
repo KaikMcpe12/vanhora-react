@@ -19,8 +19,8 @@ export interface Favorite {
 
 const STATUS_STRIPE: Record<FavoriteCardStatus, string> = {
   'upcoming-soon': 'bg-emerald-500',
-  'upcoming': 'bg-blue-500',
-  'past': 'bg-muted-foreground/30',
+  upcoming: 'bg-blue-500',
+  past: 'bg-muted-foreground/30',
 }
 
 interface FavoriteCardProps {
@@ -35,26 +35,19 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
 
   return (
     <div
-      className={`
-        group relative flex overflow-hidden rounded-xl border transition-all duration-200
-        ${isDimmed
+      className={`group relative flex overflow-hidden rounded-xl border transition-all duration-200 ${
+        isDimmed
           ? 'border-border/50'
           : 'border-border hover:border-primary/30 hover:shadow-md'
-        }
-      `}
+      } `}
     >
       <div
-        className={`
-          absolute top-0 left-0 h-full w-1.5 shrink-0 transition-all duration-200
-          ${STATUS_STRIPE[favorite.status]}
-          ${!isDimmed ? 'group-hover:w-2' : ''}
-        `}
+        className={`absolute top-0 left-0 h-full w-1.5 shrink-0 transition-all duration-200 ${STATUS_STRIPE[favorite.status]} ${!isDimmed ? 'group-hover:w-2' : ''} `}
       />
-
-      {/* Conteúdo */}
-      <div className={`flex flex-1 items-center gap-3 py-3 pr-3 pl-5 transition-opacity duration-200 ${isDimmed ? 'opacity-60' : ''}`}>
-
-        {/* Cooperativa — avatar/fallback compacto */}
+      
+      <div
+        className={`flex flex-1 items-center gap-3 py-3 pr-3 pl-5 transition-opacity duration-200 ${isDimmed ? 'opacity-60' : ''}`}
+      >        
         <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
           {favorite.cooperativeImage ? (
             <img
@@ -71,30 +64,30 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
                   : 'linear-gradient(135deg, #166534, #16a34a)',
               }}
             >
-              <span className="text-[10px] font-black text-white leading-none">
+              <span className="text-[10px] leading-none font-black text-white">
                 {favorite.cooperativeName.slice(0, 2).toUpperCase()}
               </span>
             </div>
           )}
-
-          {/* Indicador de status no avatar */}
+          
           {!isCancelled && (
             <span
-              className={`absolute bottom-0.5 right-0.5 h-2 w-2 rounded-full border border-background ${
+              className={`border-background absolute right-0.5 bottom-0.5 h-2 w-2 rounded-full border ${
                 favorite.status === 'upcoming-soon'
                   ? 'bg-emerald-500'
                   : favorite.status === 'upcoming'
-                  ? 'bg-blue-500'
-                  : 'bg-muted-foreground/40'
+                    ? 'bg-blue-500'
+                    : 'bg-muted-foreground/40'
               }`}
             />
           )}
         </div>
-
-        {/* Info central */}
+        
         <div className="min-w-0 flex-1">
           <div className="mb-1 flex items-center gap-1.5">
-            <span className={`truncate text-xs font-semibold ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}>
+            <span
+              className={`truncate text-xs font-semibold ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
+            >
               {favorite.cooperativeName}
             </span>
 
@@ -104,22 +97,24 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
               </span>
             )}
           </div>
-
-          {/* Horários compactos */}
+          
           <div className="mb-1.5 flex items-center gap-1.5">
-            <span className={`text-sm font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}>
+            <span
+              className={`text-sm font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
+            >
               {favorite.departureTime}
             </span>
             <div className="flex flex-1 items-center gap-0.5">
               <div className="bg-border h-px flex-1" />
               <ArrowRight className="text-muted-foreground h-2.5 w-2.5 shrink-0" />
             </div>
-            <span className={`text-sm font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}>
+            <span
+              className={`text-sm font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
+            >
               {favorite.arrivalTime}
             </span>
           </div>
-
-          {/* Rota + duração */}
+          
           <div className="text-muted-foreground flex items-center gap-2 text-[10px]">
             <span className="flex items-center gap-0.5">
               <MapPin className="h-2.5 w-2.5 shrink-0" />
@@ -131,8 +126,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
             </span>
           </div>
         </div>
-
-        {/* Preço + remover */}
+        
         <div className="flex shrink-0 flex-col items-end gap-2">
           <button
             onClick={() => onRemove?.(favorite.id)}

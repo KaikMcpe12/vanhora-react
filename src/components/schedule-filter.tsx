@@ -134,7 +134,7 @@ export function ScheduleFilters({
 
   function handleApply() {
     onApply?.(filters)
-    setOpen(false) 
+    setOpen(false)
   }
 
   return (
@@ -153,7 +153,7 @@ export function ScheduleFilters({
             </span>
 
             {!open && activeCount > 0 && (
-              <span className="bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none">
+              <span className="bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-[10px] leading-none font-semibold">
                 {activeCount}
               </span>
             )}
@@ -172,13 +172,11 @@ export function ScheduleFilters({
         </button>
       </CollapsibleTrigger>
 
-      <CollapsibleContent className="overflow-hidden data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down">
-        <div className="px-5 pb-5">
-          {/* Divider entre header e body */}
+      <CollapsibleContent className="data-[state=closed]:animate-collapsible-up data-[state=open]:animate-collapsible-down overflow-hidden">
+        <div className="px-5 pb-5">          
           <div className="border-border mb-5 border-t" />
 
-          <div className={isRow ? 'space-y-4' : 'space-y-4'}>
-            {/* Busca */}
+          <div className={isRow ? 'space-y-4' : 'space-y-4'}>            
             <div className="space-y-1.5">
               <Label className="text-muted-foreground text-xs">Buscar</Label>
               <div className="relative">
@@ -193,8 +191,7 @@ export function ScheduleFilters({
                 />
               </div>
             </div>
-
-            {/* Origem + Destino + Data */}
+            
             <div className={isRow ? 'grid grid-cols-3 gap-3' : 'space-y-4'}>
               <div className="space-y-1.5">
                 <Label className="text-muted-foreground text-xs">Origem</Label>
@@ -232,8 +229,7 @@ export function ScheduleFilters({
                 />
               </div>
             </div>
-
-            {/* Dia da semana + Status */}
+            
             <div className={isRow ? 'grid grid-cols-2 gap-3' : 'space-y-4'}>
               <div className="space-y-2">
                 <Label className="text-muted-foreground text-xs">
@@ -285,8 +281,7 @@ export function ScheduleFilters({
               </div>
             </div>
           </div>
-
-          {/* Divider + Actions */}
+          
           <div className="border-border my-5 border-t" />
 
           <div className="flex items-center gap-2">

@@ -61,13 +61,13 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
             }}
           />
         )}
-        
+
         <div className="absolute inset-0 flex items-center justify-center">
           <span className="text-4xl font-black tracking-tight text-white drop-shadow-lg">
             {schedule.cooperativeName}
           </span>
         </div>
-        
+
         <div
           className="absolute inset-x-0 bottom-0 h-14"
           style={{
@@ -75,7 +75,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
               'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)',
           }}
         />
-        
+
         <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-4 pb-2.5">
           <div>
             <p className="text-sm leading-tight font-semibold text-white drop-shadow">
@@ -97,7 +97,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
             )}
           </div>
         </div>
-        
+
         {schedule.isFavorite !== undefined && (
           <button className="absolute top-3 right-3 z-10">
             <Star
@@ -110,8 +110,8 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
           </button>
         )}
       </div>
-      
-      <div className="px-4 pt-3.5 pb-0">        
+
+      <div className="px-4 pt-3.5 pb-0">
         <div className="mb-3 flex items-center justify-between">
           {isCancelled ? (
             <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
@@ -130,7 +130,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
             </span>
           )}
         </div>
-        
+
         <div className="mb-1 flex items-start gap-3">
           <div>
             <p
@@ -164,7 +164,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
           </div>
         </div>
       </div>
-      
+
       <div className="border-border mx-4 mt-3.5 flex items-center justify-between border-t py-3">
         <div>
           <p className="text-muted-foreground mb-0.5 text-[10px] font-medium tracking-wide uppercase">

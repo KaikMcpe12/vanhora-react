@@ -105,7 +105,9 @@ export function HeaderHome() {
               <div className="border-border flex items-center justify-between border-b px-6 py-5">
                 <Link to="/" className="flex items-center gap-2">
                   <img src={Logo} alt="VanHora" className="h-8 w-8" />
-                  <SheetTitle className="font-bold text-foreground">VanHora</SheetTitle>
+                  <SheetTitle className="text-foreground font-bold">
+                    VanHora
+                  </SheetTitle>
                 </Link>
               </div>
 

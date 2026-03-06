@@ -57,7 +57,7 @@ const MOCK_SCHEDULES: Schedule[] = [
     isFavorite: false,
   },
   {
-    id: '3',
+    id: '4',
     cooperativeName: 'TopVans',
     cooperativeRating: 9.0,
     cooperativeReviews: 240,
@@ -72,7 +72,6 @@ const MOCK_SCHEDULES: Schedule[] = [
     badge: 'cancelled',
     isFavorite: false,
   },
-  // ...
 ]
 
 export function HomePage() {

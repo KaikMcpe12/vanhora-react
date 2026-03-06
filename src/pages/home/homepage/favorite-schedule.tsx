@@ -81,11 +81,11 @@ export function FavoriteSchedules({
             <span className="text-foreground text-sm font-semibold">
               Seus Favoritos
             </span>
-            
+
             <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] leading-none font-semibold text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
               {schedules.length}
             </span>
-            
+
             {!open && availableCount > 0 && (
               <p className="text-muted-foreground min-w-0 truncate text-xs">
                 {availableCount} disponíve{availableCount > 1 ? 'is' : 'l'}
@@ -99,7 +99,7 @@ export function FavoriteSchedules({
           />
         </button>
       </CollapsibleTrigger>
-      
+
       <CollapsibleContent style={{ overflow: 'hidden' }} forceMount>
         <div
           style={{

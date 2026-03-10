@@ -1,7 +1,10 @@
 import { ArrowRight, Star } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+
+import { ScheduleDialog } from './schedule-dialog'
+import { Dialog } from './ui/dialog'
 
 export type ScheduleStatus = 'upcoming-soon' | 'upcoming' | 'past'
 export type ScheduleBadge = 'available' | 'cancelled'
@@ -38,6 +41,7 @@ const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
   }
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
+  const [dialogOpen, setDialogOpen] = useState(false)
   const statusConfig = STATUS_CONFIG[schedule.status]
   const isPast = schedule.status === 'past'
   const isCancelled = schedule.badge === 'cancelled'
@@ -185,14 +189,18 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
         </div>
 
         <Button
-          asChild
           variant="outline"
-          className={`rounded-xl ${isDimmed ? 'border-border text-muted-foreground' : 'border-emerald-500 text-emerald-600'} border-2 border-emerald-500 font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950`}
-          disabled={isCancelled || isPast}
+          onClick={() => setDialogOpen(true)}
+          className={`rounded-xl ${isDimmed ? 'border-border text-muted-foreground' : 'border-emerald-500 text-emerald-600'} border-2 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950`}
+          disabled={false}
         >
-          <Link to={`/schedules/${schedule.id}`}>Ver Detalhes</Link>
+          Ver Detalhes
         </Button>
       </div>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <ScheduleDialog open={dialogOpen} scheduleId={schedule.id} />
+      </Dialog>
     </div>
   )
 }

@@ -1,7 +1,5 @@
-// import { Clock, Info, User } from 'lucide-react'
 import { Link, Outlet } from 'react-router-dom'
 
-// import Logo from '@/assets/logo.svg'
 import { HeaderHome } from '@/components/header-home'
 
 export function Home() {

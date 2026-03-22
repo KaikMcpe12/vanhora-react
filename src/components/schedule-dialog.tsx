@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import {
+  AlertTriangle,
   ArrowRight,
   Banknote,
   Calendar,
@@ -20,8 +21,13 @@ import { Button } from '@/components/ui/button'
 import { DialogContent } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
+import {
+  expandToScheduleDetails,
+  getMockScheduleById,
+} from '@/lib/data/mock-schedules'
 
 import { ScheduleDialogSkeleton } from './schedule-dialog-skeleton'
+import { Alert, AlertDescription } from './ui/alert'
 
 export interface ScheduleDialogProps {
   scheduleId: string
@@ -76,16 +82,27 @@ interface ScheduleDetails {
   cities: string[]
   operatingDays: string[]
   contact: { phone: string; email: string; website: string }
+  exceptionReason?: string
 }
 
 export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
   const [isFav, setIsFav] = useState(false)
 
-  const { data: schedule } = useQuery({
+  const { data: schedule, isLoading } = useQuery({
     queryKey: ['schedule', scheduleId],
     queryFn: async (): Promise<ScheduleDetails> => {
       await new Promise((resolve) => setTimeout(resolve, 1500))
-      return MOCK_SCHEDULE
+
+      // Try to get the real schedule data
+      const foundSchedule = getMockScheduleById(scheduleId)
+
+      if (foundSchedule) {
+        // Expand the basic Schedule to ScheduleDetails format
+        return expandToScheduleDetails(foundSchedule)
+      } else {
+        // Fallback to generic data when schedule not found (works with mock data only)
+        return MOCK_SCHEDULE
+      }
     },
     enabled: open,
   })
@@ -113,7 +130,7 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
   return (
     <DialogContent className="w-full max-w-lg gap-0 overflow-hidden rounded-3xl border-0 p-0 shadow-2xl [&>button]:hidden">
       {schedule ? (
-        <>          
+        <>
           <div className="relative h-40 w-full shrink-0 overflow-hidden">
             {schedule.cooperativeImage ? (
               <img
@@ -193,13 +210,29 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
               </Badge>
             </div>
           </div>
-          
+
           <div className="max-h-[70vh] w-full overflow-x-hidden overflow-y-auto">
             {schedule.tripCode && (
               <div className="flex items-center justify-end px-5 pt-3">
                 <span className="text-muted-foreground font-mono text-xs">
                   #{schedule.tripCode}
                 </span>
+              </div>
+            )}
+
+            {schedule.badge === 'cancelled' && schedule.exceptionReason && (
+              <div className="px-5 pt-3">
+                <Alert className="border-red-500/50 bg-red-50 dark:bg-red-950/20">
+                  <AlertTriangle className="h-4 w-4 text-red-600" />
+                  <AlertDescription className="text-sm">
+                    <span className="font-semibold text-red-900 dark:text-red-200">
+                      Cancelado:
+                    </span>{' '}
+                    <span className="text-red-800 dark:text-red-300">
+                      {schedule.exceptionReason}
+                    </span>
+                  </AlertDescription>
+                </Alert>
               </div>
             )}
 
@@ -342,7 +375,7 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
               </div>
             </div>
           </div>
-          
+
           <div className="border-border bg-background border-t px-5 py-4">
             <div className="flex gap-3">
               <Button
@@ -358,9 +391,9 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
             </div>
           </div>
         </>
-      ) : (
+      ) : isLoading ? (
         <ScheduleDialogSkeleton />
-      )}
+      ) : null}
     </DialogContent>
   )
 }

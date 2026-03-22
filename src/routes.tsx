@@ -9,6 +9,7 @@ import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
 import { HomePage } from './pages/home/homepage/homepage'
+import { Schedules } from './pages/home/schedules/schedules'
 
 export const router = createBrowserRouter([
   {
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
         path: 'author',
         element: <Author />,
       },
+      {
+        path: 'schedules',
+        element: <Schedules />,
+      }
     ],
   },
   {

@@ -2,30 +2,10 @@ import { ArrowRight, Star } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import type { Schedule, ScheduleStatus } from '@/lib/types/schedule'
 
 import { ScheduleDialog } from './schedule-dialog'
 import { Dialog } from './ui/dialog'
-
-export type ScheduleStatus = 'upcoming-soon' | 'upcoming' | 'past'
-export type ScheduleBadge = 'available' | 'cancelled'
-
-export interface Schedule {
-  id: string
-  cooperativeName: string
-  cooperativeImage?: string
-  cooperativeRating?: number
-  cooperativeReviews?: number
-  tripCode?: string
-  departureTime: string
-  arrivalTime: string
-  duration: string
-  origin: string
-  destination: string
-  price: number
-  status: ScheduleStatus
-  badge: ScheduleBadge
-  isFavorite?: boolean
-}
 
 const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
   {

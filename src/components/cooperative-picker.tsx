@@ -63,7 +63,7 @@ export function CooperativePicker({
       </div>
     )
   }
-  
+
   if (isError) {
     return (
       <div className="space-y-2">
@@ -84,7 +84,7 @@ export function CooperativePicker({
       </div>
     )
   }
-  
+
   if (cooperatives.length === 0) {
     return (
       <div className="bg-muted/50 border-border flex h-10 w-full items-center rounded-xl border px-3">
@@ -96,7 +96,7 @@ export function CooperativePicker({
   }
 
   const selectedCooperative = cooperatives.find(
-    (cooperative) => cooperative.id === value
+    (cooperative) => cooperative.id === value,
   )
 
   return (
@@ -122,9 +122,7 @@ export function CooperativePicker({
             )}
           >
             <span className="truncate">
-              {selectedCooperative
-                ? selectedCooperative.name
-                : placeholder}
+              {selectedCooperative ? selectedCooperative.name : placeholder}
             </span>
           </Button>
 
@@ -139,10 +137,7 @@ export function CooperativePicker({
         align="start"
       >
         <Command>
-          <CommandInput
-            placeholder="Buscar cooperativa..."
-            className="h-9"
-          />
+          <CommandInput placeholder="Buscar cooperativa..." className="h-9" />
           <CommandList>
             <CommandEmpty>Nenhuma cooperativa encontrada.</CommandEmpty>
             <CommandGroup>
@@ -151,9 +146,7 @@ export function CooperativePicker({
                   key={cooperative.id}
                   value={cooperative.name}
                   onSelect={() => {
-                    onChange(
-                      cooperative.id === value ? '' : cooperative.id
-                    )
+                    onChange(cooperative.id === value ? '' : cooperative.id)
                     setOpen(false)
                   }}
                   className="cursor-pointer"
@@ -161,9 +154,7 @@ export function CooperativePicker({
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      value === cooperative.id
-                        ? 'opacity-100'
-                        : 'opacity-0',
+                      value === cooperative.id ? 'opacity-100' : 'opacity-0',
                     )}
                   />
                   {cooperative.name}

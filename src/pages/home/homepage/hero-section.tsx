@@ -19,7 +19,11 @@ interface SearchFormData {
 
 export function HeroSection() {
   const navigate = useNavigate()
-  const { control, handleSubmit, formState: { isSubmitting } } = useForm<SearchFormData>({
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting },
+  } = useForm<SearchFormData>({
     defaultValues: {
       origin: '',
       destination: '',

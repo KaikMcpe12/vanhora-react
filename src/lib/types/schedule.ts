@@ -48,3 +48,44 @@ export interface ScheduleFilters {
 }
 
 export type ScheduleCategory = 'leaving-now' | 'upcoming' | 'past'
+
+// ========================================
+// 🆕 RATING TYPES
+// ========================================
+
+export interface Rating {
+  id: string
+  scheduleId: string // Relacionado ao Schedule específico
+  stars: number // 1-5
+  createdAt: string // ISO 8601
+}
+
+export interface RatingStats {
+  average: number // 4.5
+  total: number // 120
+  distribution: {
+    5: number // 45 avaliações
+    4: number // 50 avaliações
+    3: number // 15 avaliações
+    2: number // 8 avaliações
+    1: number // 2 avaliações
+  }
+}
+
+export interface CheckRatingResponse {
+  hasRated: boolean
+  rating?: {
+    id: string
+    stars: number
+    createdAt: string
+  }
+}
+
+export interface SubmitRatingResponse {
+  success: boolean
+  action: 'created' | 'updated'
+  rating: {
+    id: string
+    stars: number
+  }
+}

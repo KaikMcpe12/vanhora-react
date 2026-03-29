@@ -11,7 +11,7 @@ export function Home() {
         <Outlet />
       </div>
 
-      <footer className="bg-muted border-t border-border flex h-20 w-full items-center justify-between px-8">
+      <footer className="bg-muted border-border flex h-20 w-full items-center justify-between border-t px-8">
         <span className="text-muted-foreground text-sm">
           © 2026 VanHora. Todos os direitos reservados.
         </span>

@@ -106,14 +106,14 @@ export function ScheduleTabs() {
                   <Icon
                     className={`h-4 w-4 ${isActive ? colorClasses.icon : ''}`}
                   />
-                  <span>{config.label}</span>
+                  <span className='text-wrap'>{config.label}</span>
                 </div>
               </TabsTrigger>
             )
           })}
         </TabsList>
 
-        <div className="bg-card p-6">
+        <div className="bg-card p-4 md:p-6">
           <TabsContent value="leaving-now" className="mt-0">
             <LeavingNowTab schedules={tabData['leaving-now']} />
           </TabsContent>

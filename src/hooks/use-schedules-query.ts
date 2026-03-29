@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import type { ScheduleFilters } from '@/lib/types/schedule'
+
 import { getMockSchedulesPage } from '@/lib/data/mock-schedules'
+import type { ScheduleFilters } from '@/lib/types/schedule'
 
 /**
  * Hook para buscar horários com React Query

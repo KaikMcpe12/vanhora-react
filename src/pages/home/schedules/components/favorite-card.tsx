@@ -170,7 +170,11 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <ScheduleDialog scheduleId={favorite.id} open={dialogOpen} />
+        <ScheduleDialog
+          scheduleId={favorite.id}
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+        />
       </Dialog>
     </>
   )

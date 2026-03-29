@@ -31,7 +31,7 @@ export function AuthLayout() {
         © 2026 VanHora.
       </footer>
 
-      <div className="fixed right-4 top-4 z-50 md:top-1/2 md:-translate-y-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow-lg backdrop-blur">
+      <div className="bg-background/80 fixed top-4 right-4 z-50 -translate-y-1/2 rounded-full p-2 shadow-lg backdrop-blur md:top-1/2 md:-translate-y-1/2">
         <ThemeToggle />
       </div>
     </div>

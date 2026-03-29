@@ -12,7 +12,7 @@ import {
   MapPin,
   Phone,
   Share2,
-  Star,
+  X,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -20,18 +20,21 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { DialogContent } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-import { cn } from '@/lib/utils'
 import {
   expandToScheduleDetails,
   getMockScheduleById,
 } from '@/lib/data/mock-schedules'
+import { cn } from '@/lib/utils'
 
+import { RatingDisplay } from './rating-display'
+import { RatingSection } from './rating-section'
 import { ScheduleDialogSkeleton } from './schedule-dialog-skeleton'
 import { Alert, AlertDescription } from './ui/alert'
 
 export interface ScheduleDialogProps {
   scheduleId: string
   open: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const ALL_DAYS = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom']
@@ -85,7 +88,11 @@ interface ScheduleDetails {
   exceptionReason?: string
 }
 
-export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
+export function ScheduleDialog({
+  scheduleId,
+  open,
+  onOpenChange,
+}: ScheduleDialogProps) {
   const [isFav, setIsFav] = useState(false)
 
   const { data: schedule, isLoading } = useQuery({
@@ -128,10 +135,45 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
         : 'bg-white/90 text-gray-600 border-transparent'
 
   return (
-    <DialogContent className="w-full max-w-lg gap-0 overflow-hidden rounded-3xl border-0 p-0 shadow-2xl [&>button]:hidden">
+    <DialogContent
+      className="flex h-dvh max-h-none w-full max-w-lg flex-col gap-0 overflow-hidden border-0 p-0 shadow-2xl sm:h-auto sm:max-h-[90vh] sm:rounded-3xl [&>button]:hidden"
+      onPointerDown={(e) => {
+        if (window.innerWidth >= 640) return
+
+        const startY = e.clientY
+        const startTime = Date.now()
+        let swiping = false
+
+        const handlePointerMove = (moveEvent: PointerEvent) => {
+          const deltaY = moveEvent.clientY - startY
+
+          // Swipe para baixo (deltaY positivo) > 100px
+          if (deltaY > 100) {
+            swiping = true
+          }
+        }
+
+        const handlePointerUp = () => {
+          const deltaTime = Date.now() - startTime
+
+          // Se swipe detectado e rápido (< 300ms), fecha
+          if (swiping && deltaTime < 300) {
+            onOpenChange?.(false)
+          }
+
+          // Cleanup
+          window.removeEventListener('pointermove', handlePointerMove)
+          window.removeEventListener('pointerup', handlePointerUp)
+        }
+
+        window.addEventListener('pointermove', handlePointerMove)
+        window.addEventListener('pointerup', handlePointerUp)
+      }}
+    >
       {schedule ? (
         <>
-          <div className="relative h-40 w-full shrink-0 overflow-hidden">
+          {/* Header com imagem - fixo no topo */}
+          <div className="relative h-40 w-full shrink-0 overflow-hidden sm:h-48">
             {schedule.cooperativeImage ? (
               <img
                 src={schedule.cooperativeImage}
@@ -159,34 +201,22 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
                 {schedule.cooperativeName}
               </p>
               {schedule.cooperativeRating && (
-                <div className="mt-1 flex items-center gap-1.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={cn(
-                        'h-3.5 w-3.5',
-                        i < Math.floor(schedule.cooperativeRating!)
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'fill-white/20 text-white/40',
-                      )}
-                    />
-                  ))}
-                  <span className="text-xs font-medium text-white/90">
-                    {schedule.cooperativeRating}
-                  </span>
-                  {schedule.cooperativeReviews && (
-                    <span className="text-xs text-white/60">
-                      ({schedule.cooperativeReviews} avaliações)
-                    </span>
-                  )}
-                </div>
+                <RatingDisplay
+                  rating={schedule.cooperativeRating}
+                  reviews={schedule.cooperativeReviews}
+                  size="sm"
+                  variant="default"
+                  className="[&_.text-muted-foreground]:text-white/60 [&>span]:text-white/90"
+                />
               )}
             </div>
 
-            <div className="absolute top-3 right-3 flex items-center gap-2">
+            {/* Botões no topo - Heart esquerda, X direita (mobile) */}
+            <div className="absolute top-3 left-3 flex items-center gap-2">
               <button
                 onClick={() => setIsFav((v) => !v)}
                 className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50 active:scale-95"
+                aria-label="Adicionar aos favoritos"
               >
                 <Heart
                   className={cn(
@@ -199,7 +229,19 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
               </button>
             </div>
 
-            <div className="absolute top-3 left-4">
+            {/* Botão Fechar (X) - direita - apenas mobile */}
+            <div className="absolute top-3 right-3 sm:hidden">
+              <button
+                onClick={() => onOpenChange?.(false)}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/30 backdrop-blur-sm transition-all hover:bg-black/50 active:scale-95"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4 text-white" />
+              </button>
+            </div>
+
+            {/* Badge de status - mantido abaixo dos botões */}
+            <div className="absolute top-14 left-3">
               <Badge
                 className={cn(
                   'rounded-full border px-3 py-1 text-xs font-semibold',
@@ -211,7 +253,8 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
             </div>
           </div>
 
-          <div className="max-h-[70vh] w-full overflow-x-hidden overflow-y-auto">
+          {/* Conteúdo scrollável - cresce e ocupa espaço disponível */}
+          <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
             {schedule.tripCode && (
               <div className="flex items-center justify-end px-5 pt-3">
                 <span className="text-muted-foreground font-mono text-xs">
@@ -374,13 +417,21 @@ export function ScheduleDialog({ scheduleId, open }: ScheduleDialogProps) {
                 />
               </div>
             </div>
-          </div>
 
-          <div className="border-border bg-background border-t px-5 py-4">
-            <div className="flex gap-3">
+            {/* 🆕 SEÇÃO DE AVALIAÇÃO */}
+            <Separator className="mx-5" />
+
+            <div className="px-5 py-4">
+              <RatingSection scheduleId={schedule.id} />
+            </div>
+
+            <Separator className="mx-5" />
+
+            {/* Footer - dentro do scroll */}
+            <div className="px-5 py-4">
               <Button
                 variant="outline"
-                className="flex-1 gap-2 rounded-xl font-semibold"
+                className="w-full gap-2 rounded-xl font-semibold"
                 onClick={() =>
                   navigator.share?.({ title: schedule.cooperativeName })
                 }

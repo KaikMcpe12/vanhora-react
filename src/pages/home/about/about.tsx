@@ -11,7 +11,7 @@ const differentials = [
 
 export function About() {
   return (
-    <div className="bg-background min-h-screen">      
+    <div className="bg-background min-h-screen">
       <div className="border-border relative overflow-hidden border-b">
         <div className="mx-auto max-w-4xl px-6 py-16 md:py-24">
           <p className="mb-3 text-xs font-semibold tracking-widest text-emerald-600 uppercase dark:text-emerald-400">
@@ -25,15 +25,15 @@ export function About() {
             cooperativas e vans da sua região.
           </p>
         </div>
-        
+
         <div className="pointer-events-none absolute top-0 right-0 h-full w-1/3 opacity-5 dark:opacity-10">
           <div className="absolute top-8 right-12 h-64 w-64 rounded-full border-40 border-emerald-500" />
           <div className="absolute top-32 right-32 h-32 w-32 rounded-full border-20 border-emerald-500" />
         </div>
       </div>
-      
-      <div className="mx-auto max-w-4xl px-6 py-12 md:py-16">        
-        <div className="space-y-16">          
+
+      <div className="mx-auto max-w-4xl px-6 py-12 md:py-16">
+        <div className="space-y-16">
           <section className="grid gap-8 md:grid-cols-[1fr_2fr]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">
@@ -55,7 +55,7 @@ export function About() {
           </section>
 
           <div className="border-border border-t" />
-          
+
           <section className="grid gap-8 md:grid-cols-[1fr_2fr]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-blue-500/10">
@@ -83,7 +83,7 @@ export function About() {
           </section>
 
           <div className="border-border border-t" />
-          
+
           <section className="grid gap-8 md:grid-cols-[1fr_2fr]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-yellow-500/10">
@@ -107,7 +107,7 @@ export function About() {
           </section>
 
           <div className="border-border border-t" />
-          
+
           <section className="grid gap-8 md:grid-cols-[1fr_2fr]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-500/10">
@@ -137,7 +137,7 @@ export function About() {
           </section>
 
           <div className="border-border border-t" />
-          
+
           <section className="grid gap-8 md:grid-cols-[1fr_2fr]">
             <div className="flex items-start gap-3">
               <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/10">

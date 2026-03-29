@@ -179,7 +179,11 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <ScheduleDialog open={dialogOpen} scheduleId={schedule.id} />
+        <ScheduleDialog
+          open={dialogOpen}
+          scheduleId={schedule.id}
+          onOpenChange={setDialogOpen}
+        />
       </Dialog>
     </div>
   )

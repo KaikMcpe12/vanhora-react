@@ -17,12 +17,12 @@ export function Schedules() {
     <div className="from-muted/30 to-background min-h-screen bg-linear-to-b">
       <SchedulesHero />
 
-      <div className="px-4 py-8">
-        <div className="grid grid-cols-3 gap-6 lg:grid-cols-12">
+      <div className="px-2 py-8">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-12">
           {/* Sidebar - 1/3 of width (4 columns) */}
           <aside
             className={cn(
-              'col-span-1 space-y-6 transition-all duration-300 lg:col-span-4',
+              'col-span-1 space-y-6 transition-all duration-300 sm:col-span-1 lg:col-span-4',
               'lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto',
             )}
           >
@@ -56,7 +56,7 @@ export function Schedules() {
           </aside>
 
           {/* Main Content - 2/3 of width (8 columns) */}
-          <main className="col-span-2 lg:col-span-8">
+          <main className="col-span-1 sm:col-span-2 lg:col-span-8">
             <ScheduleTabs />
           </main>
         </div>

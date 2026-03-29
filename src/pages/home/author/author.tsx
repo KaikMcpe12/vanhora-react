@@ -29,7 +29,7 @@ export function Author() {
                 className="h-20 w-20 rounded-2xl object-cover ring-2 ring-emerald-500/30 md:h-24 md:w-24"
               />
               <span className="absolute -right-1 -bottom-1 flex h-5 w-5 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white">
-                <CheckIcon className='w-4 h-4'/>
+                <CheckIcon className="h-4 w-4" />
               </span>
             </div>
 

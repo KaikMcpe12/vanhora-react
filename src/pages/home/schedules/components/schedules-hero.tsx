@@ -8,7 +8,7 @@ export function SchedulesHero() {
 
   return (
     <section className="from-primary/5 via-primary/10 to-primary/5 border-b bg-linear-to-r">
-      <div className="max-w-7xl mx-auto px-4 py-12">        
+      <div className="mx-auto max-w-7xl px-4 py-12">
         <nav className="text-muted-foreground mb-6 text-sm">
           <span className="hover:text-foreground cursor-pointer transition-colors">
             Início
@@ -16,7 +16,7 @@ export function SchedulesHero() {
           <span className="mx-2">/</span>
           <span className="text-foreground font-medium">Horários</span>
         </nav>
-        
+
         <div className="mb-8">
           <h1 className="text-foreground mb-2 text-3xl font-bold md:text-4xl">
             Horários Disponíveis
@@ -30,7 +30,7 @@ export function SchedulesHero() {
             )}
           </p>
         </div>
-        
+
         <ScheduleSearch />
       </div>
     </section>

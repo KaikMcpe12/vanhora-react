@@ -1,6 +1,6 @@
-import { useEffect, useState, useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
 import { Calendar, Clock, Zap } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 
 import { getCurrentActiveRange, getTimeRanges } from '@/lib/utils/time-ranges'
 

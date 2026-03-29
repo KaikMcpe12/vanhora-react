@@ -36,15 +36,15 @@ export function PastTab({ schedules }: PastTabProps) {
   }
 
   return (
-    <div className="space-y-6">      
+    <div className="space-y-6">
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
         {currentItems.map((schedule) => (
           <ScheduleCard key={schedule.id} schedule={schedule} />
         ))}
       </div>
-      
+
       {isLoading && <ScheduleCardSkeletonList count={6} />}
-      
+
       {hasMore && !isLoading && (
         <div className="flex justify-center pt-4">
           <Button
@@ -58,11 +58,11 @@ export function PastTab({ schedules }: PastTabProps) {
           </Button>
         </div>
       )}
-      
+
       {hasMore && isLoading && (
         <div ref={sentinelRef} className="h-1 w-full" aria-hidden="true" />
       )}
-      
+
       {!hasMore && currentItems.length > 0 && (
         <div className="py-6 text-center">
           <p className="text-muted-foreground text-sm">

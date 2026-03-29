@@ -51,7 +51,7 @@ export function CityPicker({
   setTimeout(() => {
     setIsLoading(false)
   }, 1000)
-  
+
   const isError = false
   const refetch = () => {}
 

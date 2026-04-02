@@ -14,7 +14,8 @@ dist-ssr
 
 # SKILS
 vercel-react-best-practices
-#.opencode
+.opencode
+docs
 
 
 # Editor directories and files

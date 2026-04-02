@@ -1,8 +1,10 @@
+import { getMockCooperativeImage } from '@/lib/utils/mock-images'
+
 // Cooperativas de transporte intermunicipal reais do Ceará
 export const MOCK_COOPERATIVES = [
   {
     name: 'São Benedito',
-    image: '/images/cooperatives/sao-benedito.jpg',
+    image: getMockCooperativeImage('São Benedito', { type: 'gradient' }),
     rating: 4.2,
     reviews: 1845,
     description: 'Tradicional cooperativa do interior cearense',
@@ -10,7 +12,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Nordeste',
-    image: '/images/cooperatives/nordeste.jpg',
+    image: getMockCooperativeImage('Nordeste', { type: 'gradient' }),
     rating: 4.0,
     reviews: 2156,
     description: 'Cooperativa com ampla cobertura no Nordeste',
@@ -18,7 +20,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Guanabara',
-    image: '/images/cooperatives/guanabara.jpg',
+    image: getMockCooperativeImage('Guanabara', { type: 'gradient' }),
     rating: 4.5,
     reviews: 3241,
     description: 'Serviço premium com maior conforto',
@@ -26,7 +28,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Real Expresso',
-    image: '/images/cooperatives/real-expresso.jpg',
+    image: getMockCooperativeImage('Real Expresso', { type: 'gradient' }),
     rating: 4.3,
     reviews: 1923,
     description: 'Expresso de qualidade com horários pontuais',
@@ -34,7 +36,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Sertão',
-    image: '/images/cooperatives/sertao.jpg',
+    image: getMockCooperativeImage('Sertão', { type: 'gradient' }),
     rating: 3.8,
     reviews: 987,
     description: 'Especialista em rotas do sertão cearense',
@@ -42,7 +44,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Fretcar',
-    image: '/images/cooperatives/fretcar.jpg',
+    image: getMockCooperativeImage('Fretcar', { type: 'gradient' }),
     rating: 4.1,
     reviews: 1456,
     description: 'Transporte confiável há mais de 30 anos',
@@ -50,7 +52,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Progresso',
-    image: '/images/cooperatives/progresso.jpg',
+    image: getMockCooperativeImage('Progresso', { type: 'gradient' }),
     rating: 3.9,
     reviews: 1234,
     description: 'Conectando cidades com segurança',
@@ -58,7 +60,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'União Cascavel',
-    image: '/images/cooperatives/uniao-cascavel.jpg',
+    image: getMockCooperativeImage('União Cascavel', { type: 'gradient' }),
     rating: 4.4,
     reviews: 876,
     description: 'Tradição em transporte intermunicipal',
@@ -71,7 +73,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Expresso Jaguaribe',
-    image: '/images/cooperatives/expresso-jaguaribe.jpg',
+    image: getMockCooperativeImage('Expresso Jaguaribe', { type: 'gradient' }),
     rating: 4.0,
     reviews: 654,
     description: 'Cobrindo todo o Vale do Jaguaribe',
@@ -84,7 +86,7 @@ export const MOCK_COOPERATIVES = [
   },
   {
     name: 'Via Cariri',
-    image: '/images/cooperatives/via-cariri.jpg',
+    image: getMockCooperativeImage('Via Cariri', { type: 'gradient' }),
     rating: 4.2,
     reviews: 1567,
     description: 'Especialista na região do Cariri',

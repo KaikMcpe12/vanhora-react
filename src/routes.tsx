@@ -9,6 +9,7 @@ import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
 import { HomePage } from './pages/home/homepage/homepage'
+import { Favorites } from './pages/home/schedules/favorites/favorites'
 import { Schedules } from './pages/home/schedules/schedules'
 
 export const router = createBrowserRouter([
@@ -30,7 +31,16 @@ export const router = createBrowserRouter([
       },
       {
         path: 'schedules',
-        element: <Schedules />,
+        children: [
+          {
+            index: true,
+            element: <Schedules />,
+          },
+          {
+            path: 'favorites',
+            element: <Favorites />,
+          },
+        ],
       },
     ],
   },

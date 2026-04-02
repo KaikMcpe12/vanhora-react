@@ -1,8 +1,10 @@
-import { ArrowRight, Star } from 'lucide-react'
+import { ArrowRight, Heart, Star } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { useIsFavorite, useToggleFavorite } from '@/hooks/use-favorites'
 import type { Schedule, ScheduleStatus } from '@/lib/types/schedule'
+import { cn } from '@/lib/utils'
 
 import { ScheduleDialog } from './schedule-dialog'
 import { Dialog } from './ui/dialog'
@@ -22,6 +24,11 @@ const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
   const [dialogOpen, setDialogOpen] = useState(false)
+
+  // Hooks de favoritos
+  const isFavorite = useIsFavorite(schedule.id)
+  const { mutate: toggleFavorite, isPending } = useToggleFavorite()
+
   const statusConfig = STATUS_CONFIG[schedule.status]
   const isPast = schedule.status === 'past'
   const isCancelled = schedule.badge === 'cancelled'
@@ -85,17 +92,26 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
           </div>
         </div>
 
-        {schedule.isFavorite !== undefined && (
-          <button className="absolute top-3 right-3 z-10">
-            <Star
-              className={`h-5 w-5 drop-shadow ${
-                schedule.isFavorite
-                  ? 'fill-yellow-400 text-yellow-400'
-                  : 'fill-white/30 text-white/60'
-              }`}
-            />
-          </button>
-        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            toggleFavorite(schedule.id)
+          }}
+          disabled={isPending}
+          className="absolute top-3 right-3 z-10 transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          aria-label={
+            isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
+          }
+        >
+          <Heart
+            className={cn(
+              'h-5 w-5 drop-shadow transition-all duration-200',
+              isFavorite
+                ? 'fill-rose-500 text-rose-500'
+                : 'fill-white/30 text-white/60 hover:fill-white/50 hover:text-white/80',
+            )}
+          />
+        </button>
       </div>
 
       <div className="px-4 pt-3.5 pb-0">

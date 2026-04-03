@@ -1,51 +1,14 @@
 import { Heart } from 'lucide-react'
 
+import { ScheduleSearch } from '@/components/schedule-search'
 import { useFavorites } from '@/hooks/use-favorites'
 
-// Loading Skeleton
-function HeroSkeleton() {
-  return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-rose-600 via-rose-500 to-pink-500 px-4 py-16 text-white shadow-2xl lg:px-8 lg:py-20">
-      <div className="relative z-10 mx-auto max-w-7xl">
-        <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
-          {/* Left: Icon + Title */}
-          <div className="flex flex-col items-center gap-4 md:items-start">
-            <div className="flex items-center gap-4">
-              <div className="flex h-16 w-16 animate-pulse items-center justify-center rounded-2xl bg-white/25 ring-4 ring-white/20 backdrop-blur-sm lg:h-20 lg:w-20" />
-              <div>
-                <div className="mb-2 h-10 w-64 animate-pulse rounded-lg bg-white/20" />
-                <div className="h-6 w-40 animate-pulse rounded-lg bg-white/20" />
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Stats (skeleton) */}
-          <div className="flex gap-3">
-            <div className="h-20 w-24 animate-pulse rounded-xl bg-white/20" />
-            <div className="h-20 w-24 animate-pulse rounded-xl bg-white/20" />
-          </div>
-        </div>
-      </div>
-
-      {/* Background decorations */}
-      <div className="absolute top-0 right-0 h-96 w-96 rounded-full bg-white/5 blur-3xl" />
-      <div className="absolute bottom-0 left-0 h-64 w-64 rounded-full bg-white/5 blur-3xl" />
-    </div>
-  )
-}
-
 export function FavoritesHero() {
-  const { data: favoritesData, isLoading } = useFavorites()
-
-  const totalFavorites = favoritesData?.ids.length || 0
-
-  if (isLoading) {
-    return <HeroSkeleton />
-  }
+  const { count, isAtLimit } = useFavorites()
 
   return (
-    <div className="relative overflow-hidden bg-gradient-to-br from-rose-600 via-rose-500 to-pink-500 px-4 py-16 text-white shadow-2xl lg:px-8 lg:py-20">
-      <div className="relative z-10 mx-auto max-w-7xl">
+    <div className="relative overflow-hidden bg-gradient-to-br from-rose-600 via-rose-500 to-pink-500 text-white shadow-2xl">
+      <div className="relative z-10 mx-auto max-w-7xl px-4 py-12 lg:px-8 lg:py-16">
         <div className="flex flex-col items-center gap-6 md:flex-row md:items-start md:justify-between">
           {/* Left: Icon + Title */}
           <div className="flex flex-col items-center gap-4 md:items-start">
@@ -62,8 +25,8 @@ export function FavoritesHero() {
                   Meus Favoritos
                 </h1>
                 <p className="mt-1 text-sm font-medium text-white/90 drop-shadow lg:text-base">
-                  {totalFavorites > 0
-                    ? `Você tem ${totalFavorites} ${totalFavorites === 1 ? 'horário salvo' : 'horários salvos'}`
+                  {count > 0
+                    ? `Você tem ${count} ${count === 1 ? 'horário salvo' : 'horários salvos'}`
                     : 'Nenhum horário salvo ainda'}
                 </p>
               </div>
@@ -71,12 +34,12 @@ export function FavoritesHero() {
           </div>
 
           {/* Right: Quick Stats Cards */}
-          {totalFavorites > 0 && (
+          {count > 0 && (
             <div className="flex gap-3">
               {/* Total Card */}
               <div className="flex flex-col items-center justify-center rounded-xl bg-white/15 px-6 py-4 ring-1 ring-white/20 backdrop-blur-md">
                 <span className="text-3xl font-black text-white drop-shadow-lg">
-                  {totalFavorites}
+                  {count}
                 </span>
                 <span className="text-xs font-medium tracking-wide text-white/80 uppercase">
                   Total
@@ -84,6 +47,19 @@ export function FavoritesHero() {
               </div>
             </div>
           )}
+        </div>
+
+        {/* Aviso de limite */}
+        {isAtLimit && (
+          <div className="mt-4 rounded-lg bg-white/20 px-4 py-2 text-sm backdrop-blur-sm">
+            ⚠️ Você atingiu o limite de 100 favoritos. Remova alguns para
+            adicionar novos.
+          </div>
+        )}
+
+        {/* ScheduleSearch igual ao /schedules */}
+        <div className="mt-8">
+          <ScheduleSearch />
         </div>
       </div>
 

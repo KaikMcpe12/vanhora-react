@@ -1,5 +1,4 @@
 import { Search } from 'lucide-react'
-import { useMemo } from 'react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -7,10 +6,7 @@ import {
   type TabType,
   useScheduleTabs,
 } from '@/hooks/use-schedule-tabs'
-import {
-  filterMockSchedules,
-  getMockSchedules,
-} from '@/lib/data/mock-schedules'
+import { useSchedules } from '@/hooks/use-schedules'
 
 import { LeavingNowTab } from './leaving-now-tab'
 import { PastTab } from './past-tab'
@@ -46,22 +42,25 @@ const colorMap: Record<
 export function ScheduleTabs() {
   const { activeTab, setActiveTab, allTabFilters } = useScheduleTabs()
 
-  const allSchedules = useMemo(() => getMockSchedules(), [])
+  // Buscar schedules para cada tab usando useInfiniteQuery
+  const leavingNowData = useSchedules(allTabFilters['leaving-now'], {
+    limit: 12,
+  })
+  const upcomingData = useSchedules(allTabFilters.upcoming, { limit: 12 })
+  const pastData = useSchedules(allTabFilters.past, { limit: 12 })
 
-  const tabData = useMemo(() => {
-    return {
-      'leaving-now': filterMockSchedules(
-        allSchedules,
-        allTabFilters['leaving-now'],
-      ),
-      upcoming: filterMockSchedules(allSchedules, allTabFilters.upcoming),
-      past: filterMockSchedules(allSchedules, allTabFilters.past),
-    }
-  }, [allSchedules, allTabFilters])
+  // Verificar se há dados em qualquer tab
+  const hasAnyData =
+    leavingNowData.schedules.length > 0 ||
+    upcomingData.schedules.length > 0 ||
+    pastData.schedules.length > 0
 
-  const hasAnyData = Object.values(tabData).some((data) => data.length > 0)
+  // Loading state (mostrar skeleton se qualquer tab estiver carregando)
+  const isLoading =
+    leavingNowData.isLoading || upcomingData.isLoading || pastData.isLoading
 
-  if (!hasAnyData) {
+  // Empty state quando não há dados em nenhuma tab
+  if (!isLoading && !hasAnyData) {
     return (
       <div className="rounded-xl border border-dashed p-12 text-center">
         <div className="bg-muted mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
@@ -106,7 +105,7 @@ export function ScheduleTabs() {
                   <Icon
                     className={`h-4 w-4 ${isActive ? colorClasses.icon : ''}`}
                   />
-                  <span className='text-wrap'>{config.label}</span>
+                  <span className="text-wrap">{config.label}</span>
                 </div>
               </TabsTrigger>
             )
@@ -115,15 +114,15 @@ export function ScheduleTabs() {
 
         <div className="bg-card p-4 md:p-6">
           <TabsContent value="leaving-now" className="mt-0">
-            <LeavingNowTab schedules={tabData['leaving-now']} />
+            <LeavingNowTab data={leavingNowData} />
           </TabsContent>
 
           <TabsContent value="upcoming" className="mt-0">
-            <UpcomingTab schedules={tabData.upcoming} />
+            <UpcomingTab data={upcomingData} />
           </TabsContent>
 
           <TabsContent value="past" className="mt-0">
-            <PastTab schedules={tabData.past} />
+            <PastTab data={pastData} />
           </TabsContent>
         </div>
       </Tabs>

@@ -7,6 +7,34 @@ import type {
 import { calculatePrice, MOCK_ROUTES } from './mock-cities'
 import { MOCK_COOPERATIVES } from './mock-cooperatives'
 
+// ===== FUNÇÕES PARA GERAÇÃO DETERMINÍSTICA =====
+
+/**
+ * Hash simples para gerar seed a partir de string
+ * Garante que mesmos inputs sempre geram mesmos outputs
+ */
+function simpleHash(str: string): number {
+  let hash = 0
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32bit integer
+  }
+  return Math.abs(hash)
+}
+
+/**
+ * Gerador pseudo-random com seed (Linear Congruential Generator)
+ * Sempre retorna mesma sequência para mesmo seed
+ */
+function seededRandom(seed: number): () => number {
+  let state = seed
+  return () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff
+    return state / 0x7fffffff
+  }
+}
+
 // Gera horários de funcionamento realistas (05:00 às 22:30)
 const generateDepartureTimes = (): string[] => {
   const times: string[] = []
@@ -75,8 +103,10 @@ const calculateDuration = (distance: number): string => {
 }
 
 // Determina status baseado no horário atual
+// Usa seed determinístico para cancelamentos consistentes
 const getScheduleStatus = (
   departureTime: string,
+  scheduleId: string,
 ): {
   status: ScheduleStatus
   badge: ScheduleBadge
@@ -91,8 +121,9 @@ const getScheduleStatus = (
   const [currentHour, currentMin] = currentTime.split(':').map(Number)
   const currentInMinutes = currentHour * 60 + currentMin
 
-  // 5% chance de cancelamento aleatório
-  const isCancelled = Math.random() < 0.05
+  // 5% chance de cancelamento - DETERMINÍSTICO baseado no scheduleId
+  const cancelSeed = simpleHash(scheduleId + '-cancel')
+  const isCancelled = seededRandom(cancelSeed)() < 0.05
   if (isCancelled) {
     return {
       status: 'past',
@@ -111,18 +142,26 @@ const getScheduleStatus = (
   }
 }
 
-// Gera código único da viagem
+// Gera código único da viagem - DETERMINÍSTICO
 const generateTripCode = (
   origin: string,
   destination: string,
   time: string,
+  cooperativeName: string,
 ): string => {
   const originCode = origin.substring(0, 3).toUpperCase()
   const destCode = destination.substring(0, 3).toUpperCase()
   const timeCode = time.replace(':', '')
-  const random = Math.random().toString(36).substring(2, 4).toUpperCase()
 
-  return `${originCode}${destCode}${timeCode}${random}`
+  // Gera sufixo determinístico baseado em todos os parâmetros
+  const seed = simpleHash(`${origin}-${destination}-${time}-${cooperativeName}`)
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+  const random = seededRandom(seed)
+  const suffix =
+    chars[Math.floor(random() * chars.length)] +
+    chars[Math.floor(random() * chars.length)]
+
+  return `${originCode}${destCode}${timeCode}${suffix}`
 }
 
 // Gera dados mockados de horários
@@ -144,25 +183,38 @@ export function generateMockSchedules(): Schedule[] {
         : MOCK_COOPERATIVES.slice(0, 3)
 
     departureTimes.forEach((departureTime) => {
+      // Seed DETERMINÍSTICO para filtrar cooperativas
+      const routeSeed = simpleHash(
+        `${route.origin}-${route.destination}-${departureTime}`,
+      )
+      const routeRandom = seededRandom(routeSeed)
+
       // Nem todos os horários têm todas as cooperativas (realismo)
-      const activeCooperatives = cooperatives.filter(() => Math.random() > 0.3)
+      const activeCooperatives = cooperatives.filter(() => routeRandom() > 0.3)
 
       activeCooperatives.forEach((cooperative) => {
+        // ID determinístico
+        const scheduleId =
+          `${route.origin}-${route.destination}-${departureTime}-${cooperative.name}`
+            .replace(/\s/g, '-')
+            .toLowerCase()
+
         const arrivalTime = calculateArrivalTime(departureTime, route.distance)
         const duration = calculateDuration(route.distance)
-        const { status, badge, exceptionReason } =
-          getScheduleStatus(departureTime)
+        const { status, badge, exceptionReason } = getScheduleStatus(
+          departureTime,
+          scheduleId,
+        )
         const price = calculatePrice(route.basePrice, cooperative.name)
         const tripCode = generateTripCode(
           route.origin,
           route.destination,
           departureTime,
+          cooperative.name,
         )
 
         schedules.push({
-          id: `${route.origin}-${route.destination}-${departureTime}-${cooperative.name}`
-            .replace(/\s/g, '-')
-            .toLowerCase(),
+          id: scheduleId,
           cooperativeName: cooperative.name,
           cooperativeImage: cooperative.image,
           cooperativeRating: cooperative.rating,
@@ -177,7 +229,7 @@ export function generateMockSchedules(): Schedule[] {
           status,
           badge,
           exceptionReason,
-          isFavorite: Math.random() > 0.85, // 15% chance de ser favorito
+          // isFavorite removido - será gerenciado via localStorage
         })
       })
     })

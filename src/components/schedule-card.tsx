@@ -1,8 +1,9 @@
 import { ArrowRight, Heart, Star } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 
 import { Button } from '@/components/ui/button'
-import { useIsFavorite, useToggleFavorite } from '@/hooks/use-favorites'
+import { useFavorites } from '@/hooks/use-favorites'
 import type { Schedule, ScheduleStatus } from '@/lib/types/schedule'
 import { cn } from '@/lib/utils'
 
@@ -26,8 +27,8 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
   const [dialogOpen, setDialogOpen] = useState(false)
 
   // Hooks de favoritos
-  const isFavorite = useIsFavorite(schedule.id)
-  const { mutate: toggleFavorite, isPending } = useToggleFavorite()
+  const { isFavorite: checkIsFavorite, toggleFavorite } = useFavorites()
+  const isFavorite = checkIsFavorite(schedule.id)
 
   const statusConfig = STATUS_CONFIG[schedule.status]
   const isPast = schedule.status === 'past'
@@ -95,10 +96,21 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
         <button
           onClick={(e) => {
             e.stopPropagation()
+            const wasFavorite = isFavorite
             toggleFavorite(schedule.id)
+
+            // Feedback visual com toast
+            if (wasFavorite) {
+              toast.info('Removido dos favoritos', {
+                description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
+              })
+            } else {
+              toast.success('Adicionado aos favoritos', {
+                description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
+              })
+            }
           }}
-          disabled={isPending}
-          className="absolute top-3 right-3 z-10 transition-transform hover:scale-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-50"
+          className="absolute top-3 right-3 z-10 transition-transform hover:scale-110 active:scale-95"
           aria-label={
             isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
           }

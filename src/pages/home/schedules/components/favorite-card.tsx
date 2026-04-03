@@ -39,7 +39,6 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
   const isDimmed = isPast || isCancelled
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // Don't open dialog if clicking the remove button
     if ((e.target as HTMLElement).closest('button')) {
       return
     }

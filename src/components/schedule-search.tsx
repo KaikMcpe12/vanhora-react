@@ -93,7 +93,7 @@ export function ScheduleSearch() {
                     type="date"
                     value={field.value}
                     onChange={field.onChange}
-                    className="bg-muted/50 border-border rounded-xl"
+                    className="bg-muted/50 border-border text-foreground rounded-xl [&::-webkit-calendar-picker-indicator]:invert-0 dark:[&::-webkit-calendar-picker-indicator]:invert"
                     disabled={isSearching}
                   />
                   <InputGroupAddon>

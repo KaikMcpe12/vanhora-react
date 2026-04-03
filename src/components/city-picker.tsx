@@ -118,7 +118,7 @@ export function CityPicker({
               'focus:ring-primary focus:border-primary focus:ring-2',
               'focus-visible:ring-primary focus-visible:ring-2',
               'pr-10 pl-3',
-              !value && 'text-muted-foreground',
+              value ? 'text-foreground' : 'text-muted-foreground',
               disabled && 'cursor-not-allowed opacity-50',
               className,
             )}

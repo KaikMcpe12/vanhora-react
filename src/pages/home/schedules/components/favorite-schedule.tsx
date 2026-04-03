@@ -2,13 +2,12 @@ import { Heart } from 'lucide-react'
 import { useMemo } from 'react'
 import { Link } from 'react-router-dom'
 
-import { useFavorites, useToggleFavorite } from '@/hooks/use-favorites'
-import { getMockScheduleById } from '@/lib/data/mock-schedules'
+import { useFavorites } from '@/hooks/use-favorites'
+import { useSchedules } from '@/hooks/use-schedules'
 import type { Schedule } from '@/lib/types/schedule'
 
 import { type Favorite, FavoriteCard } from './favorite-card'
 
-// Helper: Convert Schedule → Favorite
 function scheduleToFavorite(schedule: Schedule): Favorite {
   return {
     id: schedule.id,
@@ -57,29 +56,23 @@ function FavoritesSkeleton() {
 }
 
 export function FavoriteSchedules() {
-  const { data: favoritesData, isLoading } = useFavorites()
-  const { mutate: toggleFavorite } = useToggleFavorite()
+  const { favoriteIds, count, toggleFavorite } = useFavorites()
+  const { schedules, isLoading } = useSchedules({
+    ids: favoriteIds,
+  })
 
-  // Buscar schedules completos e converter para Favorite
-  const favorites = useMemo(() => {
-    if (!favoritesData?.ids.length) return []
-
-    return favoritesData.ids
-      .map((id) => getMockScheduleById(id))
-      .filter((schedule): schedule is Schedule => schedule !== null)
-      .map(scheduleToFavorite)
-  }, [favoritesData])
-
-  // Filtrar apenas ativos (upcoming-soon) e limitar a 3
   const activeFavorites = useMemo(
-    () => favorites.filter((f) => f.status === 'upcoming-soon').slice(0, 3),
-    [favorites],
+    () =>
+      schedules
+        .filter((s) => s.status === 'upcoming-soon')
+        .slice(0, 3)
+        .map(scheduleToFavorite),
+    [schedules],
   )
 
   // Calcular quantos favoritos não estão sendo mostrados
-  const totalFavorites = favorites.length
-  const activeCount = favorites.filter(
-    (f) => f.status === 'upcoming-soon',
+  const activeCount = schedules.filter(
+    (s) => s.status === 'upcoming-soon',
   ).length
   const hiddenCount = Math.max(0, activeCount - 3)
 
@@ -89,7 +82,7 @@ export function FavoriteSchedules() {
   }
 
   // Empty state
-  if (totalFavorites === 0) {
+  if (count === 0) {
     return (
       <div className="bg-card rounded-xl border p-6 text-center shadow-sm">
         <div className="bg-muted mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full">
@@ -118,7 +111,7 @@ export function FavoriteSchedules() {
             Seus Favoritos
           </span>
           <span className="rounded-full bg-rose-100 px-1.5 py-0.5 text-[10px] leading-none font-semibold text-rose-600 dark:bg-rose-500/20 dark:text-rose-400">
-            {totalFavorites}
+            {count}
           </span>
           {activeCount > 0 && (
             <span className="text-muted-foreground text-xs">

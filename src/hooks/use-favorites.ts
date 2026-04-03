@@ -1,114 +1,152 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useCallback, useSyncExternalStore } from 'react'
 import { toast } from 'sonner'
 
-import {
-  type FavoriteData,
-  getFavorites,
-  toggleFavorite,
-} from '@/lib/data/mock-favorites'
+import { devError } from '@/lib/utils/dev-log'
+
+const STORAGE_KEY = 'vanhora_favorites'
+const MAX_FAVORITES = 100
+
+interface UseFavoritesReturn {
+  favoriteIds: string[]
+  toggleFavorite: (scheduleId: string) => void
+  isFavorite: (scheduleId: string) => boolean
+  count: number
+  maxFavorites: number
+  isAtLimit: boolean
+  clearFavorites: () => void
+}
+
+// ===== STORE DE FAVORITOS (SINGLETON) =====
+// Única fonte de verdade compartilhada entre todos os componentes
+
+let listeners: Array<() => void> = []
+let currentFavorites: string[] = []
 
 /**
- * Hook para ler todos os favoritos
- * Cache infinito pois são dados locais
+ * Carrega favoritos do localStorage (com migração)
  */
-export function useFavorites() {
-  return useQuery({
-    queryKey: ['favorites'],
-    queryFn: getFavorites,
-    staleTime: Infinity, // Nunca expira (dados locais)
-    gcTime: Infinity, // Nunca remove do cache
-  })
+function loadFavorites(): string[] {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY)
+    if (!stored) return []
+
+    const parsed = JSON.parse(stored)
+
+    // Migração automática do schema antigo
+    if (typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const ids = parsed.ids || []
+      // Salvar no novo formato
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+      return ids
+    }
+
+    // Schema novo (array simples)
+    if (Array.isArray(parsed)) {
+      return parsed
+    }
+
+    return []
+  } catch (error) {
+    devError('[FavoritesStore] Erro ao carregar:', error)
+    return []
+  }
 }
 
 /**
- * Hook helper para verificar se um schedule é favorito
+ * Salva favoritos no localStorage
  */
-export function useIsFavorite(scheduleId: string) {
-  const { data } = useFavorites()
-  return data?.ids.includes(scheduleId) ?? false
+function saveFavorites(ids: string[]): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+
+    // Notifica todos os listeners (componentes)
+    listeners.forEach((listener) => listener())
+  } catch (error) {
+    devError('[FavoritesStore] Erro ao salvar:', error)
+  }
 }
 
 /**
- * Hook para toggle favorito com optimistic update
- * UI atualiza imediatamente, rollback em caso de erro
+ * Obtém snapshot atual dos favoritos
  */
-export function useToggleFavorite() {
-  const queryClient = useQueryClient()
+function getSnapshot(): string[] {
+  return currentFavorites
+}
 
-  return useMutation({
-    // Função assíncrona (simula API call)
-    mutationFn: async (scheduleId: string) => {
-      // Delay 300ms para simular latência de rede
-      await new Promise((resolve) => setTimeout(resolve, 300))
-      return toggleFavorite(scheduleId)
-    },
+/**
+ * Subscribe para mudanças
+ */
+function subscribe(listener: () => void): () => void {
+  listeners.push(listener)
 
-    // 1. ANTES de executar mutationFn (IMEDIATO - OPTIMISTIC UPDATE)
-    onMutate: async (scheduleId) => {
-      // Cancela queries em andamento para evitar conflito
-      await queryClient.cancelQueries({ queryKey: ['favorites'] })
+  // Unsubscribe
+  return () => {
+    listeners = listeners.filter((l) => l !== listener)
+  }
+}
 
-      // Snapshot do estado atual (para rollback em caso de erro)
-      const previousFavorites = queryClient.getQueryData<FavoriteData>([
-        'favorites',
-      ])
+// Inicializa ao carregar o módulo (apenas uma vez)
+currentFavorites = loadFavorites()
 
-      // ATUALIZA CACHE IMEDIATAMENTE (UI muda agora!)
-      queryClient.setQueryData<FavoriteData>(['favorites'], (old) => {
-        if (!old) {
-          return {
-            version: 1,
-            ids: [scheduleId],
-            updatedAt: new Date().toISOString(),
-          }
-        }
+// ===== HOOK =====
 
-        const isCurrentlyFavorite = old.ids.includes(scheduleId)
-        const newIds = isCurrentlyFavorite
-          ? old.ids.filter((id) => id !== scheduleId) // Remove
-          : [...old.ids, scheduleId] // Adiciona
+/**
+ * Hook para gerenciar favoritos via localStorage
+ * Compartilha estado entre todos os componentes usando useSyncExternalStore
+ *
+ * @example
+ * const { isFavorite, toggleFavorite, count } = useFavorites()
+ */
+export function useFavorites(): UseFavoritesReturn {
+  // Sincroniza com store externo (localStorage)
+  const favoriteIds = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-        return {
-          ...old,
-          ids: newIds,
-          updatedAt: new Date().toISOString(),
-        }
+  /**
+   * Adiciona ou remove um schedule dos favoritos
+   */
+  const toggleFavorite = useCallback((scheduleId: string) => {
+    const isCurrentlyFavorite = currentFavorites.includes(scheduleId)
+
+    // Se tentando adicionar e já está no limite
+    if (!isCurrentlyFavorite && currentFavorites.length >= MAX_FAVORITES) {
+      toast.error(`Limite de ${MAX_FAVORITES} favoritos atingido!`, {
+        description: 'Remova alguns favoritos para adicionar novos.',
       })
+      return // Impede execução
+    }
 
-      // Retorna snapshot para usar no onError
-      return { previousFavorites }
+    currentFavorites = isCurrentlyFavorite
+      ? currentFavorites.filter((id) => id !== scheduleId)
+      : [...currentFavorites, scheduleId]
+
+    saveFavorites(currentFavorites)
+  }, [])
+
+  /**
+   * Verifica se um schedule é favorito
+   */
+  const isFavorite = useCallback(
+    (scheduleId: string): boolean => {
+      return favoriteIds.includes(scheduleId)
     },
+    [favoriteIds],
+  )
 
-    // 2. Sucesso (após mutationFn completar)
-    onSuccess: (data) => {
-      const message = data.added
-        ? 'Adicionado aos favoritos'
-        : 'Removido dos favoritos'
-      const description = data.added
-        ? 'Acesse "Meus Favoritos" para ver todos'
-        : undefined
+  /**
+   * Limpa todos os favoritos
+   */
+  const clearFavorites = useCallback(() => {
+    currentFavorites = []
+    saveFavorites([])
+  }, [])
 
-      toast.success(message, { description })
-    },
-
-    // 3. Erro (se mutationFn falhar)
-    onError: (error, _scheduleId, context) => {
-      // ROLLBACK: restaura estado anterior
-      if (context?.previousFavorites) {
-        queryClient.setQueryData(['favorites'], context.previousFavorites)
-      }
-
-      toast.error('Erro ao atualizar favoritos', {
-        description: 'Tente novamente em alguns instantes',
-      })
-
-      console.error('Toggle favorite error:', error)
-    },
-
-    // 4. Sempre executa (sucesso ou erro)
-    onSettled: () => {
-      // Invalida cache (força refetch se necessário)
-      queryClient.invalidateQueries({ queryKey: ['favorites'] })
-    },
-  })
+  return {
+    favoriteIds,
+    toggleFavorite,
+    isFavorite,
+    count: favoriteIds.length,
+    maxFavorites: MAX_FAVORITES,
+    isAtLimit: favoriteIds.length >= MAX_FAVORITES,
+    clearFavorites,
+  }
 }

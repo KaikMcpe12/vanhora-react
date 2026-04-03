@@ -123,26 +123,17 @@ export type ScheduleFiltersSchema = z.infer<typeof scheduleFiltersSchema>
 
 /**
  * Valores padrão para resetar filtros
- * Data e dia da semana atuais como padrão
+ * Data atual como padrão, dayOfWeek vazio para consistência com URL
  */
 export function getDefaultFilters(): ScheduleFiltersSchema {
   const today = new Date()
-  const currentDayOfWeek = [
-    'sunday',
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
-    'saturday',
-  ][today.getDay()]
 
   return {
     origin: '',
     destination: '',
     date: today.toISOString().split('T')[0], // YYYY-MM-DD format
     cooperative: '',
-    dayOfWeek: [currentDayOfWeek],
+    dayOfWeek: [], // Vazio por padrão - consistente com URL sem parâmetro
     priceMin: undefined,
     priceMax: undefined,
     minRating: undefined,

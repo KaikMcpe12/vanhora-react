@@ -1,3 +1,4 @@
+import { getCityNameById } from '@/lib/data/mock-cities'
 import { generateMockSchedules } from '@/lib/data/mock-schedules'
 import type { Schedule } from '@/lib/types/schedule'
 import { devLog } from '@/lib/utils/dev-log'
@@ -84,16 +85,22 @@ export async function mockSchedulesAPI(
     devLog(`[mockSchedulesAPI] Após filtro IDs: ${schedules.length}`)
   }
 
-  // 2. Filtro por origem
+  // 2. Filtro por origem (converte ID para nome se necessário)
   if (params.origin) {
-    schedules = schedules.filter((s) => s.origin === params.origin)
-    devLog(`[mockSchedulesAPI] Após filtro origem: ${schedules.length}`)
+    const originName = getCityNameById(params.origin)
+    schedules = schedules.filter((s) => s.origin === originName)
+    devLog(
+      `[mockSchedulesAPI] Após filtro origem (${params.origin} → ${originName}): ${schedules.length}`,
+    )
   }
 
-  // 3. Filtro por destino
+  // 3. Filtro por destino (converte ID para nome se necessário)
   if (params.destination) {
-    schedules = schedules.filter((s) => s.destination === params.destination)
-    devLog(`[mockSchedulesAPI] Após filtro destino: ${schedules.length}`)
+    const destinationName = getCityNameById(params.destination)
+    schedules = schedules.filter((s) => s.destination === destinationName)
+    devLog(
+      `[mockSchedulesAPI] Após filtro destino (${params.destination} → ${destinationName}): ${schedules.length}`,
+    )
   }
 
   // 4. Filtro por data (converte para dayOfWeek)

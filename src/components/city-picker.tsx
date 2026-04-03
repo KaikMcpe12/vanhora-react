@@ -15,20 +15,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 
 import { Skeleton } from './ui/skeleton'
-
-const cities = [
-  { id: '1', name: 'Fortaleza' },
-  { id: '2', name: 'Sobral' },
-  { id: '3', name: 'Juazeiro do Norte' },
-  { id: '4', name: 'Cratéus' },
-  { id: '5', name: 'Ipueiras' },
-  { id: '6', name: 'Quixadá' },
-  { id: '7', name: 'Iguatu' },
-  { id: '8', name: 'Crato' },
-]
 
 interface CityPickerProps {
   value?: string
@@ -88,18 +78,7 @@ export function CityPicker({
     )
   }
 
-  // EMPTY STATE
-  if (cities.length === 0) {
-    return (
-      <div className="bg-muted/50 border-border flex h-10 w-full items-center rounded-xl border px-3">
-        <span className="text-muted-foreground text-sm">
-          Nenhuma cidade disponível
-        </span>
-      </div>
-    )
-  }
-
-  const selectedCity = cities.find((city) => city.id === value)
+  const selectedCity = CITIES_WITH_IDS.find((city) => city.id === value)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -143,7 +122,7 @@ export function CityPicker({
           <CommandList>
             <CommandEmpty>Nenhuma cidade encontrada.</CommandEmpty>
             <CommandGroup>
-              {cities.map((city) => (
+              {CITIES_WITH_IDS.map((city) => (
                 <CommandItem
                   key={city.id}
                   value={city.name}

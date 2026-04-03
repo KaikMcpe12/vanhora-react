@@ -10,8 +10,7 @@ import { useSchedules } from '@/hooks/use-schedules'
 
 export function FavoritesPastTab() {
   const { favoriteIds } = useFavorites()
-  const { watch } = useScheduleFilters()
-  const filters = watch()
+  const { filtersFromUrl } = useScheduleFilters()
 
   const now = new Date()
   const departureBefore = format(now, 'HH:mm')
@@ -22,12 +21,12 @@ export function FavoritesPastTab() {
         ids: favoriteIds,
         departureBefore,
         // Ignora filtro de data - mostra histórico completo
-        origin: filters.origin,
-        destination: filters.destination,
-        cooperative: filters.cooperative,
-        priceMin: filters.priceMin,
-        priceMax: filters.priceMax,
-        rating: filters.minRating,
+        origin: filtersFromUrl.origin,
+        destination: filtersFromUrl.destination,
+        cooperative: filtersFromUrl.cooperative,
+        priceMin: filtersFromUrl.priceMin,
+        priceMax: filtersFromUrl.priceMax,
+        rating: filtersFromUrl.minRating,
       },
       { limit: 12 },
     )

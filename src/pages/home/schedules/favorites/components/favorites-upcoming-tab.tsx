@@ -10,8 +10,7 @@ import { useSchedules } from '@/hooks/use-schedules'
 
 export function FavoritesUpcomingTab() {
   const { favoriteIds } = useFavorites()
-  const { watch } = useScheduleFilters()
-  const filters = watch()
+  const { filtersFromUrl } = useScheduleFilters()
 
   // Após "Partindo Agora" (60 min depois)
   const now = new Date()
@@ -26,12 +25,12 @@ export function FavoritesUpcomingTab() {
         ids: favoriteIds,
         departureAfter,
         // Ignora filtro de data - mostra todos os próximos
-        origin: filters.origin,
-        destination: filters.destination,
-        cooperative: filters.cooperative,
-        priceMin: filters.priceMin,
-        priceMax: filters.priceMax,
-        rating: filters.minRating,
+        origin: filtersFromUrl.origin,
+        destination: filtersFromUrl.destination,
+        cooperative: filtersFromUrl.cooperative,
+        priceMin: filtersFromUrl.priceMin,
+        priceMax: filtersFromUrl.priceMax,
+        rating: filtersFromUrl.minRating,
       },
       { limit: 12 },
     )

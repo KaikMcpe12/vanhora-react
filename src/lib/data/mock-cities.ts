@@ -40,6 +40,51 @@ export const MOCK_CITIES = [
 
 export type CityName = (typeof MOCK_CITIES)[number]
 
+/**
+ * Lista de cidades disponíveis no sistema com IDs únicos
+ * Usado pelo CityPicker e API para mapeamento consistente
+ */
+export const CITIES_WITH_IDS = [
+  { id: '1', name: 'Fortaleza' },
+  { id: '2', name: 'Sobral' },
+  { id: '3', name: 'Juazeiro do Norte' },
+  { id: '4', name: 'Crateús' },
+  { id: '5', name: 'Quixadá' },
+  { id: '6', name: 'Iguatu' },
+  { id: '7', name: 'Crato' },
+  { id: '8', name: 'Caucaia' },
+] as const
+
+/**
+ * Mapeamento ID → Nome de cidade
+ * @example CITY_ID_TO_NAME['1'] // 'Fortaleza'
+ */
+export const CITY_ID_TO_NAME: Record<string, string> = Object.fromEntries(
+  CITIES_WITH_IDS.map((city) => [city.id, city.name]),
+)
+
+/**
+ * Mapeamento Nome → ID de cidade
+ * @example CITY_NAME_TO_ID['Fortaleza'] // '1'
+ */
+export const CITY_NAME_TO_ID: Record<string, string> = Object.fromEntries(
+  CITIES_WITH_IDS.map((city) => [city.name, city.id]),
+)
+
+/**
+ * Converte ID para nome da cidade (ou retorna o valor original se não encontrado)
+ */
+export function getCityNameById(idOrName: string): string {
+  return CITY_ID_TO_NAME[idOrName] || idOrName
+}
+
+/**
+ * Converte nome para ID da cidade (ou retorna o valor original se não encontrado)
+ */
+export function getCityIdByName(nameOrId: string): string {
+  return CITY_NAME_TO_ID[nameOrId] || nameOrId
+}
+
 // Rotas principais com distâncias e preços realistas
 export const MOCK_ROUTES = [
   // Hub Fortaleza - principais destinos

@@ -10,11 +10,10 @@ import { useSchedules } from '@/hooks/use-schedules'
 
 export function FavoritesNowSection() {
   const { favoriteIds } = useFavorites()
-  const { watch } = useScheduleFilters()
-  const filters = watch()
+  const { filtersFromUrl } = useScheduleFilters()
 
   const today = format(new Date(), 'yyyy-MM-dd')
-  const isToday = filters.date === today || !filters.date
+  const isToday = filtersFromUrl.date === today || !filtersFromUrl.date
 
   // Janela de 60 min
   const now = new Date()

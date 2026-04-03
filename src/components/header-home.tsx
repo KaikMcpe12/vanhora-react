@@ -1,5 +1,5 @@
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
-import { Clock, Info, Menu, User } from 'lucide-react'
+import { Clock, Heart, Info, Menu, User } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
@@ -22,6 +22,7 @@ import {
 
 const navLinks = [
   { to: '/schedules', icon: Clock, label: 'Horários' },
+  { to: '/schedules/favorites', icon: Heart, label: 'Favoritos' },
   { to: '/about', icon: Info, label: 'Sobre' },
   { to: '/author', icon: User, label: 'Autor' },
 ]

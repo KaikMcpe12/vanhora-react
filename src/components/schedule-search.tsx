@@ -1,4 +1,4 @@
-import { Calendar, Loader2, Search } from 'lucide-react'
+import { Calendar, Loader2, Search, X } from 'lucide-react'
 import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -13,10 +13,17 @@ import {
 import { useScheduleFilters } from '@/hooks/use-schedule-filters'
 
 export function ScheduleSearch() {
-  const { control, handleFilter, errors, watch } = useScheduleFilters()
+  const { control, handleFilter, handleClearFilters, errors, watch } =
+    useScheduleFilters()
   const [isSearching, setIsSearching] = useState(false)
 
   const currentFilters = watch()
+
+  // Mostrar botão limpar apenas se origem ou destino estiverem preenchidos
+  // (ignora data porque data default de hoje não conta como "filtro ativo")
+  const showClearButton = Boolean(
+    currentFilters.origin || currentFilters.destination,
+  )
 
   const onSubmit = async (e: React.SubmitEvent) => {
     e.preventDefault()
@@ -27,6 +34,11 @@ export function ScheduleSearch() {
       setIsSearching(false)
       toast.success('Busca realizada com sucesso!')
     }, 1200)
+  }
+
+  const onClear = () => {
+    handleClearFilters()
+    toast.info('Filtros limpos')
   }
 
   return (
@@ -109,11 +121,11 @@ export function ScheduleSearch() {
             )}
           </div>
 
-          {/* Botão */}
-          <div className="flex items-end">
+          {/* Botões */}
+          <div className="flex items-end gap-2">
             <Button
               type="submit"
-              className="bg-primary hover:bg-primary/90 h-10 w-full transition-colors"
+              className="bg-primary hover:bg-primary/90 h-10 flex-1 transition-colors"
               disabled={
                 isSearching ||
                 (!currentFilters.origin &&
@@ -133,6 +145,20 @@ export function ScheduleSearch() {
                 </>
               )}
             </Button>
+
+            {showClearButton && (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                className="bg-card text-foreground hover:bg-muted h-10 w-10 shrink-0"
+                onClick={onClear}
+                disabled={isSearching}
+                title="Limpar filtros"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </div>

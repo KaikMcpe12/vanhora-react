@@ -1,5 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useCallback } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
 import { useSearchParams } from 'react-router-dom'
 
@@ -23,13 +23,16 @@ import {
 export function useScheduleFilters() {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Parse inicial dos filtros da URL
-  const initialFilters = searchParamsToFilters(searchParams)
+  // Parse dos filtros da URL (reativo - atualiza quando URL muda)
+  const filtersFromUrl = useMemo(
+    () => searchParamsToFilters(searchParams),
+    [searchParams],
+  )
 
   // Configuração do React Hook Form com Zod
   const form = useForm({
     resolver: zodResolver(scheduleFiltersSchema),
-    defaultValues: initialFilters,
+    defaultValues: filtersFromUrl,
     mode: 'onBlur' as const, // Validação no onBlur para melhor UX
   })
 
@@ -92,7 +95,7 @@ export function useScheduleFilters() {
    * Conta o número de filtros ativos
    */
   const getActiveFiltersCount = useCallback(() => {
-    const currentValues = watch()
+    const currentValues = filtersFromUrl
     const defaultValues = getDefaultFilters()
 
     let count = 0
@@ -117,54 +120,54 @@ export function useScheduleFilters() {
     })
 
     return count
-  }, [watch])
+  }, [filtersFromUrl])
 
   /**
    * Verifica se há filtros básicos ativos
    */
   const getHasBasicFilters = useCallback(() => {
-    const values = watch()
-    return Boolean(values.origin || values.destination || values.date)
-  }, [watch])
+    return Boolean(
+      filtersFromUrl.origin ||
+      filtersFromUrl.destination ||
+      filtersFromUrl.date,
+    )
+  }, [filtersFromUrl])
 
   /**
    * Verifica se há filtros avançados ativos
    */
   const getHasAdvancedFilters = useCallback(() => {
-    const values = watch()
     const defaultFilters = getDefaultFilters()
 
     return Boolean(
-      values.cooperative ||
-      JSON.stringify(values.dayOfWeek) !==
+      filtersFromUrl.cooperative ||
+      JSON.stringify(filtersFromUrl.dayOfWeek) !==
         JSON.stringify(defaultFilters.dayOfWeek) ||
-      values.priceMin !== undefined ||
-      values.priceMax !== undefined ||
-      values.minRating !== undefined,
+      filtersFromUrl.priceMin !== undefined ||
+      filtersFromUrl.priceMax !== undefined ||
+      filtersFromUrl.minRating !== undefined,
     )
-  }, [watch])
+  }, [filtersFromUrl])
 
   /**
    * Obtém apenas filtros avançados
    */
   const getAdvancedFilters = useCallback(() => {
-    const values = watch()
     return {
-      cooperative: values.cooperative,
-      dayOfWeek: values.dayOfWeek,
-      priceMin: values.priceMin,
-      priceMax: values.priceMax,
-      minRating: values.minRating,
+      cooperative: filtersFromUrl.cooperative,
+      dayOfWeek: filtersFromUrl.dayOfWeek,
+      priceMin: filtersFromUrl.priceMin,
+      priceMax: filtersFromUrl.priceMax,
+      minRating: filtersFromUrl.minRating,
     }
-  }, [watch])
+  }, [filtersFromUrl])
 
   /**
-   * Obtém os filtros atuais do formulário
+   * Obtém os filtros atuais da URL (fonte de verdade)
    */
   const getCurrentFilters = useCallback((): ScheduleFiltersSchema => {
-    const values = watch()
-    return values as ScheduleFiltersSchema
-  }, [watch])
+    return filtersFromUrl
+  }, [filtersFromUrl])
 
   /**
    * Submit handler tipado
@@ -180,6 +183,9 @@ export function useScheduleFilters() {
     errors,
     isSubmitting,
     watch,
+
+    // Filtros da URL (fonte de verdade para queries)
+    filtersFromUrl,
 
     // Custom methods
     handleFilter: onSubmit,

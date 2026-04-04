@@ -7,26 +7,18 @@ import type {
 import { calculatePrice, MOCK_ROUTES } from './mock-cities'
 import { MOCK_COOPERATIVES } from './mock-cooperatives'
 
-// ===== FUNÇÕES PARA GERAÇÃO DETERMINÍSTICA =====
-
-/**
- * Hash simples para gerar seed a partir de string
- * Garante que mesmos inputs sempre geram mesmos outputs
- */
+/** hash simples para gerar seed a partir de string */
 function simpleHash(str: string): number {
   let hash = 0
   for (let i = 0; i < str.length; i++) {
     const char = str.charCodeAt(i)
     hash = (hash << 5) - hash + char
-    hash = hash & hash // Convert to 32bit integer
+    hash = hash & hash // convert to 32bit integer
   }
   return Math.abs(hash)
 }
 
-/**
- * Gerador pseudo-random com seed (Linear Congruential Generator)
- * Sempre retorna mesma sequência para mesmo seed
- */
+/** gerador pseudo-random com seed (linear congruential generator) */
 function seededRandom(seed: number): () => number {
   let state = seed
   return () => {
@@ -35,42 +27,38 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-// Gera horários de funcionamento realistas (05:00 às 22:30)
+// gera horários de funcionamento realistas (05:00 às 22:30)
 const generateDepartureTimes = (): string[] => {
   const times: string[] = []
 
-  // Horários da manhã (05:00 - 12:00): mais frequentes
+  // manhã (05:00 - 12:00): mais frequentes
   for (let hour = 5; hour <= 11; hour++) {
     times.push(`${hour.toString().padStart(2, '0')}:00`)
     times.push(`${hour.toString().padStart(2, '0')}:30`)
 
-    // Horários extras no rush matinal (06:00 - 08:00)
+    // extras no rush matinal (06:00 - 08:00)
     if (hour >= 6 && hour <= 7) {
       times.push(`${hour.toString().padStart(2, '0')}:15`)
       times.push(`${hour.toString().padStart(2, '0')}:45`)
     }
   }
 
-  // Meio-dia
   times.push('12:00')
 
-  // Tarde (13:00 - 18:00): frequência moderada
+  // tarde (13:00 - 18:00): frequência moderada
   for (let hour = 13; hour <= 17; hour++) {
     times.push(`${hour.toString().padStart(2, '0')}:00`)
-
-    // Menos frequente que manhã
     if (hour % 2 === 0) {
       times.push(`${hour.toString().padStart(2, '0')}:30`)
     }
   }
 
-  // Noite (18:00 - 22:30): menos frequente
+  // noite (18:00 - 22:30): menos frequente
   times.push('18:00', '19:00', '20:00', '21:00', '22:00', '22:30')
 
   return times.sort()
 }
 
-// Calcula horário de chegada baseado na distância
 const calculateArrivalTime = (
   departureTime: string,
   distance: number,
@@ -78,7 +66,7 @@ const calculateArrivalTime = (
   const [hours, minutes] = departureTime.split(':').map(Number)
   const departureInMinutes = hours * 60 + minutes
 
-  // Velocidade média: 60km/h + paradas (50km/h efetivo)
+  // velocidade média: 60km/h + paradas (50km/h efetivo)
   const travelTimeMinutes = Math.round((distance / 50) * 60)
   const arrivalInMinutes = departureInMinutes + travelTimeMinutes
 
@@ -88,7 +76,6 @@ const calculateArrivalTime = (
   return `${arrivalHours.toString().padStart(2, '0')}:${arrivalMinutes.toString().padStart(2, '0')}`
 }
 
-// Calcula duração da viagem
 const calculateDuration = (distance: number): string => {
   const hours = Math.floor(distance / 50)
   const minutes = Math.round(((distance / 50) % 1) * 60)
@@ -102,8 +89,7 @@ const calculateDuration = (distance: number): string => {
   }
 }
 
-// Determina status baseado no horário atual
-// Usa seed determinístico para cancelamentos consistentes
+// determina status baseado no horário atual (seed determinístico para cancelamentos)
 const getScheduleStatus = (
   departureTime: string,
   scheduleId: string,
@@ -121,7 +107,7 @@ const getScheduleStatus = (
   const [currentHour, currentMin] = currentTime.split(':').map(Number)
   const currentInMinutes = currentHour * 60 + currentMin
 
-  // 5% chance de cancelamento - DETERMINÍSTICO baseado no scheduleId
+  // 5% chance de cancelamento determinístico
   const cancelSeed = simpleHash(scheduleId + '-cancel')
   const isCancelled = seededRandom(cancelSeed)() < 0.05
   if (isCancelled) {
@@ -132,7 +118,6 @@ const getScheduleStatus = (
     }
   }
 
-  // Determina status baseado no tempo
   if (departureInMinutes < currentInMinutes) {
     return { status: 'past', badge: 'available' }
   } else if (departureInMinutes <= currentInMinutes + 60) {
@@ -142,7 +127,7 @@ const getScheduleStatus = (
   }
 }
 
-// Gera código único da viagem - DETERMINÍSTICO
+// gera código único da viagem determinístico
 const generateTripCode = (
   origin: string,
   destination: string,
@@ -153,7 +138,6 @@ const generateTripCode = (
   const destCode = destination.substring(0, 3).toUpperCase()
   const timeCode = time.replace(':', '')
 
-  // Gera sufixo determinístico baseado em todos os parâmetros
   const seed = simpleHash(`${origin}-${destination}-${time}-${cooperativeName}`)
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
   const random = seededRandom(seed)
@@ -164,36 +148,31 @@ const generateTripCode = (
   return `${originCode}${destCode}${timeCode}${suffix}`
 }
 
-// Gera dados mockados de horários
 export function generateMockSchedules(): Schedule[] {
   const schedules: Schedule[] = []
   const departureTimes = generateDepartureTimes()
 
-  // Para cada rota, gera horários com diferentes cooperativas
   MOCK_ROUTES.forEach((route) => {
     const availableCooperatives = MOCK_COOPERATIVES.filter((coop) => {
       const routes = coop.routes as readonly string[]
       return routes.includes(route.origin) && routes.includes(route.destination)
     })
 
-    // Se não há cooperativas específicas, usar algumas aleatórias
     const cooperatives =
       availableCooperatives.length > 0
         ? availableCooperatives
         : MOCK_COOPERATIVES.slice(0, 3)
 
     departureTimes.forEach((departureTime) => {
-      // Seed DETERMINÍSTICO para filtrar cooperativas
       const routeSeed = simpleHash(
         `${route.origin}-${route.destination}-${departureTime}`,
       )
       const routeRandom = seededRandom(routeSeed)
 
-      // Nem todos os horários têm todas as cooperativas (realismo)
+      // nem todos os horários têm todas as cooperativas (realismo)
       const activeCooperatives = cooperatives.filter(() => routeRandom() > 0.3)
 
       activeCooperatives.forEach((cooperative) => {
-        // ID determinístico
         const scheduleId =
           `${route.origin}-${route.destination}-${departureTime}-${cooperative.name}`
             .replace(/\s/g, '-')
@@ -229,7 +208,6 @@ export function generateMockSchedules(): Schedule[] {
           status,
           badge,
           exceptionReason,
-          // isFavorite removido - será gerenciado via localStorage
         })
       })
     })
@@ -238,7 +216,7 @@ export function generateMockSchedules(): Schedule[] {
   return schedules
 }
 
-// Cache dos dados mockados para melhor performance
+// cache dos dados mockados
 let cachedSchedules: Schedule[] | null = null
 
 export function getMockSchedules(): Schedule[] {
@@ -248,127 +226,14 @@ export function getMockSchedules(): Schedule[] {
   return cachedSchedules
 }
 
-// ✅ Novo: Paginação para infinite scroll
-export function getMockSchedulesPage(
-  page: number = 1,
-  limit: number = 12,
-  filters?: {
-    origin?: string
-    destination?: string
-    date?: string
-    cooperative?: string
-    dayOfWeek?: string[]
-    priceMin?: number
-    priceMax?: number
-    minRating?: number
-    departureAfter?: string
-    departureBefore?: string
-  },
-) {
-  const allSchedules = getMockSchedules()
-  const filteredSchedules = filters
-    ? filterMockSchedules(allSchedules, filters)
-    : allSchedules
-
-  const startIndex = (page - 1) * limit
-  const endIndex = startIndex + limit
-  const schedules = filteredSchedules.slice(startIndex, endIndex)
-
-  return {
-    schedules,
-    hasNextPage: endIndex < filteredSchedules.length,
-    nextPage: endIndex < filteredSchedules.length ? page + 1 : null,
-    totalCount: filteredSchedules.length,
-    currentPage: page,
-    totalPages: Math.ceil(filteredSchedules.length / limit),
-  }
-}
-
-// Helper para buscar horários por filtros
-export function filterMockSchedules(
-  schedules: Schedule[],
-  filters: {
-    origin?: string
-    destination?: string
-    date?: string
-    cooperative?: string
-    dayOfWeek?: string[]
-    priceMin?: number
-    priceMax?: number
-    minRating?: number
-    departureAfter?: string
-    departureBefore?: string
-  },
-): Schedule[] {
-  return schedules.filter((schedule) => {
-    // Filtro de origem
-    if (filters.origin && schedule.origin !== filters.origin) {
-      return false
-    }
-
-    // Filtro de destino
-    if (filters.destination && schedule.destination !== filters.destination) {
-      return false
-    }
-
-    // Filtro de cooperativa
-    if (
-      filters.cooperative &&
-      schedule.cooperativeName !== filters.cooperative
-    ) {
-      return false
-    }
-
-    // Filtro de preço mínimo
-    if (filters.priceMin && schedule.price < filters.priceMin) {
-      return false
-    }
-
-    // Filtro de preço máximo
-    if (filters.priceMax && schedule.price > filters.priceMax) {
-      return false
-    }
-
-    // Filtro de avaliação mínima
-    if (
-      filters.minRating &&
-      schedule.cooperativeRating &&
-      schedule.cooperativeRating < filters.minRating
-    ) {
-      return false
-    }
-
-    // Filtro de horário de partida (depois de)
-    if (
-      filters.departureAfter &&
-      schedule.departureTime <= filters.departureAfter
-    ) {
-      return false
-    }
-
-    // Filtro de horário de partida (antes de)
-    if (
-      filters.departureBefore &&
-      schedule.departureTime >= filters.departureBefore
-    ) {
-      return false
-    }
-
-    return true
-  })
-}
-
-// ✅ Busca schedule por ID (implementação simples)
 export function getMockScheduleById(id: string): Schedule | null {
   const schedules = getMockSchedules()
   return schedules.find((schedule) => schedule.id === id) || null
 }
 
-// ✅ Expansão de Schedule básico para ScheduleDetails
 export function expandToScheduleDetails(schedule: Schedule) {
   return {
     ...schedule,
-    // Campos adicionais básicos para o dialog
     description: `Viagem confortável de ${schedule.origin} para ${schedule.destination} com a ${schedule.cooperativeName}.`,
     cities: [schedule.origin, schedule.destination],
     operatingDays: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
@@ -380,7 +245,6 @@ export function expandToScheduleDetails(schedule: Schedule) {
   }
 }
 
-// Estatísticas dos dados mockados
 export function getMockScheduleStats() {
   const schedules = getMockSchedules()
 

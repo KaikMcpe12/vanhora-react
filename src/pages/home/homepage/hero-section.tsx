@@ -138,21 +138,6 @@ export function HeroSection() {
             />
 
             <div className="space-y-4">
-              {/* talvéz eu retire */}
-              {/*<div className="bg-primary/5 border-primary/20 flex items-center gap-4 rounded-xl border p-4">
-                <div className="bg-primary flex h-10 w-10 items-center justify-center rounded-lg">
-                  <Calendar className="text-primary-foreground h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-primary text-xs font-bold tracking-wider uppercase">
-                    Próxima Partida
-                  </p>
-                  <p className="text-foreground font-bold">
-                    Fortaleza → Sobral (14:30)
-                  </p>
-                </div>
-              </div>*/}
-
               <div className="bg-secondary/20 border-secondary/30 flex items-center gap-4 rounded-xl border p-4">
                 <div className="bg-secondary flex h-10 w-10 items-center justify-center rounded-lg">
                   <MapPin className="text-secondary-foreground h-5 w-5" />

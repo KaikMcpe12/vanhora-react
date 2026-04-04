@@ -48,7 +48,7 @@ export function RatingDisplay({
 
   return (
     <div className={cn('flex items-center', config.gap, className)}>
-      {/* Estrelas */}
+      {/* estrelas */}
       <div className="flex items-center gap-0.5">
         {[1, 2, 3, 4, 5].map((star) => {
           const isFull = star <= fullStars
@@ -82,12 +82,12 @@ export function RatingDisplay({
         })}
       </div>
 
-      {/* Rating numérico */}
+      {/* rating numérico */}
       <span className={cn('font-medium', config.text)}>
         {rating.toFixed(1)}
       </span>
 
-      {/* Reviews count */}
+      {/* reviews count */}
       {showLabel && reviews !== undefined && (
         <span className={cn('text-muted-foreground', config.text)}>
           ({reviews} {reviews === 1 ? 'avaliação' : 'avaliações'})

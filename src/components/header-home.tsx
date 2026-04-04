@@ -95,7 +95,7 @@ export function HeaderHome() {
               side="right"
               className="border-border bg-background/95 w-72 border-l p-0 backdrop-blur-xl"
             >
-              {/* sr-only */}
+              {/* acessibilidade */}
               <VisuallyHidden>
                 <SheetTitle>Menu de navegação</SheetTitle>
                 <SheetDescription>

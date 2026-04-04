@@ -16,15 +16,11 @@ interface UseFavoritesReturn {
   clearFavorites: () => void
 }
 
-// ===== STORE DE FAVORITOS (SINGLETON) =====
-// Única fonte de verdade compartilhada entre todos os componentes
-
+// store de favoritos (singleton)
 let listeners: Array<() => void> = []
 let currentFavorites: string[] = []
 
-/**
- * Carrega favoritos do localStorage (com migração)
- */
+/** carrega favoritos do localstorage (com migração) */
 function loadFavorites(): string[] {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
@@ -32,15 +28,13 @@ function loadFavorites(): string[] {
 
     const parsed = JSON.parse(stored)
 
-    // Migração automática do schema antigo
+    // migração automática do schema antigo
     if (typeof parsed === 'object' && !Array.isArray(parsed)) {
       const ids = parsed.ids || []
-      // Salvar no novo formato
       localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
       return ids
     }
 
-    // Schema novo (array simples)
     if (Array.isArray(parsed)) {
       return parsed
     }
@@ -52,67 +46,42 @@ function loadFavorites(): string[] {
   }
 }
 
-/**
- * Salva favoritos no localStorage
- */
+/** salva favoritos no localstorage */
 function saveFavorites(ids: string[]): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
-
-    // Notifica todos os listeners (componentes)
     listeners.forEach((listener) => listener())
   } catch (error) {
     devError('[FavoritesStore] Erro ao salvar:', error)
   }
 }
 
-/**
- * Obtém snapshot atual dos favoritos
- */
 function getSnapshot(): string[] {
   return currentFavorites
 }
 
-/**
- * Subscribe para mudanças
- */
 function subscribe(listener: () => void): () => void {
   listeners.push(listener)
-
-  // Unsubscribe
   return () => {
     listeners = listeners.filter((l) => l !== listener)
   }
 }
 
-// Inicializa ao carregar o módulo (apenas uma vez)
+// inicializa ao carregar o módulo
 currentFavorites = loadFavorites()
 
-// ===== HOOK =====
-
-/**
- * Hook para gerenciar favoritos via localStorage
- * Compartilha estado entre todos os componentes usando useSyncExternalStore
- *
- * @example
- * const { isFavorite, toggleFavorite, count } = useFavorites()
- */
+/** hook para gerenciar favoritos via localstorage */
 export function useFavorites(): UseFavoritesReturn {
-  // Sincroniza com store externo (localStorage)
   const favoriteIds = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)
 
-  /**
-   * Adiciona ou remove um schedule dos favoritos
-   */
   const toggleFavorite = useCallback((scheduleId: string) => {
     const isCurrentlyFavorite = currentFavorites.includes(scheduleId)
 
-    // Se tentando adicionar e já está no limite
     if (!isCurrentlyFavorite && currentFavorites.length >= MAX_FAVORITES) {
       toast.error(`Limite de ${MAX_FAVORITES} favoritos atingido!`, {
         description: 'Remova alguns favoritos para adicionar novos.',
       })
-      return // Impede execução
+      return
     }
 
     currentFavorites = isCurrentlyFavorite
@@ -122,9 +91,6 @@ export function useFavorites(): UseFavoritesReturn {
     saveFavorites(currentFavorites)
   }, [])
 
-  /**
-   * Verifica se um schedule é favorito
-   */
   const isFavorite = useCallback(
     (scheduleId: string): boolean => {
       return favoriteIds.includes(scheduleId)
@@ -132,9 +98,6 @@ export function useFavorites(): UseFavoritesReturn {
     [favoriteIds],
   )
 
-  /**
-   * Limpa todos os favoritos
-   */
   const clearFavorites = useCallback(() => {
     currentFavorites = []
     saveFavorites([])

@@ -25,8 +25,6 @@ const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
   const [dialogOpen, setDialogOpen] = useState(false)
-
-  // Hooks de favoritos
   const { isFavorite: checkIsFavorite, toggleFavorite } = useFavorites()
   const isFavorite = checkIsFavorite(schedule.id)
 

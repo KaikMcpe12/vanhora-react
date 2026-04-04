@@ -56,7 +56,6 @@ export function CityPicker({
     )
   }
 
-  // ERROR STATE
   if (isError) {
     return (
       <div className="space-y-2">

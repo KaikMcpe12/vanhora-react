@@ -1,48 +1,8 @@
-// Cidades principais do Ceará para sistema de vans intermunicipais
-export const MOCK_CITIES = [
-  // Região Metropolitana de Fortaleza
-  'Fortaleza',
-  'Caucaia',
-  'Maracanaú',
-  'Maranguape',
-  'Aquiraz',
-  'Pacatuba',
-  'Eusébio',
-
-  // Norte do Estado
-  'Sobral',
-  'Camocim',
-  'Acaraú',
-  'Itapipoca',
-  'Amontada',
-
-  // Sul do Estado (Cariri)
-  'Juazeiro do Norte',
-  'Crato',
-  'Barbalha',
-  'Nova Olinda',
-  'Santana do Cariri',
-
-  // Centro-Sul
-  'Iguatu',
-  'Quixadá',
-  'Limoeiro do Norte',
-  'Russas',
-  'Morada Nova',
-
-  // Oeste/Sertão
-  'Crateús',
-  'Tauá',
-  'Independência',
-  'Canindé',
-  'Santa Quitéria',
-] as const
-
-export type CityName = (typeof MOCK_CITIES)[number]
+// cidades do ceará para sistema de vans intermunicipais
 
 /**
- * Lista de cidades disponíveis no sistema com IDs únicos
- * Usado pelo CityPicker e API para mapeamento consistente
+ * lista de cidades disponíveis no sistema com ids únicos
+ * usado pelo citypicker e api para mapeamento consistente
  */
 export const CITIES_WITH_IDS = [
   { id: '1', name: 'Fortaleza' },
@@ -55,39 +15,19 @@ export const CITIES_WITH_IDS = [
   { id: '8', name: 'Caucaia' },
 ] as const
 
-/**
- * Mapeamento ID → Nome de cidade
- * @example CITY_ID_TO_NAME['1'] // 'Fortaleza'
- */
+/** mapeamento id -> nome de cidade */
 export const CITY_ID_TO_NAME: Record<string, string> = Object.fromEntries(
   CITIES_WITH_IDS.map((city) => [city.id, city.name]),
 )
 
-/**
- * Mapeamento Nome → ID de cidade
- * @example CITY_NAME_TO_ID['Fortaleza'] // '1'
- */
-export const CITY_NAME_TO_ID: Record<string, string> = Object.fromEntries(
-  CITIES_WITH_IDS.map((city) => [city.name, city.id]),
-)
-
-/**
- * Converte ID para nome da cidade (ou retorna o valor original se não encontrado)
- */
+/** converte id para nome da cidade (ou retorna o valor original se não encontrado) */
 export function getCityNameById(idOrName: string): string {
   return CITY_ID_TO_NAME[idOrName] || idOrName
 }
 
-/**
- * Converte nome para ID da cidade (ou retorna o valor original se não encontrado)
- */
-export function getCityIdByName(nameOrId: string): string {
-  return CITY_NAME_TO_ID[nameOrId] || nameOrId
-}
-
-// Rotas principais com distâncias e preços realistas
+// rotas principais com distâncias e preços realistas
 export const MOCK_ROUTES = [
-  // Hub Fortaleza - principais destinos
+  // hub fortaleza
   { origin: 'Fortaleza', destination: 'Sobral', distance: 240, basePrice: 30 },
   {
     origin: 'Fortaleza',
@@ -113,12 +53,12 @@ export const MOCK_ROUTES = [
     basePrice: 22,
   },
 
-  // Região Norte/Sobral
+  // região norte/sobral
   { origin: 'Sobral', destination: 'Camocim', distance: 110, basePrice: 20 },
   { origin: 'Sobral', destination: 'Acaraú', distance: 85, basePrice: 18 },
   { origin: 'Sobral', destination: 'Fortaleza', distance: 240, basePrice: 30 },
 
-  // Região Sul/Cariri
+  // região sul/cariri
   {
     origin: 'Juazeiro do Norte',
     destination: 'Crato',
@@ -134,7 +74,7 @@ export const MOCK_ROUTES = [
   { origin: 'Crato', destination: 'Nova Olinda', distance: 35, basePrice: 15 },
   { origin: 'Crato', destination: 'Fortaleza', distance: 560, basePrice: 55 },
 
-  // Centro-Sul
+  // centro-sul
   { origin: 'Iguatu', destination: 'Crato', distance: 180, basePrice: 30 },
   { origin: 'Iguatu', destination: 'Quixadá', distance: 220, basePrice: 32 },
   {
@@ -144,42 +84,21 @@ export const MOCK_ROUTES = [
     basePrice: 25,
   },
 
-  // Rotas regionais menores
+  // rotas regionais menores
   { origin: 'Caucaia', destination: 'Fortaleza', distance: 25, basePrice: 8 },
   { origin: 'Maracanaú', destination: 'Fortaleza', distance: 22, basePrice: 8 },
   { origin: 'Aquiraz', destination: 'Fortaleza', distance: 35, basePrice: 10 },
 ] as const
 
-export interface MockRoute {
-  origin: CityName
-  destination: CityName
-  distance: number
-  basePrice: number
-}
-
-// Helper para buscar rotas
-export function findRoute(
-  origin: string,
-  destination: string,
-): MockRoute | null {
-  return (
-    MOCK_ROUTES.find(
-      (route) =>
-        (route.origin === origin && route.destination === destination) ||
-        (route.origin === destination && route.destination === origin),
-    ) || null
-  )
-}
-
-// Helper para calcular preço com variação
+/** calcula preço com variação por cooperativa */
 export function calculatePrice(basePrice: number, cooperative: string): number {
-  // Cooperativas premium cobram um pouco mais
+  // cooperativas premium cobram um pouco mais
   const premiumCooperatives = ['Real Expresso', 'Guanabara']
   const multiplier = premiumCooperatives.includes(cooperative) ? 1.15 : 1.0
 
-  // Adiciona variação de ±15%
+  // adiciona variação de ±15%
   const variation = (Math.random() - 0.5) * 0.3
   const finalPrice = basePrice * multiplier * (1 + variation)
 
-  return Math.round(finalPrice * 2) / 2 // Arredonda para .00 ou .50
+  return Math.round(finalPrice * 2) / 2 // arredonda para .00 ou .50
 }

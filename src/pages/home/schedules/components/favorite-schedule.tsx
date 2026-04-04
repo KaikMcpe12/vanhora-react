@@ -103,7 +103,7 @@ export function FavoriteSchedules() {
 
   return (
     <div className="bg-card rounded-xl border shadow-sm">
-      {/* Header */}
+      {/* header */}
       <div className="border-b p-4">
         <div className="flex items-center gap-2">
           <Heart className="h-5 w-5 shrink-0 fill-rose-500 text-rose-500" />
@@ -121,7 +121,7 @@ export function FavoriteSchedules() {
         </div>
       </div>
 
-      {/* Lista (máximo 3 ativos) */}
+      {/* lista (máximo 3 ativos) */}
       <div className="space-y-3 p-4">
         {activeFavorites.length > 0 ? (
           activeFavorites.map((favorite) => (
@@ -138,7 +138,7 @@ export function FavoriteSchedules() {
         )}
       </div>
 
-      {/* Footer: Botão "Ver todos" */}
+      {/* footer */}
       {hiddenCount > 0 && (
         <div className="border-t p-3 text-center">
           <Link

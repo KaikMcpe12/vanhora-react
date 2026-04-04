@@ -1,4 +1,4 @@
-import { Search } from 'lucide-react'
+import { Calendar, Clock, Search, Zap } from 'lucide-react'
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
@@ -8,18 +8,11 @@ import {
 } from '@/hooks/use-schedule-tabs'
 import { useSchedules } from '@/hooks/use-schedules'
 
-import { LeavingNowTab } from './leaving-now-tab'
-import { PastTab } from './past-tab'
-import { UpcomingTab } from './upcoming-tab'
+import { ScheduleTabContent } from './schedule-tab-content'
 
-// tab colors
 const colorMap: Record<
   string,
-  {
-    active: string
-    icon: string
-    hover: string
-  }
+  { active: string; icon: string; hover: string }
 > = {
   'leaving-now': {
     active: 'border-b-emerald-500 text-emerald-700 dark:text-emerald-400',
@@ -39,27 +32,70 @@ const colorMap: Record<
   },
 }
 
+const emptyStateConfig = {
+  'leaving-now': {
+    icon: Zap,
+    title: 'Nenhum horário partindo agora',
+    description:
+      "Não há vans saindo nos próximos 60 minutos. Confira a aba 'Próximos' para horários mais tarde ou ajuste seus filtros de busca.",
+    action: {
+      label: 'Ver Próximos Horários',
+      onClick: () => {
+        window.location.hash = '#upcoming'
+      },
+    },
+  },
+  upcoming: {
+    icon: Calendar,
+    title: 'Nenhum horário próximo',
+    description:
+      "Todos os horários de hoje já estão em 'Partindo Agora' ou 'Decorridos'. Tente buscar em outra data ou rota.",
+    action: {
+      label: 'Alterar Filtros',
+      onClick: () => {
+        document
+          .querySelector('input[type="date"]')
+          ?.scrollIntoView({ behavior: 'smooth' })
+      },
+    },
+  },
+  past: {
+    icon: Clock,
+    title: 'Nenhum horário já partiu',
+    description:
+      "Ainda não há horários que já partiram hoje. Confira 'Partindo Agora' para ver as próximas saídas.",
+    action: {
+      label: 'Ver Partindo Agora',
+      onClick: () => {
+        window.location.hash = '#leaving-now'
+      },
+    },
+  },
+}
+
 export function ScheduleTabs() {
   const { activeTab, setActiveTab, allTabFilters } = useScheduleTabs()
 
-  // Buscar schedules para cada tab usando useInfiniteQuery
   const leavingNowData = useSchedules(allTabFilters['leaving-now'], {
     limit: 12,
   })
   const upcomingData = useSchedules(allTabFilters.upcoming, { limit: 12 })
   const pastData = useSchedules(allTabFilters.past, { limit: 12 })
 
-  // Verificar se há dados em qualquer tab
+  const tabData = {
+    'leaving-now': leavingNowData,
+    upcoming: upcomingData,
+    past: pastData,
+  }
+
   const hasAnyData =
     leavingNowData.schedules.length > 0 ||
     upcomingData.schedules.length > 0 ||
     pastData.schedules.length > 0
 
-  // Loading state (mostrar skeleton se qualquer tab estiver carregando)
   const isLoading =
     leavingNowData.isLoading || upcomingData.isLoading || pastData.isLoading
 
-  // Empty state quando não há dados em nenhuma tab
   if (!isLoading && !hasAnyData) {
     return (
       <div className="rounded-xl border border-dashed p-12 text-center">
@@ -83,12 +119,10 @@ export function ScheduleTabs() {
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as TabType)}
       >
-        {/* tabs */}
         <TabsList className="grid w-full grid-cols-3 gap-1 bg-transparent p-2">
           {Object.entries(TAB_CONFIG).map(([tabKey, config]) => {
             const Icon = config.icon
             const isActive = activeTab === tabKey
-
             const colorClasses = colorMap[tabKey] || colorMap['past']
 
             return (
@@ -113,17 +147,14 @@ export function ScheduleTabs() {
         </TabsList>
 
         <div className="bg-card p-4 md:p-6">
-          <TabsContent value="leaving-now" className="mt-0">
-            <LeavingNowTab data={leavingNowData} />
-          </TabsContent>
-
-          <TabsContent value="upcoming" className="mt-0">
-            <UpcomingTab data={upcomingData} />
-          </TabsContent>
-
-          <TabsContent value="past" className="mt-0">
-            <PastTab data={pastData} />
-          </TabsContent>
+          {(['leaving-now', 'upcoming', 'past'] as const).map((tab) => (
+            <TabsContent key={tab} value={tab} className="mt-0">
+              <ScheduleTabContent
+                data={tabData[tab]}
+                emptyState={emptyStateConfig[tab]}
+              />
+            </TabsContent>
+          ))}
         </div>
       </Tabs>
     </div>

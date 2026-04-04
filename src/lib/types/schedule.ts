@@ -8,67 +8,36 @@ export interface Schedule {
   cooperativeRating?: number
   cooperativeReviews?: number
   tripCode?: string
-  departureTime: string // "15:30" format
-  arrivalTime: string // "17:45" format
+  departureTime: string // "15:30"
+  arrivalTime: string // "17:45"
   duration: string // "1h 30min"
   origin: string
   destination: string
   price: number
-  status: ScheduleStatus // ✅ Campo adicionado da versão schedule-card.tsx
+  status: ScheduleStatus
   badge: ScheduleBadge
   isFavorite?: boolean
-  exceptionReason?: string // "Feriado - Natal", "Manutenção da frota"
+  exceptionReason?: string // "feriado - natal", "manutenção da frota"
 }
 
-export interface SchedulesResponse {
-  schedules: Schedule[]
-  meta: {
-    pageIndex: number
-    perPage: number
-    totalCount: number
-  }
-}
-
-export interface ScheduleFilters {
-  origin?: string
-  destination?: string
-  date?: string
-
-  cooperative?: string
-  dayOfWeek?: string[]
-  priceMin?: number
-  priceMax?: number
-  minRating?: number
-
-  departureAfter?: string
-  departureBefore?: string
-
-  page?: number
-  limit?: number
-}
-
-export type ScheduleCategory = 'leaving-now' | 'upcoming' | 'past'
-
-// ========================================
-// 🆕 RATING TYPES
-// ========================================
+// rating types
 
 export interface Rating {
   id: string
-  scheduleId: string // Relacionado ao Schedule específico
+  scheduleId: string
   stars: number // 1-5
-  createdAt: string // ISO 8601
+  createdAt: string // iso 8601
 }
 
 export interface RatingStats {
-  average: number // 4.5
-  total: number // 120
+  average: number
+  total: number
   distribution: {
-    5: number // 45 avaliações
-    4: number // 50 avaliações
-    3: number // 15 avaliações
-    2: number // 8 avaliações
-    1: number // 2 avaliações
+    5: number
+    4: number
+    3: number
+    2: number
+    1: number
   }
 }
 

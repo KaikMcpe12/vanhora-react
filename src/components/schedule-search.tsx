@@ -91,7 +91,7 @@ export function ScheduleSearch() {
             )}
           </div>
 
-          {/* Data */}
+          {/* data */}
           <div>
             <label className="text-muted-foreground mb-1.5 block text-xs font-medium">
               Data
@@ -121,7 +121,7 @@ export function ScheduleSearch() {
             )}
           </div>
 
-          {/* Botões */}
+          {/* botões */}
           <div className="flex items-end gap-2">
             <Button
               type="submit"

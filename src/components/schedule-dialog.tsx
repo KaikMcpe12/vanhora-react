@@ -64,7 +64,7 @@ const MOCK_SCHEDULE = {
   },
 }
 
-// isso vai para a api
+// todo: mover interface para api types
 interface ScheduleDetails {
   id: string
   cooperativeName: string
@@ -172,7 +172,7 @@ export function ScheduleDialog({
     >
       {schedule ? (
         <>
-          {/* Header com imagem - fixo no topo */}
+          {/* header com imagem */}
           <div className="relative h-40 w-full shrink-0 overflow-hidden sm:h-48">
             {schedule.cooperativeImage ? (
               <img
@@ -211,7 +211,7 @@ export function ScheduleDialog({
               )}
             </div>
 
-            {/* Botões no topo - Heart esquerda, X direita (mobile) */}
+            {/* botões no topo */}
             <div className="absolute top-3 left-3 flex items-center gap-2">
               <button
                 onClick={() => setIsFav((v) => !v)}
@@ -229,7 +229,7 @@ export function ScheduleDialog({
               </button>
             </div>
 
-            {/* Botão Fechar (X) - direita - apenas mobile */}
+            {/* fechar (mobile) */}
             <div className="absolute top-3 right-3 sm:hidden">
               <button
                 onClick={() => onOpenChange?.(false)}
@@ -240,7 +240,7 @@ export function ScheduleDialog({
               </button>
             </div>
 
-            {/* Badge de status - mantido abaixo dos botões */}
+            {/* badge de status */}
             <div className="absolute top-14 left-3">
               <Badge
                 className={cn(
@@ -253,7 +253,7 @@ export function ScheduleDialog({
             </div>
           </div>
 
-          {/* Conteúdo scrollável - cresce e ocupa espaço disponível */}
+          {/* conteúdo scrollável */}
           <div className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
             {schedule.tripCode && (
               <div className="flex items-center justify-end px-5 pt-3">
@@ -418,7 +418,7 @@ export function ScheduleDialog({
               </div>
             </div>
 
-            {/* 🆕 SEÇÃO DE AVALIAÇÃO */}
+            {/* avaliação */}
             <Separator className="mx-5" />
 
             <div className="px-5 py-4">
@@ -427,7 +427,7 @@ export function ScheduleDialog({
 
             <Separator className="mx-5" />
 
-            {/* Footer - dentro do scroll */}
+            {/* footer */}
             <div className="px-5 py-4">
               <Button
                 variant="outline"
@@ -449,7 +449,7 @@ export function ScheduleDialog({
   )
 }
 
-// helpers
+// componentes auxiliares
 
 function SectionTitle({ children }: { children: React.ReactNode }) {
   return (

@@ -122,7 +122,7 @@ export function RatingSection({ scheduleId, className }: RatingSectionProps) {
   // Estado: Formulário de avaliação
   return (
     <div className={cn('animate-fade-in space-y-4', className)}>
-      {/* Header */}
+      {/* header */}
       <div className="space-y-1">
         <h3 className="text-foreground text-sm font-semibold">
           Avalie esta cooperativa
@@ -132,7 +132,7 @@ export function RatingSection({ scheduleId, className }: RatingSectionProps) {
         </p>
       </div>
 
-      {/* Estrelas */}
+      {/* estrelas */}
       <div className="bg-muted/30 flex flex-col items-center gap-3 rounded-2xl p-6">
         <RatingStars
           value={selectedStars}
@@ -154,7 +154,7 @@ export function RatingSection({ scheduleId, className }: RatingSectionProps) {
         )}
       </div>
 
-      {/* Botão */}
+      {/* botão */}
       <Button
         onClick={() => submitRating(selectedStars)}
         disabled={selectedStars === 0 || isSubmitting}

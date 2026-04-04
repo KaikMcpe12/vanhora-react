@@ -1,12 +1,8 @@
 import { z } from 'zod'
 
-/**
- * Schema de validação para filtros de horários
- * Inclui validações de dados e lógica de negócio
- */
+/** schema de validação para filtros de horários */
 export const scheduleFiltersSchema = z
   .object({
-    // Filtros básicos - usando string vazia como padrão para melhor compatibilidade
     origin: z
       .string()
       .default('')
@@ -24,12 +20,11 @@ export const scheduleFiltersSchema = z
         (date) => {
           if (!date) return true
 
-          // ✅ Usar timezone local explicitamente para evitar problemas UTC
+          // usa timezone local para evitar problemas utc
           const selectedDate = new Date(date + 'T00:00:00')
           const today = new Date()
           today.setHours(0, 0, 0, 0)
 
-          // ✅ Permite data de hoje (>=)
           return selectedDate >= today
         },
         {
@@ -37,7 +32,6 @@ export const scheduleFiltersSchema = z
         },
       ),
 
-    // Filtros avançados
     cooperative: z
       .string()
       .default('')
@@ -84,7 +78,6 @@ export const scheduleFiltersSchema = z
   })
   .refine(
     (data) => {
-      // Validação cruzada: preço mínimo não pode ser maior que máximo
       if (data.priceMin && data.priceMax) {
         return data.priceMin <= data.priceMax
       }
@@ -97,7 +90,6 @@ export const scheduleFiltersSchema = z
   )
   .refine(
     (data) => {
-      // Validação: origem e destino não podem ser iguais
       if (data.origin && data.destination) {
         return data.origin.toLowerCase() !== data.destination.toLowerCase()
       }
@@ -110,39 +102,33 @@ export const scheduleFiltersSchema = z
   )
   .refine(
     (data) => {
-      // Validação: pelo menos 1 campo básico deve estar preenchido
       return !!(data.origin || data.destination || data.date)
     },
     {
       message: 'Preencha pelo menos um campo para buscar',
-      path: ['origin'], // Mostra erro no primeiro campo
+      path: ['origin'],
     },
   )
 
 export type ScheduleFiltersSchema = z.infer<typeof scheduleFiltersSchema>
 
-/**
- * Valores padrão para resetar filtros
- * Data atual como padrão, dayOfWeek vazio para consistência com URL
- */
+/** valores padrão para resetar filtros */
 export function getDefaultFilters(): ScheduleFiltersSchema {
   const today = new Date()
 
   return {
     origin: '',
     destination: '',
-    date: today.toISOString().split('T')[0], // YYYY-MM-DD format
+    date: today.toISOString().split('T')[0],
     cooperative: '',
-    dayOfWeek: [], // Vazio por padrão - consistente com URL sem parâmetro
+    dayOfWeek: [],
     priceMin: undefined,
     priceMax: undefined,
     minRating: undefined,
   }
 }
 
-/**
- * Helper para converter ScheduleFiltersSchema para URLSearchParams
- */
+/** converte schedulefilterschema para urlsearchparams */
 export function filtersToSearchParams(
   filters: ScheduleFiltersSchema,
 ): URLSearchParams {
@@ -163,9 +149,7 @@ export function filtersToSearchParams(
   return params
 }
 
-/**
- * Helper para converter URLSearchParams para ScheduleFiltersSchema
- */
+/** converte urlsearchparams para schedulefiltersschema */
 export function searchParamsToFilters(
   searchParams: URLSearchParams,
 ): ScheduleFiltersSchema {
@@ -186,14 +170,13 @@ export function searchParamsToFilters(
       : undefined,
   }
 
-  // Parse com schema para garantir validação
   const result = scheduleFiltersSchema.safeParse(rawData)
 
   if (result.success) {
     return result.data
   }
 
-  // Se houver erro na validação, retorna valores padrão
+  // se houver erro na validação, retorna valores padrão
   console.warn('Erro ao parsear filtros da URL:', result.error)
   return getDefaultFilters()
 }

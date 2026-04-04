@@ -77,7 +77,7 @@ export function HowItWorksSection() {
       </p>
 
       <div className="relative grid gap-12 md:grid-cols-3">
-        {/* Conectores visuais para desktop */}
+        {/* conectores visuais para desktop */}
         <div className="bg-primary/20 absolute top-1/4 left-1/3 hidden h-0.5 w-20 md:block" />
         <div className="bg-primary/20 absolute top-1/4 right-1/3 hidden h-0.5 w-20 md:block" />
 

@@ -1,15 +1,29 @@
-import { Zap } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 import { EmptyState } from '@/components/empty-state'
 import { ScheduleCard } from '@/components/schedule-card'
 import { ScheduleCardSkeleton } from '@/components/schedule-card-skeleton'
 import type { UseSchedulesReturn } from '@/hooks/use-schedules'
 
-interface LeavingNowTabProps {
-  data: UseSchedulesReturn
+interface EmptyStateConfig {
+  icon: LucideIcon
+  title: string
+  description: string
+  action: {
+    label: string
+    onClick: () => void
+  }
 }
 
-export function LeavingNowTab({ data }: LeavingNowTabProps) {
+interface ScheduleTabContentProps {
+  data: UseSchedulesReturn
+  emptyState: EmptyStateConfig
+}
+
+export function ScheduleTabContent({
+  data,
+  emptyState,
+}: ScheduleTabContentProps) {
   const { schedules, isLoading, isFetchingNextPage, hasNextPage, sentinelRef } =
     data
 
@@ -26,15 +40,10 @@ export function LeavingNowTab({ data }: LeavingNowTabProps) {
   if (schedules.length === 0) {
     return (
       <EmptyState
-        icon={Zap}
-        title="Nenhum horário partindo agora"
-        description="Não há vans saindo nos próximos 60 minutos. Confira a aba 'Próximos' para horários mais tarde ou ajuste seus filtros de busca."
-        action={{
-          label: 'Ver Próximos Horários',
-          onClick: () => {
-            window.location.hash = '#upcoming'
-          },
-        }}
+        icon={emptyState.icon}
+        title={emptyState.title}
+        description={emptyState.description}
+        action={emptyState.action}
       />
     )
   }

@@ -19,14 +19,14 @@ export function Schedules() {
 
       <div className="px-2 py-8">
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-12">
-          {/* Sidebar - 1/3 of width (4 columns) */}
+          {/* sidebar */}
           <aside
             className={cn(
               'col-span-1 space-y-6 transition-all duration-300 sm:col-span-1 lg:col-span-4',
               'lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto',
             )}
           >
-            {/* ✅ Advanced Filters - ShadCN Collapsible */}
+            {/* filtros avançados */}
             <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border p-4 transition-colors">
                 <div className="flex items-center gap-2">
@@ -40,7 +40,7 @@ export function Schedules() {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* ✅ Favorite Schedules - ShadCN Collapsible */}
+            {/* favoritos */}
             <Collapsible defaultOpen={false}>
               <CollapsibleTrigger className="hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border p-4 transition-colors">
                 <div className="flex items-center gap-2">
@@ -55,7 +55,7 @@ export function Schedules() {
             </Collapsible>
           </aside>
 
-          {/* Main Content - 2/3 of width (8 columns) */}
+          {/* conteúdo principal */}
           <main className="col-span-1 sm:col-span-2 lg:col-span-8">
             <ScheduleTabs />
           </main>

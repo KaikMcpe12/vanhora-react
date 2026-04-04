@@ -34,10 +34,8 @@ export function AdvanceFilter() {
     watch,
   } = useScheduleFilters()
 
-  // Observa os valores atuais para mostrar informações dinâmicas
   const currentFilters = watch()
 
-  // Conta apenas filtros avançados
   const advancedFiltersCount = [
     currentFilters.cooperative,
     currentFilters.dayOfWeek?.length,
@@ -56,7 +54,6 @@ export function AdvanceFilter() {
   }
 
   const handleClearAdvancedOnly = () => {
-    // Limpa apenas filtros avançados, mantendo busca básica
     updateField('cooperative', '')
     updateField('dayOfWeek', [])
     updateField('priceMin', undefined)
@@ -66,7 +63,7 @@ export function AdvanceFilter() {
 
   return (
     <div className="bg-card overflow-hidden rounded-xl border shadow-sm">
-      {/* ✅ Header simplificado - sem collapsible */}
+      {/* header */}
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -94,10 +91,10 @@ export function AdvanceFilter() {
         </div>
       </div>
 
-      {/* ✅ Conteúdo sempre visível */}
+      {/* conteúdo */}
       <div className="space-y-4 p-4">
         <form onSubmit={handleFilter} className="space-y-4">
-          {/* Cooperativa */}
+          {/* cooperativa */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Cooperativa</Label>
             <Controller
@@ -118,7 +115,7 @@ export function AdvanceFilter() {
             )}
           </div>
 
-          {/* Dias da semana */}
+          {/* dias da semana */}
           <div className="space-y-2">
             <Label className="text-sm font-medium">Dias da semana</Label>
             <p className="text-muted-foreground mb-3 text-xs">
@@ -145,7 +142,7 @@ export function AdvanceFilter() {
             )}
           </div>
 
-          {/* Faixa de preço */}
+          {/* faixa de preço */}
           <div className="space-y-3">
             <Label className="text-sm font-medium">Faixa de preço</Label>
             <div className="grid grid-cols-2 gap-3">
@@ -208,7 +205,7 @@ export function AdvanceFilter() {
             )}
           </div>
 
-          {/* Avaliação mínima */}
+          {/* avaliação mínima */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <Label className="text-sm font-medium">Avaliação mínima</Label>
@@ -245,7 +242,7 @@ export function AdvanceFilter() {
             )}
           </div>
 
-          {/* Botão aplicar filtros */}
+          {/* botão aplicar */}
           <div className="border-t pt-3">
             <Button type="submit" className="w-full" size="sm">
               Aplicar Filtros Avançados

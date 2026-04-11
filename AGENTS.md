@@ -26,23 +26,21 @@ HTTP: Axios
 
 ## 🗄️ Arquitetura do Banco de Dados
 
-### Diagrama ER
-
-![Database Schema](docs/database-schema.png)
-
 ### Entidades Principais
 
 #### 🏙️ **Cities** (Cidades)
+
 Representa as cidades contempladas pelo sistema.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `name` | VARCHAR | Nome da cidade |
-| `state` | VARCHAR(2) | Estado (CE) |
-| `deleted_at` | TIMESTAMP | Soft delete |
+| Campo        | Tipo       | Descrição           |
+| ------------ | ---------- | ------------------- |
+| `id`         | UUID       | Identificador único |
+| `name`       | VARCHAR    | Nome da cidade      |
+| `state`      | VARCHAR(2) | Estado (CE)         |
+| `deleted_at` | TIMESTAMP  | Soft delete         |
 
 **Relacionamentos:**
+
 - 1:N com `routes` (origem)
 - 1:N com `routes` (destino)
 - 1:N com `routes_stop` (paradas)
@@ -50,38 +48,42 @@ Representa as cidades contempladas pelo sistema.
 ---
 
 #### 🚐 **Cooperatives** (Cooperativas)
+
 Cooperativas de transporte que operam as rotas.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `name` | VARCHAR | Nome da cooperativa |
-| `phone_number` | VARCHAR | Telefone de contato |
-| `logo_url` | VARCHAR | Logo da cooperativa |
-| `site` | VARCHAR | Website |
-| `deleted_at` | TIMESTAMP | Soft delete |
+| Campo          | Tipo      | Descrição           |
+| -------------- | --------- | ------------------- |
+| `id`           | UUID      | Identificador único |
+| `name`         | VARCHAR   | Nome da cooperativa |
+| `phone_number` | VARCHAR   | Telefone de contato |
+| `logo_url`     | VARCHAR   | Logo da cooperativa |
+| `site`         | VARCHAR   | Website             |
+| `deleted_at`   | TIMESTAMP | Soft delete         |
 
 **Relacionamentos:**
+
 - 1:N com `routes`
 - 1:N com `users` (funcionários)
 
 ---
 
 #### 🛣️ **Routes** (Rotas)
+
 Rotas operadas pelas cooperativas.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `name` | VARCHAR | Nome descritivo da rota |
-| `cooperative_id` | UUID FK | Cooperativa responsável |
-| `active_days` | VARCHAR[] | Dias de operação |
-| `drive_id` | UUID FK | Motorista padrão |
-| `status` | ENUM | `active`, `inactive`, `suspended` |
-| `price` | DECIMAL | Preço da passagem |
-| `deleted_at` | TIMESTAMP | Soft delete |
+| Campo            | Tipo      | Descrição                         |
+| ---------------- | --------- | --------------------------------- |
+| `id`             | UUID      | Identificador único               |
+| `name`           | VARCHAR   | Nome descritivo da rota           |
+| `cooperative_id` | UUID FK   | Cooperativa responsável           |
+| `active_days`    | VARCHAR[] | Dias de operação                  |
+| `drive_id`       | UUID FK   | Motorista padrão                  |
+| `status`         | ENUM      | `active`, `inactive`, `suspended` |
+| `price`          | DECIMAL   | Preço da passagem                 |
+| `deleted_at`     | TIMESTAMP | Soft delete                       |
 
 **Relacionamentos:**
+
 - N:1 com `cooperatives`
 - 1:N com `schedules`
 - 1:N com `routes_stop` (paradas)
@@ -92,24 +94,27 @@ Rotas operadas pelas cooperativas.
 ---
 
 #### 🕐 **Schedules** (Horários)
+
 Horários de partida das rotas.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `route_id` | UUID FK | Rota associada |
-| `departure_time` | TIME | Horário de partida (HH:mm) |
-| `day_of_week` | VARCHAR | Dia da semana (`monday`, `tuesday`, ...) |
-| `status` | ENUM | `active`, `cancelled`, `suspended` |
-| `notes` | TEXT | Observações |
-| `deleted_at` | TIMESTAMP | Soft delete |
+| Campo            | Tipo      | Descrição                                |
+| ---------------- | --------- | ---------------------------------------- |
+| `id`             | UUID      | Identificador único                      |
+| `route_id`       | UUID FK   | Rota associada                           |
+| `departure_time` | TIME      | Horário de partida (HH:mm)               |
+| `day_of_week`    | VARCHAR   | Dia da semana (`monday`, `tuesday`, ...) |
+| `status`         | ENUM      | `active`, `cancelled`, `suspended`       |
+| `notes`          | TEXT      | Observações                              |
+| `deleted_at`     | TIMESTAMP | Soft delete                              |
 
 **Relacionamentos:**
+
 - N:1 com `routes`
 - 1:N com `schedules_exceptions`
 - 1:N com `delays`
 
 **Índices:**
+
 ```sql
 CREATE INDEX idx_schedules_route ON schedules(route_id);
 CREATE INDEX idx_schedules_day ON schedules(day_of_week);
@@ -119,56 +124,55 @@ CREATE INDEX idx_schedules_time ON schedules(departure_time);
 ---
 
 #### 🚫 **Schedules_Exceptions** (Exceções de Horários)
+
 Cancelamentos ou alterações pontuais em datas específicas (feriados, manutenção, etc).
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `schedule_id` | UUID FK | Horário afetado |
-| `exception_date` | DATE | Data da exceção |
-| `type` | ENUM | `cancelled`, `suspended`, `special_time` |
-| `reason` | VARCHAR | Motivo da exceção |
-| `created_at` | TIMESTAMP | Data de criação |
+| Campo            | Tipo      | Descrição                                |
+| ---------------- | --------- | ---------------------------------------- |
+| `id`             | UUID      | Identificador único                      |
+| `schedule_id`    | UUID FK   | Horário afetado                          |
+| `exception_date` | DATE      | Data da exceção                          |
+| `type`           | ENUM      | `cancelled`, `suspended`, `special_time` |
+| `reason`         | VARCHAR   | Motivo da exceção                        |
+| `created_at`     | TIMESTAMP | Data de criação                          |
 
 **Relacionamentos:**
+
 - N:1 com `schedules`
 
 **Exemplos de uso:**
+
 ```sql
 -- Natal: horário cancelado
-INSERT INTO schedules_exceptions 
+INSERT INTO schedules_exceptions
   (schedule_id, exception_date, type, reason)
-VALUES 
+VALUES
   ('uuid', '2024-12-25', 'cancelled', 'Feriado - Natal');
 
 -- Ano Novo: horário especial
-INSERT INTO schedules_exceptions 
+INSERT INTO schedules_exceptions
   (schedule_id, exception_date, type, reason)
-VALUES 
+VALUES
   ('uuid', '2025-01-01', 'special_time', 'Horário reduzido - Ano Novo');
-```
-
-**Índices:**
-```sql
-CREATE INDEX idx_exceptions_schedule_date 
-  ON schedules_exceptions(schedule_id, exception_date);
 ```
 
 ---
 
 #### 📍 **Routes_Stop** (Paradas de Rotas)
+
 Paradas intermediárias das rotas.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `route_id` | UUID FK | Rota |
-| `city_id` | UUID FK | Cidade da parada |
-| `position` | INTEGER | Ordem da parada |
-| `departure_time` | TIME | Horário de partida desta parada |
+| Campo                | Tipo     | Descrição                         |
+| -------------------- | -------- | --------------------------------- |
+| `id`                 | UUID     | Identificador único               |
+| `route_id`           | UUID FK  | Rota                              |
+| `city_id`            | UUID FK  | Cidade da parada                  |
+| `position`           | INTEGER  | Ordem da parada                   |
+| `departure_time`     | TIME     | Horário de partida desta parada   |
 | `estimated_duration` | INTERVAL | Tempo estimado até próxima parada |
 
 **Relacionamentos:**
+
 - N:1 com `routes`
 - N:1 com `cities`
 
@@ -178,123 +182,83 @@ Permite definir rotas com múltiplas paradas. Exemplo: Fortaleza → Sobral → 
 ---
 
 #### ⭐ **Ratings** (Avaliações)
+
 Avaliações de rotas feitas pelos usuários.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `schedule_id` | UUID FK | Horário avaliado |
-| `stars` | INTEGER | Avaliação (1-5) |
-| `date_ata` | TIMESTAMP | Data da avaliação |
-| `session_id` | UUID | Identificação do usuário (cookie) |
+| Campo         | Tipo      | Descrição                         |
+| ------------- | --------- | --------------------------------- |
+| `id`          | UUID      | Identificador único               |
+| `schedule_id` | UUID FK   | Horário avaliado                  |
+| `stars`       | INTEGER   | Avaliação (1-5)                   |
+| `date_ata`    | TIMESTAMP | Data da avaliação                 |
+| `session_id`  | UUID      | Identificação do usuário (cookie) |
 
 **Relacionamentos:**
+
 - N:1 com `schedules`
 
-**Constraints:**
-```sql
-ALTER TABLE ratings 
-ADD CONSTRAINT check_stars_range 
-CHECK (stars >= 1 AND stars <= 5);
-
-CREATE UNIQUE INDEX idx_ratings_session 
-  ON ratings(schedule_id, session_id);
-```
-
 **Lógica:**
+
 - Usuários **sem conta** podem avaliar (identificados por `session_id` + IP)
 - 1 avaliação por rota por sessão
 - Pode atualizar avaliação existente
 
 ---
 
-#### ❤️ **Favorites** (Favoritos)
-Horários favoritados pelos usuários.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `route_id` | UUID FK | Rota favoritada |
-| `date_created` | TIMESTAMP | Data de criação |
-| `session_id` | UUID | Identificação do usuário |
-| `ip_address` | VARCHAR(45) | IP do usuário |
-
-**Relacionamentos:**
-- N:1 com `routes`
-
-**Nota:** 
-Atualmente **não utilizada** - favoritos são armazenados em **localStorage** no frontend. Esta tabela existe para migração futura quando houver sistema de contas.
-
----
-
 #### 👥 **Users** (Usuários)
+
 Usuários com permissões administrativas (cooperativas, motoristas, admins).
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `name` | VARCHAR | Nome completo |
-| `email` | VARCHAR | Email (único) |
-| `password_hash` | VARCHAR | Senha hasheada |
-| `cooperative_id` | UUID FK | Cooperativa (se aplicável) |
-| `role` | ENUM | `admin`, `cooperative`, `driver` |
-| `deleted_at` | TIMESTAMP | Soft delete |
+| Campo            | Tipo      | Descrição                        |
+| ---------------- | --------- | -------------------------------- |
+| `id`             | UUID      | Identificador único              |
+| `name`           | VARCHAR   | Nome completo                    |
+| `email`          | VARCHAR   | Email (único)                    |
+| `password_hash`  | VARCHAR   | Senha hasheada                   |
+| `cooperative_id` | UUID FK   | Cooperativa (se aplicável)       |
+| `role`           | ENUM      | `admin`, `cooperative`, `driver` |
+| `deleted_at`     | TIMESTAMP | Soft delete                      |
 
 **Relacionamentos:**
+
 - N:1 com `cooperatives`
 - 1:N com `delays` (reportados por)
 
 **Roles:**
+
 - `admin`: Acesso total à plataforma
 - `cooperative`: Gerencia horários e rotas da própria cooperativa
-- `driver`: Reporta atrasos e ocorrências
+- `driver`: Reporta atrasos e ocorrências de suas rotas, ver os horários e rotas da própria cooperativa ao qual faz parte
 
 ---
 
 #### ⏰ **Delays** (Atrasos)
+
 Atrasos reportados em tempo real.
 
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `id` | UUID | Identificador único |
-| `schedule_id` | UUID FK | Horário afetado |
-| `route_id` | UUID FK | Rota afetada |
-| `delay_minutes` | INTEGER | Minutos de atraso |
-| `reason` | TEXT | Motivo do atraso |
-| `reported_by` | UUID FK | Usuário que reportou |
-| `date` | TIMESTAMP | Data/hora do atraso |
-| `severity` | ENUM | `low`, `medium`, `high` |
-| `created_at` | TIMESTAMP | Data de criação |
+| Campo           | Tipo      | Descrição               |
+| --------------- | --------- | ----------------------- |
+| `id`            | UUID      | Identificador único     |
+| `schedule_id`   | UUID FK   | Horário afetado         |
+| `route_id`      | UUID FK   | Rota afetada            |
+| `delay_minutes` | INTEGER   | Minutos de atraso       |
+| `reason`        | TEXT      | Motivo do atraso        |
+| `reported_by`   | UUID FK   | Usuário que reportou    |
+| `date`          | TIMESTAMP | Data/hora do atraso     |
+| `severity`      | ENUM      | `low`, `medium`, `high` |
+| `created_at`    | TIMESTAMP | Data de criação         |
 
 **Relacionamentos:**
+
 - N:1 com `schedules`
 - N:1 com `routes`
 - N:1 com `users` (reporter)
 
 **Severidade:**
+
 - `low`: < 15 minutos
 - `medium`: 15-30 minutos
 - `high`: > 30 minutos
-
----
-
-### Índices Importantes
-```sql
--- Performance em queries frequentes
-CREATE INDEX idx_schedules_route_day 
-  ON schedules(route_id, day_of_week);
-
-CREATE INDEX idx_ratings_route_stars 
-  ON ratings(route_id, stars);
-
-CREATE INDEX idx_exceptions_active 
-  ON schedules_exceptions(exception_date) 
-  WHERE exception_date >= CURRENT_DATE;
-
-CREATE INDEX idx_delays_recent 
-  ON delays(date DESC) 
-  WHERE date >= CURRENT_DATE - INTERVAL '7 days';
-```
 
 ---
 
@@ -313,6 +277,7 @@ CREATE INDEX idx_delays_recent
 ### 🔐 Administrativas
 
 #### Cooperativas
+
 - Gerenciar rotas e horários
 - Adicionar/editar paradas
 - Cadastrar exceções (feriados, manutenção)
@@ -320,11 +285,13 @@ CREATE INDEX idx_delays_recent
 - Dashboard de estatísticas
 
 #### Motoristas
+
 - Reportar atrasos em tempo real
 - Ver rota do dia
 - Histórico de viagens
 
 #### Admins
+
 - Gerenciar cooperativas
 - Moderar avaliações
 - Visualizar analytics
@@ -332,9 +299,92 @@ CREATE INDEX idx_delays_recent
 
 ---
 
+## 🧭 Roles e Navegação Admin (Oficial)
+
+> Identificadores técnicos de role: `admin`, `cooperative`, `driver`.
+> Na UI, os nomes devem permanecer em português.
+
+### ADMIN (Acesso total)
+
+**Menu Principal**
+
+- Dashboard (estatísticas gerais)
+- Cidades (CRUD cidades)
+- Cooperativas (CRUD cooperativas)
+- Usuários (CRUD todos usuários)
+
+**Dados de Transporte**
+
+- Rotas (CRUD todas rotas)
+- Horários (CRUD todos horários)
+- Atrasos (visualizar todos)
+
+### COOPERATIVE (Cooperativa)
+
+**Menu Principal**
+
+- Dashboard (estatísticas da cooperativa)
+- Minha Cooperativa (editar dados próprios)
+- Usuários (gerenciar motoristas/funcionários)
+
+**Dados de Transporte**
+
+- Rotas (CRUD rotas próprias)
+- Horários (CRUD horários próprios)
+- Atrasos (visualizar atrasos próprios)
+
+### DRIVER (Motorista)
+
+**Menu Principal**
+
+- Dashboard (agenda do dia)
+- Meu Perfil (editar dados pessoais)
+
+**Dados de Transporte**
+
+- Minhas Rotas (visualizar rotas atribuídas)
+- Meus Horários (visualizar horários do dia)
+- Reportar Atraso (criar/editar atrasos)
+
+### Dashboards Personalizados
+
+**Admin Dashboard**
+
+- Total de cooperativas ativas
+- Total de rotas cadastradas
+- Total de horários hoje
+- Atrasos reportados (últimas 24h)
+- Avaliações médias (todas cooperativas)
+- Gráfico: Horários por dia da semana
+- Gráfico: Cooperativas mais avaliadas
+- Últimos atrasos reportados
+
+**Cooperative Dashboard**
+
+- Total de rotas ativas
+- Total de horários cadastrados
+- Avaliação média (suas rotas)
+- Total de avaliações recebidas
+- Gráfico: Horários por dia da semana
+- Gráfico: Avaliações (distribuição 1-5 estrelas)
+- Próximos horários (hoje)
+- Atrasos reportados (últimos 7 dias)
+- Motoristas ativos
+
+**Driver Dashboard**
+
+- Horários de hoje (lista cronológica)
+- Rota atual (se estiver em viagem)
+- Próximo horário
+- Histórico de atrasos (últimos 30 dias)
+- Botão rápido: Reportar Atraso
+
+---
+
 ## 🔍 Padrão URL-First para Filtros
 
 Todos os filtros são sincronizados com a URL para:
+
 - Compartilhamento de buscas
 - Histórico do navegador
 - Deep linking
@@ -344,16 +394,19 @@ Todos os filtros são sincronizados com a URL para:
 ## 📊 Dados e Schemas
 
 ### Dados Mock (Desenvolvimento)
-lib/data/mock-cities.ts         # Dados de cidades
-lib/data/mock-cooperatives.ts   # Dados de cooperativas
-lib/data/mock-schedules.ts      # Dados de horários
-lib/data/mock-ratings.ts        # Dados de avaliações
+
+lib/data/mock-cities.ts # Dados de cidades
+lib/data/mock-cooperatives.ts # Dados de cooperativas
+lib/data/mock-schedules.ts # Dados de horários
+lib/data/mock-ratings.ts # Dados de avaliações
 
 ### Schemas de Validação
+
 lib/schemas/schedule-filters.ts # Validação e conversão de filtros
 
 ### Tipos TypeScript
-lib/types/schedule.ts  # Tipos principais do projeto
+
+lib/types/schedule.ts # Tipos principais do projeto
 
 **Principais tipos:**
 
@@ -543,33 +596,6 @@ export function cn(...inputs: ClassValue[]) {
 
 ---
 
-## 📝 Convenções e Boas Práticas
-
-### Nomenclatura
-
-- **Componentes**: PascalCase (`HeroSection`)
-- **Arquivos**: kebab-case (`hero-section.tsx`)
-- **CSS Classes**: Tailwind + custom com prefixo
-- **Variáveis**: camelCase (`isLoading`)
-
-### Props e TypeScript
-
-```typescript
-interface ComponentProps {
-  className?: string      # Sempre opcional
-  children?: ReactNode   # Quando aplicável
-  // ... outras props específicas
-}
-
-export function Component({ className, ...props }: ComponentProps) {
-  return (
-    <div className={cn("default-classes", className)} {...props}>
-      {/* conteúdo */}
-    </div>
-  )
-}
-```
-
 ### Estados e Dados
 
 ```typescript
@@ -611,18 +637,6 @@ const { schedules } = useSchedules(filtersFromUrl)
 
 ---
 
-## 🔧 Comandos de Desenvolvimento
-
-```bash
-npm run dev          # Desenvolvimento
-npm run build        # Build produção
-npm run format       # Prettier
-npm run lint         # ESLint
-npm run preview      # Preview do build
-```
-
----
-
 ## 🚨 Pontos de Atenção
 
 ### 1. Compatibilidade
@@ -648,15 +662,6 @@ npm run preview      # Preview do build
 - 📄 **Meta tags**: preparar estrutura
 - 🖼️ **Images**: alt texts descritivos
 - 📊 **Structured data**: JSON-LD para horários
-
----
-
-## 📚 Recursos e Referências
-
-- [ShadCN/UI Docs](https://ui.shadcn.com)
-- [Tailwind CSS v4](https://tailwindcss.com)
-- [React Router v7](https://reactrouter.com)
-- [Lucide Icons](https://lucide.dev)
 
 ---
 

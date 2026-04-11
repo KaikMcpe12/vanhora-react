@@ -1,10 +1,12 @@
 import { createBrowserRouter } from 'react-router-dom'
 
+import { AdminLayout } from './pages/_layouts/admin'
 import { AppLayout } from './pages/_layouts/app'
 import { AuthLayout } from './pages/_layouts/auth'
 import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
 import { Dashboard } from './pages/app/dashboard'
+import { AdminDashboard } from './pages/auth/admin/dashboard'
 import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
@@ -61,6 +63,60 @@ export const router = createBrowserRouter([
       {
         index: true,
         element: <Dashboard />,
+      },
+    ],
+  },
+  {
+    path: '/admin',
+    element: <AdminLayout />,
+    children: [
+      {
+        index: true,
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'cities',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'schedules',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'routes',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'users',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'cooperatives',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'my-cooperative',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'me',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'delays',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'my-routes',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'my-schedules',
+        element: <AdminDashboard />,
+      },
+      {
+        path: 'report-delay',
+        element: <AdminDashboard />,
       },
     ],
   },

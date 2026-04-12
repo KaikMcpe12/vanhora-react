@@ -303,8 +303,11 @@ Atrasos reportados em tempo real.
 
 > Identificadores técnicos de role: `admin`, `cooperative`, `driver`.
 > Na UI, os nomes devem permanecer em português.
+> Prefixos oficiais de rota por role: `/admin`, `/cooperative`, `/driver`.
 
 ### ADMIN (Acesso total)
+
+**Prefixo de rota:** `/admin`
 
 **Menu Principal**
 
@@ -321,6 +324,8 @@ Atrasos reportados em tempo real.
 
 ### COOPERATIVE (Cooperativa)
 
+**Prefixo de rota:** `/cooperative`
+
 **Menu Principal**
 
 - Dashboard (estatísticas da cooperativa)
@@ -334,6 +339,8 @@ Atrasos reportados em tempo real.
 - Atrasos (visualizar atrasos próprios)
 
 ### DRIVER (Motorista)
+
+**Prefixo de rota:** `/driver`
 
 **Menu Principal**
 

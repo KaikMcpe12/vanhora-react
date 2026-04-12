@@ -10,49 +10,46 @@ import {
   Users,
 } from 'lucide-react'
 
-export type AdminRole = 'admin' | 'cooperative' | 'driver'
-export type AdminNavigationGroupId = 'main' | 'transport'
+export type AppPortalRole = 'admin' | 'cooperative' | 'driver'
+export type AppPortalGroupId = 'main' | 'transport'
 
-export interface AdminUser {
+export interface AppPortalUser {
   name: string
   email: string
-  role: AdminRole
+  role: AppPortalRole
 }
 
-export interface AdminNavigationItem {
+export interface AppPortalNavigationItem {
   id: string
   label: string
   path: string
   icon: LucideIcon
-  group: AdminNavigationGroupId
-  roles: AdminRole[]
+  group: AppPortalGroupId
+  roles: AppPortalRole[]
 }
 
-export interface AdminNavigationGroup {
-  id: AdminNavigationGroupId
+export interface AppPortalNavigationGroup {
+  id: AppPortalGroupId
   label: string
-  items: AdminNavigationItem[]
+  items: AppPortalNavigationItem[]
 }
 
-export const ADMIN_ROLE_LABEL: Record<AdminRole, string> = {
+export const APP_PORTAL_ROLE_LABEL: Record<AppPortalRole, string> = {
   admin: 'Administrador',
   cooperative: 'Cooperativa',
   driver: 'Motorista',
 }
 
-export const ADMIN_NAVIGATION_GROUP_LABEL: Record<
-  AdminNavigationGroupId,
-  string
-> = {
+export const APP_PORTAL_GROUP_LABEL: Record<AppPortalGroupId, string> = {
   main: 'Menu Principal',
   transport: 'Dados de Transporte',
 }
 
-export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
+export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
   {
     id: 'dashboard',
     label: 'Dashboard',
-    path: '/admin',
+    path: '',
     icon: BarChart3,
     group: 'main',
     roles: ['admin', 'cooperative', 'driver'],
@@ -60,7 +57,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'cities',
     label: 'Cidades',
-    path: '/admin/cities',
+    path: 'cities',
     icon: MapPinned,
     group: 'main',
     roles: ['admin'],
@@ -68,7 +65,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'cooperatives',
     label: 'Cooperativas',
-    path: '/admin/cooperatives',
+    path: 'cooperatives',
     icon: Building2,
     group: 'main',
     roles: ['admin'],
@@ -76,7 +73,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'users',
     label: 'Usuarios',
-    path: '/admin/users',
+    path: 'users',
     icon: Users,
     group: 'main',
     roles: ['admin', 'cooperative'],
@@ -84,7 +81,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'my-cooperative',
     label: 'Minha Cooperativa',
-    path: '/admin/my-cooperative',
+    path: 'my-cooperative',
     icon: Building2,
     group: 'main',
     roles: ['cooperative'],
@@ -92,7 +89,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'me',
     label: 'Meu Perfil',
-    path: '/admin/me',
+    path: 'me',
     icon: UserRound,
     group: 'main',
     roles: ['driver'],
@@ -100,7 +97,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'routes',
     label: 'Rotas',
-    path: '/admin/routes',
+    path: 'routes',
     icon: Route,
     group: 'transport',
     roles: ['admin', 'cooperative'],
@@ -108,7 +105,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'my-routes',
     label: 'Minhas Rotas',
-    path: '/admin/my-routes',
+    path: 'my-routes',
     icon: Route,
     group: 'transport',
     roles: ['driver'],
@@ -116,7 +113,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'schedules',
     label: 'Horarios',
-    path: '/admin/schedules',
+    path: 'schedules',
     icon: Clock3,
     group: 'transport',
     roles: ['admin', 'cooperative'],
@@ -124,7 +121,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'my-schedules',
     label: 'Meus Horarios',
-    path: '/admin/my-schedules',
+    path: 'my-schedules',
     icon: Clock3,
     group: 'transport',
     roles: ['driver'],
@@ -132,7 +129,7 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'delays',
     label: 'Atrasos',
-    path: '/admin/delays',
+    path: 'delays',
     icon: AlertTriangle,
     group: 'transport',
     roles: ['admin', 'cooperative'],
@@ -140,14 +137,14 @@ export const ADMIN_NAVIGATION_ITEMS: AdminNavigationItem[] = [
   {
     id: 'report-delay',
     label: 'Reportar Atraso',
-    path: '/admin/report-delay',
+    path: 'report-delay',
     icon: AlertTriangle,
     group: 'transport',
     roles: ['driver'],
   },
 ]
 
-export const ADMIN_MOCK_USERS: Record<AdminRole, AdminUser> = {
+export const APP_PORTAL_MOCK_USERS: Record<AppPortalRole, AppPortalUser> = {
   admin: {
     name: 'Ana Gestora',
     email: 'admin@vanhora.dev',
@@ -165,46 +162,60 @@ export const ADMIN_MOCK_USERS: Record<AdminRole, AdminUser> = {
   },
 }
 
-export function isAdminRole(value: string | null): value is AdminRole {
-  return value === 'admin' || value === 'cooperative' || value === 'driver'
+export function getNavigationPath(basePath: string, itemPath: string) {
+  if (!itemPath) {
+    return basePath
+  }
+
+  return `${basePath}/${itemPath}`
 }
 
-export function getAdminNavigationItems(role: AdminRole) {
-  return ADMIN_NAVIGATION_ITEMS.filter((item) => item.roles.includes(role))
+export function getAppPortalNavigationItems(role: AppPortalRole) {
+  return APP_PORTAL_NAVIGATION_ITEMS.filter((item) => item.roles.includes(role))
 }
 
-export function getAdminNavigationByRole(
-  role: AdminRole,
-): AdminNavigationGroup[] {
-  const items = getAdminNavigationItems(role)
-  const orderedGroups: AdminNavigationGroupId[] = ['main', 'transport']
+export function getAppPortalNavigationGroups(
+  role: AppPortalRole,
+): AppPortalNavigationGroup[] {
+  const items = getAppPortalNavigationItems(role)
+  const orderedGroups: AppPortalGroupId[] = ['main', 'transport']
 
   return orderedGroups
     .map((groupId) => ({
       id: groupId,
-      label: ADMIN_NAVIGATION_GROUP_LABEL[groupId],
+      label: APP_PORTAL_GROUP_LABEL[groupId],
       items: items.filter((item) => item.group === groupId),
     }))
     .filter((group) => group.items.length > 0)
 }
 
-export function canAccessAdminPath(role: AdminRole, pathname: string) {
-  return getAdminNavigationItems(role).some((item) => {
-    if (item.path === '/admin') {
-      return pathname === '/admin'
+export function canAccessAppPortalPath(
+  role: AppPortalRole,
+  pathname: string,
+  basePath: string,
+) {
+  return getAppPortalNavigationItems(role).some((item) => {
+    const path = getNavigationPath(basePath, item.path)
+    if (path === basePath) {
+      return pathname === basePath
     }
 
-    return pathname.startsWith(item.path)
+    return pathname.startsWith(path)
   })
 }
 
-export function getAdminPageLabel(pathname: string, role: AdminRole) {
-  const item = getAdminNavigationItems(role).find((navItem) => {
-    if (navItem.path === '/admin') {
-      return pathname === '/admin'
+export function getAppPortalPageLabel(
+  pathname: string,
+  role: AppPortalRole,
+  basePath: string,
+) {
+  const item = getAppPortalNavigationItems(role).find((navItem) => {
+    const path = getNavigationPath(basePath, navItem.path)
+    if (path === basePath) {
+      return pathname === basePath
     }
 
-    return pathname.startsWith(navItem.path)
+    return pathname.startsWith(path)
   })
 
   return item?.label ?? 'Area Administrativa'

@@ -2,16 +2,18 @@ import { LogOut } from 'lucide-react'
 import { Link, useLocation } from 'react-router-dom'
 
 import Logo from '@/assets/logo.svg'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import {
-  ADMIN_ROLE_LABEL,
-  type AdminRole,
-  getAdminNavigationByRole,
-} from '@/lib/config/admin-navigation'
+  type AppPortalRole,
+  getAppPortalNavigationGroups,
+  getNavigationPath,
+} from '@/lib/config/app-portal-navigation'
 import { cn } from '@/lib/utils'
 
-interface AdminAsideProps {
-  role: AdminRole
+interface AppPortalAsideProps {
+  role: AppPortalRole
+  basePath: string
   userName: string
   userEmail: string
   onNavigate?: () => void
@@ -23,15 +25,16 @@ function getInitials(name: string) {
   return `${first[0] ?? ''}${second[0] ?? ''}`.toUpperCase()
 }
 
-export function AdminAside({
+export function AppPortalAside({
   role,
+  basePath,
   userName,
   userEmail,
   onNavigate,
   onSignOut,
-}: AdminAsideProps) {
+}: AppPortalAsideProps) {
   const { pathname } = useLocation()
-  const navigationGroups = getAdminNavigationByRole(role)
+  const navigationGroups = getAppPortalNavigationGroups(role)
 
   return (
     <div className="bg-card flex h-full flex-col">
@@ -42,7 +45,7 @@ export function AdminAside({
             VanHora
           </p>
           <p className="text-muted-foreground truncate text-xs">
-            Painel administrativo
+            Painel de operacoes
           </p>
         </div>
       </div>
@@ -56,17 +59,17 @@ export function AdminAside({
 
             <nav className="space-y-1">
               {group.items.map((item) => {
+                const itemPath = getNavigationPath(basePath, item.path)
                 const isActive =
-                  item.path === '/admin'
-                    ? pathname === '/admin'
-                    : pathname.startsWith(item.path)
-
+                  itemPath === basePath
+                    ? pathname === basePath
+                    : pathname.startsWith(itemPath)
                 const Icon = item.icon
 
                 return (
                   <Link
                     key={item.id}
-                    to={item.path}
+                    to={itemPath}
                     onClick={onNavigate}
                     className={cn(
                       'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors',
@@ -87,9 +90,9 @@ export function AdminAside({
 
       <div className="border-border bg-background border-t p-3">
         <div className="mb-2 flex items-center gap-2.5 rounded-md border px-2.5 py-2">
-          <div className="bg-primary/15 text-primary flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold">
-            {getInitials(userName)}
-          </div>
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+          </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-foreground truncate text-sm font-medium">
               {userName}
@@ -100,21 +103,16 @@ export function AdminAside({
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-md border px-2 py-1.5">
-          <p className="text-muted-foreground text-xs">
-            {ADMIN_ROLE_LABEL[role]}
-          </p>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            onClick={onSignOut}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <span className="sr-only">Sair</span>
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </div>
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          onClick={onSignOut}
+          className="flex w-full items-center justify-between rounded-md border px-2 py-2 text-red-500 hover:bg-red-500 hover:text-white"
+        >
+          <p className="text-sm">Sair</p>
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </div>
   )

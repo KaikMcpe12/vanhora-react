@@ -4,12 +4,12 @@ import { Link, useLocation } from 'react-router-dom'
 import Logo from '@/assets/logo.svg'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 import {
   type AppPortalRole,
   getAppPortalNavigationGroups,
   getNavigationPath,
-} from '@/lib/config/app-portal-navigation'
-import { cn } from '@/lib/utils'
+} from '@/pages/app-portal/app-portal-navigation'
 
 interface AppPortalAsideProps {
   role: AppPortalRole

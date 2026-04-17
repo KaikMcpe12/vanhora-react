@@ -16,7 +16,7 @@ import {
   APP_PORTAL_ROLE_LABEL,
   type AppPortalRole,
   getNavigationPath,
-} from '@/lib/config/app-portal-navigation'
+} from '@/pages/app-portal/app-portal-navigation'
 
 interface AppPortalHeaderProps {
   role: AppPortalRole

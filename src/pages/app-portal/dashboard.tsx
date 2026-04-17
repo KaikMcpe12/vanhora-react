@@ -5,7 +5,7 @@ import {
   APP_PORTAL_ROLE_LABEL,
   type AppPortalRole,
   type AppPortalUser,
-} from '@/lib/config/app-portal-navigation'
+} from '@/pages/app-portal/app-portal-navigation'
 
 interface AppPortalOutletContext {
   role: AppPortalRole

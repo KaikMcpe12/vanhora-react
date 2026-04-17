@@ -1,4 +1,4 @@
-import { SectionPlaceholder } from './section-placeholder'
+import { SectionPlaceholder } from '../section-placeholder'
 
 export function CooperativeMyCooperativePage() {
   return (

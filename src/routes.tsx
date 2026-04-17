@@ -1,16 +1,27 @@
 import { createBrowserRouter } from 'react-router-dom'
 
-import { AppLayout } from './pages/_layouts/app'
 import { AppPortalLayout } from './pages/_layouts/app-portal'
 import { AuthLayout } from './pages/_layouts/auth'
 import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
-import { Dashboard } from './pages/app/dashboard'
-import { AdminCitiesPage } from './pages/app-portal/admin-cities'
-import { CooperativeMyCooperativePage } from './pages/app-portal/cooperative-my-cooperative'
-import { AppPortalDashboard } from './pages/app-portal/dashboard'
-import { DriverProfilePage } from './pages/app-portal/driver-profile'
-import { SectionPlaceholder } from './pages/app-portal/section-placeholder'
+import { AdminCitiesPage } from './pages/app-portal/admin/cities'
+import { AdminCooperativesPage } from './pages/app-portal/admin/cooperatives'
+import { AdminDashboardPage } from './pages/app-portal/admin/dashboard'
+import { AdminDelaysPage } from './pages/app-portal/admin/delays'
+import { AdminRoutesPage } from './pages/app-portal/admin/routes'
+import { AdminSchedulesPage } from './pages/app-portal/admin/schedules'
+import { AdminUsersPage } from './pages/app-portal/admin/users'
+import { CooperativeDashboardPage } from './pages/app-portal/cooperative/dashboard'
+import { CooperativeDelaysPage } from './pages/app-portal/cooperative/delays'
+import { CooperativeMyCooperativePage } from './pages/app-portal/cooperative/my-cooperative'
+import { CooperativeRoutesPage } from './pages/app-portal/cooperative/routes'
+import { CooperativeSchedulesPage } from './pages/app-portal/cooperative/schedules'
+import { CooperativeUsersPage } from './pages/app-portal/cooperative/users'
+import { DriverDashboardPage } from './pages/app-portal/driver/dashboard'
+import { DriverProfilePage } from './pages/app-portal/driver/me'
+import { DriverMyRoutesPage } from './pages/app-portal/driver/my-routes'
+import { DriverMySchedulesPage } from './pages/app-portal/driver/my-schedules'
+import { DriverReportDelayPage } from './pages/app-portal/driver/report-delay'
 import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
@@ -61,22 +72,12 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    path: '/app',
-    element: <AppLayout />,
-    children: [
-      {
-        index: true,
-        element: <Dashboard />,
-      },
-    ],
-  },
-  {
     path: '/admin',
     element: <AppPortalLayout />,
     children: [
       {
         index: true,
-        element: <AppPortalDashboard />,
+        element: <AdminDashboardPage />,
       },
       {
         path: 'cities',
@@ -84,48 +85,23 @@ export const router = createBrowserRouter([
       },
       {
         path: 'schedules',
-        element: (
-          <SectionPlaceholder
-            title="Horarios"
-            description="CRUD de horarios para administradores."
-          />
-        ),
+        element: <AdminSchedulesPage />,
       },
       {
         path: 'routes',
-        element: (
-          <SectionPlaceholder
-            title="Rotas"
-            description="CRUD de rotas para administradores."
-          />
-        ),
+        element: <AdminRoutesPage />,
       },
       {
         path: 'users',
-        element: (
-          <SectionPlaceholder
-            title="Usuarios"
-            description="Gestao de todos os usuarios da plataforma."
-          />
-        ),
+        element: <AdminUsersPage />,
       },
       {
         path: 'cooperatives',
-        element: (
-          <SectionPlaceholder
-            title="Cooperativas"
-            description="CRUD completo das cooperativas cadastradas."
-          />
-        ),
+        element: <AdminCooperativesPage />,
       },
       {
         path: 'delays',
-        element: (
-          <SectionPlaceholder
-            title="Atrasos"
-            description="Painel de visualizacao de atrasos reportados."
-          />
-        ),
+        element: <AdminDelaysPage />,
       },
     ],
   },
@@ -135,7 +111,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AppPortalDashboard />,
+        element: <CooperativeDashboardPage />,
       },
       {
         path: 'my-cooperative',
@@ -143,39 +119,19 @@ export const router = createBrowserRouter([
       },
       {
         path: 'users',
-        element: (
-          <SectionPlaceholder
-            title="Usuarios"
-            description="Gestao de motoristas e funcionarios da cooperativa."
-          />
-        ),
+        element: <CooperativeUsersPage />,
       },
       {
         path: 'routes',
-        element: (
-          <SectionPlaceholder
-            title="Rotas"
-            description="CRUD de rotas vinculadas a cooperativa autenticada."
-          />
-        ),
+        element: <CooperativeRoutesPage />,
       },
       {
         path: 'schedules',
-        element: (
-          <SectionPlaceholder
-            title="Horarios"
-            description="CRUD de horarios da cooperativa autenticada."
-          />
-        ),
+        element: <CooperativeSchedulesPage />,
       },
       {
         path: 'delays',
-        element: (
-          <SectionPlaceholder
-            title="Atrasos"
-            description="Visualizacao de atrasos das rotas da cooperativa."
-          />
-        ),
+        element: <CooperativeDelaysPage />,
       },
     ],
   },
@@ -185,7 +141,7 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <AppPortalDashboard />,
+        element: <DriverDashboardPage />,
       },
       {
         path: 'me',
@@ -193,30 +149,15 @@ export const router = createBrowserRouter([
       },
       {
         path: 'my-routes',
-        element: (
-          <SectionPlaceholder
-            title="Minhas Rotas"
-            description="Rotas atribuidas ao motorista autenticado."
-          />
-        ),
+        element: <DriverMyRoutesPage />,
       },
       {
         path: 'my-schedules',
-        element: (
-          <SectionPlaceholder
-            title="Meus Horarios"
-            description="Horarios do dia para acompanhamento do motorista."
-          />
-        ),
+        element: <DriverMySchedulesPage />,
       },
       {
         path: 'report-delay',
-        element: (
-          <SectionPlaceholder
-            title="Reportar Atraso"
-            description="Registro de ocorrencias e atrasos em tempo real."
-          />
-        ),
+        element: <DriverReportDelayPage />,
       },
     ],
   },

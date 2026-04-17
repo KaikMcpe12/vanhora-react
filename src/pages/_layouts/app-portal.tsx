@@ -2,21 +2,21 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { useMemo, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
-import { AppPortalAside } from '@/components/app-portal/app-portal-aside'
-import { AppPortalHeader } from '@/components/app-portal/app-portal-header'
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetTitle,
 } from '@/components/ui/sheet'
+import { AppPortalAside } from '@/pages/app-portal/app-portal-aside'
+import { AppPortalHeader } from '@/pages/app-portal/app-portal-header'
 import {
   APP_PORTAL_MOCK_USERS,
   type AppPortalRole,
   type AppPortalUser,
   canAccessAppPortalPath,
   getAppPortalPageLabel,
-} from '@/lib/config/app-portal-navigation'
+} from '@/pages/app-portal/app-portal-navigation'
 
 function getRoleFromBasePath(pathname: string): AppPortalRole | null {
   if (pathname.startsWith('/admin')) {

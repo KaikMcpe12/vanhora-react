@@ -46,7 +46,7 @@ export function AppPortalHeader({
     role === 'driver' ? getNavigationPath(basePath, 'me') : basePath
 
   return (
-    <header className="bg-background border-border flex h-20 items-center justify-between border-b px-4 md:px-6">
+    <header className="bg-background/95 border-border supports-[backdrop-filter]:bg-background/80 sticky top-0 z-40 flex h-20 items-center justify-between border-b px-4 backdrop-blur md:px-6">
       <div className="flex items-center gap-3">
         <Button
           type="button"

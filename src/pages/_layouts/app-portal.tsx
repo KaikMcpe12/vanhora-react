@@ -104,7 +104,7 @@ export function AppPortalLayout() {
 
   return (
     <div className="bg-muted/40 flex min-h-screen antialiased">
-      <aside className="border-border hidden w-64 border-r lg:block">
+      <aside className="border-border hidden w-64 border-r lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start">
         <AppPortalAside
           role={user.role}
           basePath={basePath}

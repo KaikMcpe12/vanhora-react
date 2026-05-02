@@ -1,10 +1,5 @@
-import { SectionPlaceholder } from '../section-placeholder'
+import { RoutesPage } from '@/pages/app-portal/routes/routes-page'
 
 export function CooperativeRoutesPage() {
-  return (
-    <SectionPlaceholder
-      title="Rotas"
-      description="CRUD de rotas vinculadas a cooperativa autenticada."
-    />
-  )
+  return <RoutesPage />
 }

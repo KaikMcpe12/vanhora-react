@@ -13,8 +13,9 @@ dist-ssr
 *.local
 
 # SKILS
-vercel-react-best-practices
+.agents
 .opencode
+design-system
 docs
 
 

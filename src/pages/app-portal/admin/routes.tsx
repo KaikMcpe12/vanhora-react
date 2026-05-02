@@ -1,10 +1,5 @@
-import { SectionPlaceholder } from '../section-placeholder'
+import { RoutesPage } from '@/pages/app-portal/routes/routes-page'
 
 export function AdminRoutesPage() {
-  return (
-    <SectionPlaceholder
-      title="Rotas"
-      description="CRUD de rotas para administradores."
-    />
-  )
+  return <RoutesPage />
 }

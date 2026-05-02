@@ -1,0 +1,96 @@
+import type { AdminRoute } from '@/lib/types/admin-schedule'
+
+export const MOCK_ADMIN_ROUTES: AdminRoute[] = [
+  {
+    id: 'r-204',
+    code: 'R-204',
+    cooperativeName: 'Metro Transportes',
+    origin: 'Juazeiro',
+    destination: 'Petrolina',
+    activeDays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
+    basePrice: 24,
+    openExceptionsCount: 2,
+    nextExceptionDate: '18/04/2026',
+    stops: [
+      { city: 'Juazeiro Centro', time: '06:00' },
+      { city: 'Lagoa Grande', time: '07:10' },
+      { city: 'Petrolina Terminal', time: '07:45' },
+    ],
+    schedules: [
+      {
+        id: 'r204-0630',
+        departureTime: '06:30',
+        dayOfWeek: 'sex',
+        activeDays: ['seg', 'ter', 'qua', 'qui', 'sex'],
+        cooperativeName: 'Metro Transportes',
+        origin: 'Juazeiro',
+        destination: 'Petrolina',
+        routeCode: 'R-204',
+        recordStatus: 'active',
+        operationalStatus: 'in_operation',
+        rating: { average: 4.6, total: 128, lastAt: 'hoje 08:12' },
+      },
+      {
+        id: 'r204-0715',
+        departureTime: '07:15',
+        dayOfWeek: 'qua',
+        activeDays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
+        cooperativeName: 'Metro Transportes',
+        origin: 'Juazeiro',
+        destination: 'Petrolina',
+        routeCode: 'R-204',
+        recordStatus: 'active',
+        operationalStatus: 'delayed',
+        notes: 'Parada rapida no Centro',
+        nextException: { date: '18/04/2026', type: 'rescheduled', newDepartureTime: '09:15', reason: 'Alta demanda — saida adiada' },
+        rating: { average: 4.2, total: 89, lastAt: 'hoje 06:30' },
+      },
+    ],
+    temporarySchedules: [
+      {
+        id: 'tmp-r204-01',
+        routeId: 'r-204',
+        departureTime: '10:00',
+        date: '19/04/2026',
+        reason: 'Alta demanda feriado',
+        status: 'active',
+      },
+    ],
+  },
+  {
+    id: 'r-319',
+    code: 'R-319',
+    cooperativeName: 'Expresso Sao Francisco',
+    origin: 'Juazeiro',
+    destination: 'Petrolina',
+    activeDays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
+    basePrice: 28,
+    openExceptionsCount: 1,
+    nextExceptionDate: '18/04/2026',
+    stops: [
+      { city: 'Juazeiro Centro', time: '14:00' },
+      { city: 'Lagoa Grande', time: '14:45' },
+      { city: 'Petrolina Terminal', time: '15:30' },
+    ],
+    schedules: [
+      {
+        id: 'r319-1400',
+        departureTime: '14:00',
+        dayOfWeek: 'sex',
+        activeDays: ['seg', 'ter', 'qua', 'qui', 'sex'],
+        cooperativeName: 'Expresso Sao Francisco',
+        origin: 'Juazeiro',
+        destination: 'Petrolina',
+        routeCode: 'R-319',
+        recordStatus: 'cancelled',
+        operationalStatus: 'cancelled',
+      },
+    ],
+  },
+]
+
+export const ADMIN_SCHEDULE_SUMMARY = {
+  activeSchedulesToday: 1284,
+  openExceptions: 18,
+  monitoredRoutes: 892,
+}

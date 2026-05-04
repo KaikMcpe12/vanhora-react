@@ -51,11 +51,11 @@ import type {
 } from '@/pages/app-portal/app-portal-navigation'
 
 import { DelayModal } from './delay-modal'
-import { ExceptionModal } from './exception-modal'
 import type { RouteExceptionContext } from './exception-modal'
+import { ExceptionModal } from './exception-modal'
 import { ScheduleActionsMenu } from './schedule-actions-menu'
-import { ScheduleStatusModal } from './schedule-status-modal'
 import type { StatusVariant } from './schedule-status-modal'
+import { ScheduleStatusModal } from './schedule-status-modal'
 
 interface AppPortalOutletContext {
   role: AppPortalRole
@@ -75,16 +75,6 @@ const DAY_CIRCLE_LABEL: Record<DayOfWeek, string> = {
   sex: 'S',
   sab: 'S',
   dom: 'D',
-}
-
-const DAY_FULL_LABEL: Record<DayOfWeek, string> = {
-  seg: 'Segunda-feira',
-  ter: 'Terca-feira',
-  qua: 'Quarta-feira',
-  qui: 'Quinta-feira',
-  sex: 'Sexta-feira',
-  sab: 'Sabado',
-  dom: 'Domingo',
 }
 
 const SHORT_DAY: Record<DayOfWeek, string> = {

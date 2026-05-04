@@ -1,9 +1,9 @@
 import {
   CalendarDays,
   CheckCircle2,
-  CircleSlash,
   ChevronLeft,
   ChevronRight,
+  CircleSlash,
   PauseCircle,
   Pencil,
   PlayCircle,

@@ -8,6 +8,8 @@ interface RelativeTimeDisplayProps {
   departureTime: string // "HH:mm"
   status?: ScheduleVisualStatus
   delayMinutes?: number
+  /** 'featured' usa 42px e letter-spacing -0.8px para o card de destaque */
+  size?: 'default' | 'featured'
   className?: string
 }
 
@@ -24,6 +26,7 @@ export function RelativeTimeDisplay({
   departureTime,
   status,
   delayMinutes,
+  size = 'default',
   className,
 }: RelativeTimeDisplayProps) {
   const [mins, setMins] = useState(() => getMinutesUntilDeparture(departureTime))
@@ -52,9 +55,10 @@ export function RelativeTimeDisplay({
       ) : (
         <div className="flex items-baseline gap-2">
           <span
-            className="font-medium leading-none tracking-[-0.4px]"
+            className="font-medium leading-none"
             style={{
-              fontSize: 27,
+              fontSize: size === 'featured' ? 42 : 27,
+              letterSpacing: size === 'featured' ? '-0.8px' : '-0.4px',
               color: isUrgent ? '#0F6E56' : 'inherit',
             }}
           >

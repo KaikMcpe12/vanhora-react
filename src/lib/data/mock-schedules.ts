@@ -27,7 +27,13 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-// gera horários de funcionamento realistas (05:00 às 22:30)
+/** formata minutos relativos ao momento atual como "HH:mm" */
+function relativeTimeStr(offsetMinutes: number): string {
+  const d = new Date(Date.now() + offsetMinutes * 60_000)
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+}
+
+// gera horários de funcionamento realistas (05:00 às 22:30) + âncoras relativas
 const generateDepartureTimes = (): string[] => {
   const times: string[] = []
 
@@ -56,7 +62,20 @@ const generateDepartureTimes = (): string[] => {
   // noite (18:00 - 22:30): menos frequente
   times.push('18:00', '19:00', '20:00', '21:00', '22:00', '22:30')
 
-  return times.sort()
+  // âncoras relativas ao momento atual para garantir distribuição nos buckets
+  // urgente (≤30min): +8 e +22min
+  // próximos (>30min): +48, +90, +165, +280min
+  times.push(
+    relativeTimeStr(8),
+    relativeTimeStr(22),
+    relativeTimeStr(48),
+    relativeTimeStr(90),
+    relativeTimeStr(165),
+    relativeTimeStr(280),
+  )
+
+  // dedup + sort
+  return [...new Set(times)].sort()
 }
 
 const calculateArrivalTime = (
@@ -216,14 +235,15 @@ export function generateMockSchedules(): Schedule[] {
   return schedules
 }
 
-// cache dos dados mockados
-let cachedSchedules: Schedule[] | null = null
+// Cache por sessão — os tempos relativos são calculados no carregamento do módulo
+// (HMR re-executa em dev, forçando recalculo). Sem cache seria regeneração a cada call.
+let _cachedSchedules: Schedule[] | null = null
 
 export function getMockSchedules(): Schedule[] {
-  if (!cachedSchedules) {
-    cachedSchedules = generateMockSchedules()
+  if (!_cachedSchedules) {
+    _cachedSchedules = generateMockSchedules()
   }
-  return cachedSchedules
+  return _cachedSchedules
 }
 
 export function getMockScheduleById(id: string): Schedule | null {

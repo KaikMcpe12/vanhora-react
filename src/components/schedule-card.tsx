@@ -1,207 +1,200 @@
-import { ArrowRight, Heart, Star } from 'lucide-react'
+import { ChevronDown, Heart } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
-import { Button } from '@/components/ui/button'
+import { CooperativeAvatar } from '@/components/cooperative-avatar'
+import { InlineRating } from '@/components/inline-rating'
+import { RelativeTimeDisplay } from '@/components/relative-time-display'
+import { RouteLine } from '@/components/route-line'
+import { RouteTimeline, type RouteStop } from '@/components/route-timeline'
+import { Dialog } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/use-favorites'
-import type { Schedule, ScheduleStatus } from '@/lib/types/schedule'
+import type { Schedule } from '@/lib/types/schedule'
+import {
+  getCooperativeColor,
+  getVisualStatus,
+} from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
 import { ScheduleDialog } from './schedule-dialog'
-import { Dialog } from './ui/dialog'
-
-const STATUS_CONFIG: Record<ScheduleStatus, { badge: string; label: string }> =
-  {
-    'upcoming-soon': {
-      badge: 'bg-emerald-500 text-white',
-      label: 'Disponível',
-    },
-    upcoming: { badge: 'bg-blue-500 text-white', label: 'Em breve' },
-    past: {
-      badge: 'bg-muted text-muted-foreground ring-1 ring-border',
-      label: 'Encerrado',
-    },
-  }
 
 export function ScheduleCard({ schedule }: { schedule: Schedule }) {
+  const [expanded, setExpanded] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const { isFavorite: checkIsFavorite, toggleFavorite } = useFavorites()
-  const isFavorite = checkIsFavorite(schedule.id)
 
-  const statusConfig = STATUS_CONFIG[schedule.status]
-  const isPast = schedule.status === 'past'
-  const isCancelled = schedule.badge === 'cancelled'
-  const isDimmed = isPast || isCancelled
+  const isFavorite = checkIsFavorite(schedule.id)
+  const cooperativeColor = getCooperativeColor(schedule.cooperativeName)
+  const visualStatus = getVisualStatus(schedule.departureTime, schedule.badge)
+  const isCancelled = visualStatus === 'cancelled'
+
+  const stops: RouteStop[] = [
+    { city: schedule.origin, time: schedule.departureTime, isEndpoint: true },
+    { city: schedule.destination, time: schedule.arrivalTime, isEndpoint: true },
+  ]
+
+  const handleFavoriteToggle = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const wasFavorite = isFavorite
+    toggleFavorite(schedule.id)
+    if (wasFavorite) {
+      toast.info('Removido dos favoritos', {
+        description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
+      })
+    } else {
+      toast.success('Adicionado aos favoritos', {
+        description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
+      })
+    }
+  }
 
   return (
     <div
-      className={`border-border bg-card overflow-hidden rounded-2xl border shadow-sm transition-all duration-200 ${!isDimmed ? 'hover:shadow-lg' : 'opacity-70'}`}
+      className={cn(
+        'bg-card rounded-[14px] border border-border/80 overflow-hidden transition-opacity duration-200',
+        isCancelled && 'opacity-80',
+      )}
     >
-      <div className="relative h-32 overflow-hidden">
-        {schedule.cooperativeImage ? (
-          <img
-            src={schedule.cooperativeImage}
-            alt={schedule.cooperativeName}
-            className={`h-full w-full object-cover ${isDimmed ? 'grayscale' : ''}`}
-          />
-        ) : (
-          <div
-            className="h-full w-full"
-            style={{
-              background: isDimmed
-                ? 'linear-gradient(135deg, #4b5563, #6b7280)'
-                : 'linear-gradient(135deg, #166534, #16a34a)',
-            }}
-          />
-        )}
+      {/* ── bloco principal (sempre visível) ── */}
+      <div className="px-[18px] pt-4 pb-0 space-y-3">
 
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-4xl font-black tracking-tight text-white drop-shadow-lg">
-            {schedule.cooperativeName}
-          </span>
+        {/* linha 1: countdown + heart */}
+        <div className="flex items-start justify-between gap-2">
+          <RelativeTimeDisplay
+            departureTime={schedule.departureTime}
+            status={visualStatus}
+          />
+          <button
+            type="button"
+            onClick={handleFavoriteToggle}
+            className="mt-0.5 shrink-0 cursor-pointer transition-transform hover:scale-110 active:scale-95"
+            aria-label={isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
+          >
+            <Heart
+              size={22}
+              strokeWidth={1.75}
+              className={cn(
+                'transition-colors duration-150',
+                isFavorite
+                  ? 'fill-[#D4537E] text-[#D4537E]'
+                  : 'fill-none text-muted-foreground hover:text-foreground',
+              )}
+            />
+          </button>
         </div>
 
-        <div
-          className="absolute inset-x-0 bottom-0 h-14"
-          style={{
-            background:
-              'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 100%)',
-          }}
+        {/* linha 2: route line */}
+        <RouteLine
+          origin={schedule.origin}
+          destination={schedule.destination}
+          durationLabel={schedule.duration}
+          cooperativeColor={cooperativeColor}
+          variant={isCancelled ? 'muted' : 'default'}
         />
 
-        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between px-4 pb-2.5">
-          <div>
-            <p className="text-sm leading-tight font-semibold text-white drop-shadow">
-              {schedule.cooperativeName}
-            </p>
-            {schedule.cooperativeRating && (
-              <div className="mt-0.5 flex items-center gap-1">
-                <Star className="h-3 w-3 text-white/70" />
-                <span className="text-xs text-white/90">
-                  {schedule.cooperativeRating}
+        {/* linha 3: meta (avatar + nome + rating | preço) */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <CooperativeAvatar
+              name={schedule.cooperativeName}
+              color={cooperativeColor}
+              size="sm"
+            />
+            <div className="min-w-0">
+              <span className="block truncate text-[13px] font-medium text-foreground leading-tight">
+                {schedule.cooperativeName}
+              </span>
+              {schedule.cooperativeRating && (
+                <span className="text-[11px] text-muted-foreground font-mono">
+                  ★ {schedule.cooperativeRating.toFixed(1)}
                   {schedule.cooperativeReviews && (
-                    <span className="text-white/60">
-                      {' '}
-                      ({schedule.cooperativeReviews} avaliações)
-                    </span>
+                    <span className="ml-1">({schedule.cooperativeReviews})</span>
                   )}
                 </span>
-              </div>
-            )}
+              )}
+            </div>
           </div>
-        </div>
 
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            const wasFavorite = isFavorite
-            toggleFavorite(schedule.id)
-
-            // Feedback visual com toast
-            if (wasFavorite) {
-              toast.info('Removido dos favoritos', {
-                description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
-              })
-            } else {
-              toast.success('Adicionado aos favoritos', {
-                description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
-              })
-            }
-          }}
-          className="absolute top-3 right-3 z-10 transition-transform hover:scale-110 active:scale-95"
-          aria-label={
-            isFavorite ? 'Remover dos favoritos' : 'Adicionar aos favoritos'
-          }
-        >
-          <Heart
-            className={cn(
-              'h-5 w-5 drop-shadow transition-all duration-200',
-              isFavorite
-                ? 'fill-rose-500 text-rose-500'
-                : 'fill-white/30 text-white/60 hover:fill-white/50 hover:text-white/80',
-            )}
-          />
-        </button>
-      </div>
-
-      <div className="px-4 pt-3.5 pb-0">
-        <div className="mb-3 flex items-center justify-between">
-          {isCancelled ? (
-            <span className="rounded-full bg-red-500 px-3 py-1 text-xs font-semibold text-white">
-              Cancelado
-            </span>
-          ) : (
+          <div className="text-right shrink-0">
             <span
-              className={`rounded-full px-3 py-1 text-xs font-semibold ${statusConfig.badge}`}
+              className={cn(
+                'text-[18px] font-bold tabular-nums leading-tight',
+                isCancelled ? 'text-muted-foreground line-through' : 'text-foreground',
+              )}
             >
-              {statusConfig.label}
+              R$ {schedule.price.toFixed(2).replace('.', ',')}
             </span>
-          )}
-          {schedule.tripCode && (
-            <span className="text-muted-foreground font-mono text-xs">
-              #{schedule.tripCode}
-            </span>
-          )}
-        </div>
-
-        <div className="mb-1 flex items-start gap-3">
-          <div>
-            <p
-              className={`text-3xl leading-none font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
-            >
-              {schedule.departureTime}
-            </p>
-            <p className="text-muted-foreground mt-1 text-xs">
-              {schedule.origin}
-            </p>
-          </div>
-
-          <div className="mt-3 flex flex-1 items-center gap-1.5">
-            <div className="border-border h-px flex-1 border-t border-dashed" />
-            <span className="text-muted-foreground shrink-0 text-[10px] whitespace-nowrap">
-              {schedule.duration}
-            </span>
-            <div className="border-border h-px flex-1 border-t border-dashed" />
-            <ArrowRight className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
-          </div>
-
-          <div className="text-right">
-            <p
-              className={`text-3xl leading-none font-bold tabular-nums ${isDimmed ? 'text-muted-foreground' : 'text-foreground'}`}
-            >
-              {schedule.arrivalTime}
-            </p>
-            <p className="text-muted-foreground mt-1 text-right text-xs">
-              {schedule.destination}
-            </p>
           </div>
         </div>
       </div>
 
-      <div className="border-border mx-4 mt-3.5 flex items-center justify-between border-t py-3">
-        <div>
-          <p className="text-muted-foreground mb-0.5 text-[10px] font-medium tracking-wide uppercase">
-            Preço
-          </p>
-          <p
-            className={`text-xl font-bold tabular-nums ${
-              isCancelled
-                ? 'text-muted-foreground line-through'
-                : 'text-emerald-600 dark:text-emerald-400'
-            }`}
-          >
-            R$ {schedule.price.toFixed(2).replace('.', ',')}
-          </p>
-        </div>
+      {/* ── chevron / expand trigger ── */}
+      <button
+        type="button"
+        onClick={() => setExpanded((v) => !v)}
+        className="flex w-full cursor-pointer items-center justify-center gap-1.5 border-t border-border/50 px-[18px] py-2.5 text-[11px] font-medium uppercase tracking-[0.4px] text-muted-foreground transition-colors hover:bg-muted/30"
+        aria-expanded={expanded}
+        aria-label={expanded ? 'Fechar detalhes' : 'Ver paradas e avaliar'}
+      >
+        <ChevronDown
+          size={14}
+          strokeWidth={2}
+          className={cn(
+            'transition-transform duration-[240ms]',
+            expanded && 'rotate-180',
+          )}
+        />
+        {expanded ? 'Fechar' : 'Paradas e avaliação'}
+      </button>
 
-        <Button
-          variant="outline"
-          onClick={() => setDialogOpen(true)}
-          className={`rounded-xl ${isDimmed ? 'border-border text-muted-foreground' : 'border-emerald-500 text-emerald-600'} border-2 font-semibold hover:bg-emerald-50 dark:hover:bg-emerald-950`}
-          disabled={false}
-        >
-          Ver Detalhes
-        </Button>
+      {/* ── seção expandível ── */}
+      <div
+        className={cn(
+          'grid transition-all duration-[240ms] ease-in-out',
+          expanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]',
+        )}
+      >
+        <div className="overflow-hidden">
+          <div className="space-y-4 px-[18px] pt-4 pb-4">
+
+            {/* sub-header rota */}
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+                Rota
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-[0.4px] text-muted-foreground">
+                {stops.length} {stops.length === 1 ? 'parada' : 'paradas'}
+              </span>
+            </div>
+
+            {/* timeline */}
+            <RouteTimeline
+              stops={stops}
+              cooperativeColor={cooperativeColor}
+            />
+
+            {/* divider */}
+            <div className="border-t border-border/40" />
+
+            {/* rating inline */}
+            <InlineRating scheduleId={schedule.id} />
+
+            {/* divider */}
+            <div className="border-t border-border/40" />
+
+            {/* ver detalhes */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setDialogOpen(true)
+              }}
+              className="flex w-full cursor-pointer items-center justify-end gap-1 text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+            >
+              Ver detalhes da rota →
+            </button>
+          </div>
+        </div>
       </div>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

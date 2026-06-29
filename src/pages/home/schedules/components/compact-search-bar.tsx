@@ -1,6 +1,6 @@
 import { format, isToday, isTomorrow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ArrowRight, Pencil } from 'lucide-react'
+import { ArrowRight, Pencil, Search } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -12,12 +12,12 @@ interface CompactSearchBarProps {
   className?: string
 }
 
-function formatDate(dateStr?: string): string {
+function formatDateRelative(dateStr?: string): string {
   if (!dateStr) return 'hoje'
   const d = new Date(dateStr + 'T00:00:00')
-  if (isToday(d)) return 'hoje'
-  if (isTomorrow(d)) return 'amanhã'
-  return format(d, "d MMM", { locale: ptBR })
+  if (isToday(d)) return `hoje, ${format(d, "d MMM", { locale: ptBR })}`
+  if (isTomorrow(d)) return `amanhã, ${format(d, "d MMM", { locale: ptBR })}`
+  return format(d, "EEE',' d MMM", { locale: ptBR })
 }
 
 export function CompactSearchBar({
@@ -27,8 +27,9 @@ export function CompactSearchBar({
   onEdit,
   className,
 }: CompactSearchBarProps) {
-  const hasRoute = origin || destination
-  const dateLabel = formatDate(date)
+  // Exige AMBAS origem e destino para exibir o estado "busca ativa"
+  const hasActiveSearch = Boolean(origin && destination)
+  const dateLabel = formatDateRelative(date)
 
   return (
     <div
@@ -41,22 +42,23 @@ export function CompactSearchBar({
         type="button"
         onClick={onEdit}
         className="flex min-w-0 flex-1 cursor-pointer items-center gap-1.5 text-left"
-        aria-label="Editar busca"
+        aria-label={hasActiveSearch ? 'Editar busca' : 'Fazer busca'}
       >
-        {hasRoute ? (
+        {hasActiveSearch ? (
           <span className="flex min-w-0 flex-wrap items-center gap-1">
-            <span className="text-[14px] font-medium text-primary leading-tight">
-              {origin || 'Qualquer origem'}
+            <span className="text-[14px] font-medium text-primary leading-tight truncate">
+              {origin}
             </span>
             <ArrowRight size={12} className="shrink-0 text-muted-foreground" aria-hidden />
-            <span className="text-[14px] font-medium text-primary leading-tight">
-              {destination || 'Qualquer destino'}
+            <span className="text-[14px] font-medium text-primary leading-tight truncate">
+              {destination}
             </span>
-            <span className="hidden h-3.5 w-px bg-border/60 sm:block" aria-hidden />
-            <span className="text-[12px] text-muted-foreground">{dateLabel}</span>
+            <span className="h-3.5 w-px bg-border/60 shrink-0" aria-hidden />
+            <span className="text-[12px] text-muted-foreground shrink-0">{dateLabel}</span>
           </span>
         ) : (
-          <span className="text-[13px] text-muted-foreground">
+          <span className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+            <Search size={13} strokeWidth={1.75} aria-hidden />
             Busque por origem, destino e data
           </span>
         )}
@@ -69,7 +71,7 @@ export function CompactSearchBar({
         aria-label="Alterar busca"
       >
         <Pencil size={12} strokeWidth={1.75} aria-hidden />
-        <span className="hidden sm:inline">alterar</span>
+        <span className="hidden sm:inline">{hasActiveSearch ? 'alterar' : 'buscar'}</span>
       </button>
     </div>
   )

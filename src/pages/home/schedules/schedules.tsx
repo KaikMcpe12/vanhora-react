@@ -1,4 +1,4 @@
-import { ClockAlert } from 'lucide-react'
+import { ClockAlert, CalendarOff } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
 import { ScheduleCard } from '@/components/schedule-card'
@@ -43,11 +43,13 @@ export function Schedules() {
 
   const [sortMode, setSortMode] = useState<SortMode>('earliest')
   const [visibleLater, setVisibleLater] = useState(GRID_PAGE_SIZE)
+  const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
   const [searchSheetOpen, setSearchSheetOpen] = useState(false)
 
   // Resetar paginação quando filtros mudam
   useEffect(() => {
     setVisibleLater(GRID_PAGE_SIZE)
+    setVisibleCancelled(GRID_PAGE_SIZE)
   }, [filtersFromUrl])
 
   const { grouped, isLoading, isError } = useGroupedSchedules(
@@ -55,18 +57,24 @@ export function Schedules() {
     sortMode,
   )
 
+  // Data de referência para countdowns: usa a data do filtro (pode ser amanhã)
+  // ou a data de hoje quando não há filtro de data
+  const referenceDate = filtersFromUrl.date
+    ? new Date(filtersFromUrl.date + 'T00:00:00')
+    : undefined
+
   const totalActive = grouped
-    ? 1 + // nextDeparture
+    ? (grouped.nextDeparture ? 1 : 0) +
       grouped.urgent.length +
       grouped.later.length
     : 0
 
+  // "só cancelados" = há cancelados MAS nenhuma saída ativa futura E a lista
+  // não está vazia (hasNoSchedules cobre o caso totalmente vazio)
   const onlyHasCancelled =
     !isLoading &&
     grouped !== null &&
-    grouped.nextDeparture === null &&
-    grouped.urgent.length === 0 &&
-    grouped.later.length === 0 &&
+    totalActive === 0 &&
     grouped.cancelled.length > 0
 
   const hasNoSchedules =
@@ -153,13 +161,37 @@ export function Schedules() {
         {grouped && !isLoading && (
           <>
             {/* ── Próxima saída ── */}
-            {grouped.nextDeparture && (
+            {!hasNoSchedules && (
               <ScheduleSection
                 title="Próxima saída"
                 countLabel="a mais próxima de você"
                 variant="featured"
               >
-                <FeaturedScheduleCard schedule={grouped.nextDeparture} />
+                {grouped.nextDeparture ? (
+                  <FeaturedScheduleCard
+                    schedule={grouped.nextDeparture}
+                    referenceDate={referenceDate}
+                  />
+                ) : (
+                  /* Todas as saídas do dia já passaram */
+                  <div className="flex flex-col items-center gap-3 rounded-[14px] border border-dashed border-border/60 bg-muted/20 px-6 py-8 text-center">
+                    <CalendarOff
+                      size={28}
+                      strokeWidth={1.5}
+                      className="text-muted-foreground"
+                    />
+                    <p className="text-[13px] text-muted-foreground">
+                      Nenhuma saída restante para hoje nessa rota.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setSearchSheetOpen(true)}
+                      className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+                    >
+                      Ver horários de outro dia →
+                    </button>
+                  </div>
+                )}
               </ScheduleSection>
             )}
 
@@ -171,7 +203,7 @@ export function Schedules() {
                 variant="grid"
               >
                 {grouped.urgent.map((s) => (
-                  <ScheduleCard key={s.id} schedule={s} />
+                  <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
                 ))}
               </ScheduleSection>
             )}
@@ -184,23 +216,18 @@ export function Schedules() {
                 variant="grid"
               >
                 {grouped.later.slice(0, visibleLater).map((s) => (
-                  <ScheduleCard key={s.id} schedule={s} />
+                  <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
                 ))}
 
                 {visibleLater < grouped.later.length && (
-                  <div className="col-span-full text-center pt-2">
+                  <div className="col-span-full pt-2 text-center">
                     <button
                       type="button"
-                      onClick={() =>
-                        setVisibleLater((v) => v + GRID_PAGE_SIZE)
-                      }
+                      onClick={() => setVisibleLater((v) => v + GRID_PAGE_SIZE)}
                       className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                     >
                       Mostrar mais{' '}
-                      {Math.min(
-                        GRID_PAGE_SIZE,
-                        grouped.later.length - visibleLater,
-                      )}{' '}
+                      {Math.min(GRID_PAGE_SIZE, grouped.later.length - visibleLater)}{' '}
                       horários ↓
                     </button>
                   </div>
@@ -217,16 +244,35 @@ export function Schedules() {
               </ScheduleSection>
             )}
 
-            {/* ── Cancelados hoje ── */}
+            {/* ── Cancelados hoje ── Bug 4: paginado em 6 */}
             {grouped.cancelled.length > 0 && (
               <ScheduleSection
                 title="Cancelados hoje"
                 count={grouped.cancelled.length}
                 variant="muted"
               >
-                {grouped.cancelled.map((s) => (
-                  <ScheduleCard key={s.id} schedule={s} />
+                {grouped.cancelled.slice(0, visibleCancelled).map((s) => (
+                  <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
                 ))}
+
+                {visibleCancelled < grouped.cancelled.length && (
+                  <div className="col-span-full pt-2 text-center">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setVisibleCancelled((v) => v + GRID_PAGE_SIZE)
+                      }
+                      className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      Mostrar mais{' '}
+                      {Math.min(
+                        GRID_PAGE_SIZE,
+                        grouped.cancelled.length - visibleCancelled,
+                      )}{' '}
+                      cancelados ↓
+                    </button>
+                  </div>
+                )}
               </ScheduleSection>
             )}
           </>

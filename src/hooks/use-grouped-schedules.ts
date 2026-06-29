@@ -41,8 +41,8 @@ export function useGroupedSchedules(
 
   const grouped = useMemo(() => {
     if (!data) return null
-    return groupSchedules(data.schedules, sortMode)
-  }, [data, sortMode])
+    return groupSchedules(data.schedules, sortMode, filters.date)
+  }, [data, sortMode, filters.date])
 
   return {
     grouped,

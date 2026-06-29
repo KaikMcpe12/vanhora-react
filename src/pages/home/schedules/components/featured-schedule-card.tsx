@@ -20,12 +20,14 @@ import { cn } from '@/lib/utils'
 interface FeaturedScheduleCardProps {
   schedule: Schedule
   showItinerary?: boolean
+  referenceDate?: Date
   className?: string
 }
 
 export function FeaturedScheduleCard({
   schedule,
   showItinerary = false,
+  referenceDate,
   className,
 }: FeaturedScheduleCardProps) {
   const [expanded, setExpanded] = useState(showItinerary)
@@ -76,6 +78,7 @@ export function FeaturedScheduleCard({
               departureTime={schedule.departureTime}
               status={visualStatus}
               size="featured"
+              referenceDate={referenceDate}
             />
           </div>
 

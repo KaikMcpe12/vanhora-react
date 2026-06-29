@@ -27,55 +27,37 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-/** formata minutos relativos ao momento atual como "HH:mm" */
-function relativeTimeStr(offsetMinutes: number): string {
-  const d = new Date(Date.now() + offsetMinutes * 60_000)
-  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
-}
-
-// gera horários de funcionamento realistas (05:00 às 22:30) + âncoras relativas
+// Gera horários de funcionamento distribuídos ao longo do dia (05:00–22:30).
+// Os countdowns variam naturalmente dependendo do horário atual: quem abre a
+// página às 14h vê "Em 30min", "Em 1h", "Em 2h30"… sem nenhuma injeção de
+// âncoras relativas que causaria clustering (todos mostrando "Em 8 min").
 const generateDepartureTimes = (): string[] => {
   const times: string[] = []
 
-  // manhã (05:00 - 12:00): mais frequentes
-  for (let hour = 5; hour <= 11; hour++) {
+  // madrugada / início de manhã
+  times.push('05:00', '05:30')
+
+  // manhã (06:00 - 12:00): frequência alta com extras no rush
+  for (let hour = 6; hour <= 11; hour++) {
     times.push(`${hour.toString().padStart(2, '0')}:00`)
     times.push(`${hour.toString().padStart(2, '0')}:30`)
-
-    // extras no rush matinal (06:00 - 08:00)
-    if (hour >= 6 && hour <= 7) {
+    if (hour >= 6 && hour <= 8) {
       times.push(`${hour.toString().padStart(2, '0')}:15`)
       times.push(`${hour.toString().padStart(2, '0')}:45`)
     }
   }
-
-  times.push('12:00')
+  times.push('12:00', '12:30')
 
   // tarde (13:00 - 18:00): frequência moderada
-  for (let hour = 13; hour <= 17; hour++) {
+  for (let hour = 13; hour <= 18; hour++) {
     times.push(`${hour.toString().padStart(2, '0')}:00`)
-    if (hour % 2 === 0) {
-      times.push(`${hour.toString().padStart(2, '0')}:30`)
-    }
+    times.push(`${hour.toString().padStart(2, '0')}:30`)
   }
 
-  // noite (18:00 - 22:30): menos frequente
-  times.push('18:00', '19:00', '20:00', '21:00', '22:00', '22:30')
+  // noite (19:00 - 22:30): frequência reduzida
+  times.push('19:00', '19:30', '20:00', '20:30', '21:00', '22:00', '22:30')
 
-  // âncoras relativas ao momento atual para garantir distribuição nos buckets
-  // urgente (≤30min): +8 e +22min
-  // próximos (>30min): +48, +90, +165, +280min
-  times.push(
-    relativeTimeStr(8),
-    relativeTimeStr(22),
-    relativeTimeStr(48),
-    relativeTimeStr(90),
-    relativeTimeStr(165),
-    relativeTimeStr(280),
-  )
-
-  // dedup + sort
-  return [...new Set(times)].sort()
+  return times.sort()
 }
 
 const calculateArrivalTime = (
@@ -126,9 +108,9 @@ const getScheduleStatus = (
   const [currentHour, currentMin] = currentTime.split(':').map(Number)
   const currentInMinutes = currentHour * 60 + currentMin
 
-  // 5% chance de cancelamento determinístico
+  // ~2% de cancelamento determinístico (reduzido de 5% para não saturar a seção)
   const cancelSeed = simpleHash(scheduleId + '-cancel')
-  const isCancelled = seededRandom(cancelSeed)() < 0.05
+  const isCancelled = seededRandom(cancelSeed)() < 0.02
   if (isCancelled) {
     return {
       status: 'past',

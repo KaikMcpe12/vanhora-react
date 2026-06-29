@@ -18,7 +18,13 @@ import { cn } from '@/lib/utils'
 
 import { ScheduleDialog } from './schedule-dialog'
 
-export function ScheduleCard({ schedule }: { schedule: Schedule }) {
+export function ScheduleCard({
+  schedule,
+  referenceDate,
+}: {
+  schedule: Schedule
+  referenceDate?: Date
+}) {
   const [expanded, setExpanded] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
   const { isFavorite: checkIsFavorite, toggleFavorite } = useFavorites()
@@ -63,6 +69,7 @@ export function ScheduleCard({ schedule }: { schedule: Schedule }) {
           <RelativeTimeDisplay
             departureTime={schedule.departureTime}
             status={visualStatus}
+            referenceDate={referenceDate}
           />
           <button
             type="button"

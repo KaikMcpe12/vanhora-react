@@ -1,7 +1,7 @@
 import { Ban, Clock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { getMinutesUntilDeparture, type ScheduleVisualStatus } from '@/lib/utils/schedule-status'
+import { type ScheduleVisualStatus } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
 interface RelativeTimeDisplayProps {
@@ -10,7 +10,23 @@ interface RelativeTimeDisplayProps {
   delayMinutes?: number
   /** 'featured' usa 42px e letter-spacing -0.8px para o card de destaque */
   size?: 'default' | 'featured'
+  /**
+   * Data de referência para combinar com departureTime "HH:mm".
+   * Deve ser a data do filtro ativo (amanhã, próxima semana, etc.).
+   * Quando ausente, assume hoje.
+   */
+  referenceDate?: Date
   className?: string
+}
+
+function calcMinutes(departureTime: string, referenceDate?: Date): number {
+  const [hours, minutes] = departureTime.split(':').map(Number)
+  const now = new Date()
+  const departure = referenceDate
+    ? new Date(referenceDate)
+    : new Date(now.getFullYear(), now.getMonth(), now.getDate())
+  departure.setHours(hours, minutes, 0, 0)
+  return Math.round((departure.getTime() - now.getTime()) / 60_000)
 }
 
 function formatRelativeTime(mins: number): string {
@@ -27,16 +43,18 @@ export function RelativeTimeDisplay({
   status,
   delayMinutes,
   size = 'default',
+  referenceDate,
   className,
 }: RelativeTimeDisplayProps) {
-  const [mins, setMins] = useState(() => getMinutesUntilDeparture(departureTime))
+  const [mins, setMins] = useState(() => calcMinutes(departureTime, referenceDate))
 
   useEffect(() => {
+    setMins(calcMinutes(departureTime, referenceDate))
     const id = setInterval(() => {
-      setMins(getMinutesUntilDeparture(departureTime))
+      setMins(calcMinutes(departureTime, referenceDate))
     }, 30_000)
     return () => clearInterval(id)
-  }, [departureTime])
+  }, [departureTime, referenceDate])
 
   const isCancelled = status === 'cancelled'
   const isDelayed = status === 'delayed'

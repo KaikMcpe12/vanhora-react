@@ -5,10 +5,9 @@ import { ScheduleCard } from '@/components/schedule-card'
 import { ScheduleCardSkeleton } from '@/components/schedule-card-skeleton'
 import { EmptyState } from '@/components/empty-state'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import { useFavorites } from '@/hooks/use-favorites'
+import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { useGroupedSchedules } from '@/hooks/use-grouped-schedules'
 import { useScheduleFilters } from '@/hooks/use-schedule-filters'
-import type { SortMode } from '@/lib/utils/group-schedules'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
@@ -40,11 +39,9 @@ function SchedulesSkeleton() {
 }
 
 export function Schedules() {
-  const { filtersFromUrl, activeFiltersCount, handleClearFilters } =
-    useScheduleFilters()
-  useFavorites() // mantido para trigger de re-render ao favoritar
+  const { filtersFromUrl, handleClearFilters } = useScheduleFilters()
+  const { filters: displayFilters, sort, activeFilterCount, resetAll } = useDisplayFilters()
 
-  const [sortMode, setSortMode] = useState<SortMode>('earliest')
   const [visibleLater, setVisibleLater] = useState(GRID_PAGE_SIZE)
   const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
   const [searchSheetOpen, setSearchSheetOpen] = useState(false)
@@ -53,18 +50,18 @@ export function Schedules() {
   useEffect(() => {
     setVisibleLater(GRID_PAGE_SIZE)
     setVisibleCancelled(GRID_PAGE_SIZE)
-  }, [filtersFromUrl])
+  }, [filtersFromUrl, displayFilters])
 
-  const { grouped, isLoading, isError } = useGroupedSchedules(
+  const { grouped, rawSchedules, isLoading, isError } = useGroupedSchedules(
     filtersFromUrl,
-    sortMode,
+    displayFilters,
+    sort,
   )
 
   const referenceDate = filtersFromUrl.date
     ? new Date(filtersFromUrl.date + 'T00:00:00')
     : undefined
 
-  // Métricas para o rail
   const activeCount = grouped
     ? (grouped.nextDeparture ? 1 : 0) +
       grouped.urgent.length +
@@ -89,19 +86,11 @@ export function Schedules() {
     ? getCooperativeColor(grouped.nextDeparture.cooperativeName)
     : undefined
 
-  const totalActive = activeCount
-
   const onlyHasCancelled =
-    !isLoading &&
-    grouped !== null &&
-    totalActive === 0 &&
-    grouped.cancelled.length > 0
+    !isLoading && grouped !== null && activeCount === 0 && cancelledCount > 0
 
   const hasNoSchedules =
-    !isLoading &&
-    grouped !== null &&
-    totalActive === 0 &&
-    grouped.cancelled.length === 0
+    !isLoading && grouped !== null && activeCount === 0 && cancelledCount === 0
 
   const hasNoResults =
     !isLoading &&
@@ -110,6 +99,9 @@ export function Schedules() {
     grouped.urgent.length === 0 &&
     grouped.later.length === 0 &&
     grouped.cancelled.length === 0
+
+  // Total de filtros ativos (search + display)
+  const totalFiltersBadge = activeFilterCount
 
   const railProps = {
     origin: filtersFromUrl.origin,
@@ -120,16 +112,12 @@ export function Schedules() {
     activeCount,
     cancelledCount,
     averageRating,
-    sortMode,
-    onSortChange: (m: SortMode) => {
-      setSortMode(m)
-      setRailSheetOpen(false)
-    },
+    rawSchedules,
   }
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── barra de busca compacta (sempre visível) ── */}
+      {/* ── barra de busca compacta ── */}
       <CompactSearchBar
         origin={filtersFromUrl.origin}
         destination={filtersFromUrl.destination}
@@ -137,7 +125,7 @@ export function Schedules() {
         onEdit={() => setSearchSheetOpen(true)}
       />
 
-      {/* ── botão "Filtros e ordenação" — mobile / tablet only ── */}
+      {/* ── botão mobile/tablet ── */}
       <div className="flex items-center gap-2 border-b border-border/40 bg-background px-4 py-2.5 lg:hidden">
         <button
           type="button"
@@ -145,33 +133,34 @@ export function Schedules() {
           className={cn(
             'flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-[5px]',
             'text-[12px] font-medium transition-all duration-150',
-            activeFiltersCount > 0
-              ? 'border-[#0F6E56] text-[#0F6E56] bg-[rgba(15,110,86,0.06)]'
+            totalFiltersBadge > 0
+              ? 'border-[#0F6E56] bg-[rgba(15,110,86,0.06)] text-[#0F6E56]'
               : 'border-border/70 text-muted-foreground hover:border-border hover:text-foreground',
           )}
         >
           <SlidersHorizontal size={13} strokeWidth={1.75} />
           <span>Filtros e ordenação</span>
-          {activeFiltersCount > 0 && (
+          {totalFiltersBadge > 0 && (
             <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0F6E56] px-1 text-[10px] font-semibold text-white">
-              {activeFiltersCount}
+              {totalFiltersBadge}
             </span>
           )}
         </button>
       </div>
 
-      {/* ── grade: rail (desktop) + conteúdo ── */}
-      <div className="mx-auto max-w-6xl lg:grid lg:items-start lg:gap-6 lg:px-6 lg:py-5"
+      {/* ── grade: rail + conteúdo ── */}
+      <div
+        className="mx-auto max-w-6xl lg:grid lg:items-start lg:gap-6 lg:px-6 lg:py-5"
         style={{ gridTemplateColumns: '240px 1fr' }}
       >
-        {/* Rail — desktop only */}
+        {/* Rail desktop */}
         <aside className="hidden lg:block">
           <div className="sticky top-4">
             <SchedulesRail {...railProps} />
           </div>
         </aside>
 
-        {/* Conteúdo principal */}
+        {/* Conteúdo */}
         <main className="space-y-8 px-4 py-6 lg:px-0">
           {isLoading && <SchedulesSkeleton />}
 
@@ -180,35 +169,46 @@ export function Schedules() {
               icon={ClockAlert}
               title="Erro ao carregar horários"
               description="Não foi possível buscar os horários. Tente novamente."
-              action={{
-                label: 'Tentar novamente',
-                onClick: () => window.location.reload(),
-              }}
+              action={{ label: 'Tentar novamente', onClick: () => window.location.reload() }}
             />
           )}
 
-          {hasNoSchedules && (
+          {hasNoSchedules && activeFilterCount === 0 && (
             <EmptyState
               icon={ClockAlert}
               title="Nenhum horário encontrado"
               description="Não encontramos horários para essa rota e data."
-              action={{
-                label: 'Alterar busca',
-                onClick: () => setSearchSheetOpen(true),
-              }}
+              action={{ label: 'Alterar busca', onClick: () => setSearchSheetOpen(true) }}
             />
           )}
 
-          {hasNoResults && activeFiltersCount > 0 && (
-            <EmptyState
-              icon={ClockAlert}
-              title="Nenhum horário corresponde aos filtros"
-              description="Tente ajustar ou limpar os filtros aplicados."
-              action={{
-                label: 'Limpar filtros',
-                onClick: handleClearFilters,
-              }}
-            />
+          {/* Empty state de filtragem zerada */}
+          {hasNoResults && activeFilterCount > 0 && (
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
+              <SlidersHorizontal
+                size={32}
+                strokeWidth={1.5}
+                className="text-muted-foreground"
+              />
+              <div>
+                <p className="mb-1 text-[15px] font-medium text-foreground">
+                  Nenhum horário corresponde aos filtros
+                </p>
+                <p className="text-[13px] text-muted-foreground">
+                  Ajuste ou limpe os filtros para ver resultados.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  handleClearFilters()
+                  resetAll()
+                }}
+                className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+              >
+                Limpar filtros
+              </button>
+            </div>
           )}
 
           {onlyHasCancelled && (
@@ -219,7 +219,7 @@ export function Schedules() {
 
           {grouped && !isLoading && (
             <>
-              {/* ── Próxima saída ── */}
+              {/* Próxima saída */}
               {!hasNoSchedules && (
                 <ScheduleSection
                   title="Próxima saída"
@@ -233,11 +233,7 @@ export function Schedules() {
                     />
                   ) : (
                     <div className="flex flex-col items-center gap-3 rounded-[14px] border border-dashed border-border/60 bg-muted/20 px-6 py-8 text-center">
-                      <CalendarOff
-                        size={28}
-                        strokeWidth={1.5}
-                        className="text-muted-foreground"
-                      />
+                      <CalendarOff size={28} strokeWidth={1.5} className="text-muted-foreground" />
                       <p className="text-[13px] text-muted-foreground">
                         Nenhuma saída restante para hoje nessa rota.
                       </p>
@@ -253,7 +249,7 @@ export function Schedules() {
                 </ScheduleSection>
               )}
 
-              {/* ── Saindo nos próximos 30 min ── */}
+              {/* Saindo nos próximos 30 min */}
               {grouped.urgent.length > 0 && (
                 <ScheduleSection
                   title="Saindo nos próximos 30 minutos"
@@ -266,7 +262,7 @@ export function Schedules() {
                 </ScheduleSection>
               )}
 
-              {/* ── Mais tarde hoje ── */}
+              {/* Mais tarde hoje */}
               {grouped.later.length > 0 && (
                 <ScheduleSection
                   title="Mais tarde hoje"
@@ -302,7 +298,7 @@ export function Schedules() {
                 </ScheduleSection>
               )}
 
-              {/* ── Cancelados hoje ── */}
+              {/* Cancelados */}
               {grouped.cancelled.length > 0 && (
                 <ScheduleSection
                   title="Cancelados hoje"
@@ -321,10 +317,7 @@ export function Schedules() {
                         className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                       >
                         Mostrar mais{' '}
-                        {Math.min(
-                          GRID_PAGE_SIZE,
-                          grouped.cancelled.length - visibleCancelled,
-                        )}{' '}
+                        {Math.min(GRID_PAGE_SIZE, grouped.cancelled.length - visibleCancelled)}{' '}
                         cancelados ↓
                       </button>
                     </div>
@@ -336,22 +329,19 @@ export function Schedules() {
         </main>
       </div>
 
-      {/* ── Rail Sheet — mobile / tablet ── */}
+      {/* Rail Sheet mobile */}
       <Sheet open={railSheetOpen} onOpenChange={(v) => !v && setRailSheetOpen(false)}>
         <SheetContent
           side="bottom"
           className="max-h-[88vh] overflow-y-auto rounded-t-2xl px-5 pb-10 pt-5"
         >
           <SheetHeader className="mb-5">
-            <SheetTitle className="text-base font-semibold">
-              Filtros e ordenação
-            </SheetTitle>
+            <SheetTitle className="text-base font-semibold">Filtros e ordenação</SheetTitle>
           </SheetHeader>
           <SchedulesRail {...railProps} />
         </SheetContent>
       </Sheet>
 
-      {/* ── Sheet de edição de busca ── */}
       <EditSearchSheet
         open={searchSheetOpen}
         onClose={() => setSearchSheetOpen(false)}

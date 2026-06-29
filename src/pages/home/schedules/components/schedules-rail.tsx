@@ -1,4 +1,4 @@
-import type { SortMode } from '@/lib/utils/group-schedules'
+import type { Schedule } from '@/lib/types/schedule'
 import { cn } from '@/lib/utils'
 
 import { ContextSummary } from './context-summary'
@@ -15,8 +15,7 @@ interface SchedulesRailProps {
   activeCount: number
   cancelledCount: number
   averageRating: number | null
-  sortMode: SortMode
-  onSortChange: (mode: SortMode) => void
+  rawSchedules: Schedule[]
   className?: string
 }
 
@@ -29,12 +28,11 @@ export function SchedulesRail({
   activeCount,
   cancelledCount,
   averageRating,
-  sortMode,
-  onSortChange,
+  rawSchedules,
   className,
 }: SchedulesRailProps) {
   return (
-    <div className={cn('space-y-6', className)}>
+    <div className={cn('space-y-4', className)}>
       <div className="rounded-[var(--radius)] border border-border/60 bg-card p-4">
         <ContextSummary
           origin={origin}
@@ -54,11 +52,11 @@ export function SchedulesRail({
       </div>
 
       <div className="rounded-[var(--radius)] border border-border/60 bg-card p-4">
-        <SortControl currentMode={sortMode} onSortChange={onSortChange} />
+        <SortControl />
       </div>
 
       <div className="rounded-[var(--radius)] border border-border/60 bg-card p-4">
-        <FilterPanel />
+        <FilterPanel rawSchedules={rawSchedules} />
       </div>
     </div>
   )

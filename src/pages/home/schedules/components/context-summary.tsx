@@ -2,12 +2,13 @@ import { format, isToday, isTomorrow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Pencil } from 'lucide-react'
 
+import { getCityNameById } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 
 interface ContextSummaryProps {
-  origin?: string
-  destination?: string
-  date?: string // 'yyyy-MM-dd'
+  origin?: string       // city ID (e.g., "1")
+  destination?: string  // city ID (e.g., "2"), or empty = any destination
+  date?: string         // 'yyyy-MM-dd'
   accentColor?: string
   onEdit: () => void
   className?: string
@@ -30,7 +31,10 @@ export function ContextSummary({
   className,
 }: ContextSummaryProps) {
   const color = accentColor ?? 'var(--color-primary)'
-  const hasRoute = origin && destination
+  const hasOrigin = Boolean(origin)
+
+  const originName = origin ? getCityNameById(origin) : ''
+  const destinationName = destination ? getCityNameById(destination) : ''
 
   return (
     <div className={cn('space-y-3', className)}>
@@ -38,7 +42,7 @@ export function ContextSummary({
         Você está vendo
       </span>
 
-      {hasRoute ? (
+      {hasOrigin ? (
         <div className="flex items-start gap-3">
           {/* mini-timeline vertical */}
           <div className="flex flex-col items-center pt-1">
@@ -48,15 +52,11 @@ export function ContextSummary({
             />
             <div
               className="my-1 w-px flex-1"
-              style={{
-                minHeight: 24,
-                backgroundColor: color,
-                opacity: 0.35,
-              }}
+              style={{ minHeight: 24, backgroundColor: color, opacity: 0.35 }}
             />
             <span
               className="h-2.5 w-2.5 shrink-0 rounded-full"
-              style={{ backgroundColor: color }}
+              style={{ backgroundColor: color, opacity: destination ? 1 : 0.35 }}
             />
           </div>
 
@@ -66,22 +66,28 @@ export function ContextSummary({
               <span className="block text-[9px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
                 De
               </span>
-              <span className="block truncate text-[13px] font-medium text-foreground leading-tight">
-                {origin}
+              <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
+                {originName}
               </span>
             </div>
             <div>
               <span className="block text-[9px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
                 Para
               </span>
-              <span className="block truncate text-[13px] font-medium text-foreground leading-tight">
-                {destination}
-              </span>
+              {destinationName ? (
+                <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
+                  {destinationName}
+                </span>
+              ) : (
+                <span className="block truncate text-[12px] italic leading-tight text-muted-foreground">
+                  qualquer destino
+                </span>
+              )}
             </div>
           </div>
         </div>
       ) : (
-        <p className="text-[13px] text-muted-foreground italic">
+        <p className="text-[13px] italic text-muted-foreground">
           Nenhuma rota selecionada
         </p>
       )}

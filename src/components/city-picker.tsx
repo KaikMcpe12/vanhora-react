@@ -1,4 +1,4 @@
-import { Check, Loader2, Navigation } from 'lucide-react'
+import { Check, Navigation } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
@@ -18,8 +18,6 @@ import {
 import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 
-import { Skeleton } from './ui/skeleton'
-
 interface CityPickerProps {
   value?: string
   onChange: (value: string) => void
@@ -36,46 +34,6 @@ export function CityPicker({
   className,
 }: CityPickerProps) {
   const [open, setOpen] = useState(false)
-
-  const [isLoading, setIsLoading] = useState(true)
-  setTimeout(() => {
-    setIsLoading(false)
-  }, 1000)
-
-  const isError = false
-  const refetch = () => {}
-
-  if (isLoading) {
-    return (
-      <div className="relative">
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-          <Loader2 className="text-muted-foreground h-4 w-4 animate-spin" />
-        </div>
-      </div>
-    )
-  }
-
-  if (isError) {
-    return (
-      <div className="space-y-2">
-        <div className="bg-destructive/10 border-destructive flex h-10 w-full items-center justify-between rounded-xl border px-3">
-          <span className="text-destructive text-sm">
-            Erro ao carregar cidades
-          </span>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={() => refetch()}
-            className="h-6 text-xs"
-          >
-            Tentar novamente
-          </Button>
-        </div>
-      </div>
-    )
-  }
 
   const selectedCity = CITIES_WITH_IDS.find((city) => city.id === value)
 

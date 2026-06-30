@@ -1,3 +1,4 @@
+import { isToday } from 'date-fns'
 import { CalendarOff, ChevronRight, ClockAlert, Map, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
@@ -11,7 +12,6 @@ import { useScheduleFilters } from '@/hooks/use-schedule-filters'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
-import { EditSearchSheet } from './components/edit-search-sheet'
 import { FeaturedScheduleCard } from './components/featured-schedule-card'
 import { ScheduleSection } from './components/schedule-section'
 import { SchedulesRail } from './components/schedules-rail'
@@ -45,7 +45,6 @@ export function Schedules() {
   const [visibleLater, setVisibleLater] = useState(GRID_PAGE_SIZE)
   const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
   const [cancelledExpanded, setCancelledExpanded] = useState(false)
-  const [searchSheetOpen, setSearchSheetOpen] = useState(false)
   const [railSheetOpen, setRailSheetOpen] = useState(false)
 
   useEffect(() => {
@@ -60,11 +59,15 @@ export function Schedules() {
     sort,
   )
 
-  const hasActiveSearch = Boolean(filtersFromUrl.origin && filtersFromUrl.destination)
+  // Busca ativa quando ao menos a origem está preenchida
+  const hasActiveSearch = Boolean(filtersFromUrl.origin)
 
   const referenceDate = filtersFromUrl.date
     ? new Date(filtersFromUrl.date + 'T00:00:00')
     : undefined
+
+  // "Mais tarde hoje" vs "Mais tarde" dependendo da data selecionada
+  const isViewingToday = !filtersFromUrl.date || isToday(new Date(filtersFromUrl.date + 'T00:00:00'))
 
   const activeCount = grouped
     ? (grouped.nextDeparture ? 1 : 0) +
@@ -106,12 +109,18 @@ export function Schedules() {
 
   const totalFiltersBadge = activeFilterCount
 
+  // "alterar" no rail: fecha Sheet (mobile) e scrolla para o topo onde está o SearchHeroBar
+  const handleEditSearch = () => {
+    setRailSheetOpen(false)
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100)
+  }
+
   const railProps = {
     origin: filtersFromUrl.origin,
     destination: filtersFromUrl.destination,
     date: filtersFromUrl.date,
     accentColor,
-    onEditSearch: () => setSearchSheetOpen(true),
+    onEditSearch: handleEditSearch,
     activeCount,
     cancelledCount,
     averageRating,
@@ -120,8 +129,8 @@ export function Schedules() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── barra de busca hero ── */}
-      <SearchHeroBar onEdit={() => setSearchSheetOpen(true)} />
+      {/* ── barra de busca hero (self-contained) ── */}
+      <SearchHeroBar />
 
       {/* ── botão mobile/tablet ── */}
       <div className="flex items-center gap-2 border-b border-border/40 bg-background px-4 py-2.5 lg:hidden">
@@ -161,13 +170,13 @@ export function Schedules() {
         {/* Conteúdo */}
         <main className="space-y-8 px-4 py-6 lg:px-0">
 
-          {/* ── Empty state: nenhuma rota selecionada ── */}
+          {/* ── Empty state: nenhuma origem selecionada ── */}
           {!hasActiveSearch && (
             <div className="flex flex-col items-center gap-5 py-20 text-center">
               <Map size={48} strokeWidth={1.25} className="text-muted-foreground" />
               <div className="space-y-1">
                 <p className="text-[15px] font-medium text-foreground">
-                  Selecione origem e destino acima
+                  Selecione a cidade de origem acima
                 </p>
                 <p className="text-[13px] text-muted-foreground">
                   para ver os horários disponíveis
@@ -176,17 +185,10 @@ export function Schedules() {
               <p className="text-[12px] text-muted-foreground">
                 Busque entre as cidades do interior do Ceará
               </p>
-              <button
-                type="button"
-                onClick={() => setSearchSheetOpen(true)}
-                className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
-              >
-                Buscar rota →
-              </button>
             </div>
           )}
 
-          {/* ── Conteúdo com rota selecionada ── */}
+          {/* ── Conteúdo com origem selecionada ── */}
           {hasActiveSearch && (
             <>
               {isLoading && <SchedulesSkeleton />}
@@ -205,18 +207,14 @@ export function Schedules() {
                   icon={ClockAlert}
                   title="Nenhum horário encontrado"
                   description="Não encontramos horários para essa rota e data."
-                  action={{ label: 'Alterar busca', onClick: () => setSearchSheetOpen(true) }}
+                  action={{ label: 'Alterar busca', onClick: handleEditSearch }}
                 />
               )}
 
               {/* Empty state de filtragem zerada */}
               {hasNoResults && activeFilterCount > 0 && (
                 <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
-                  <SlidersHorizontal
-                    size={32}
-                    strokeWidth={1.5}
-                    className="text-muted-foreground"
-                  />
+                  <SlidersHorizontal size={32} strokeWidth={1.5} className="text-muted-foreground" />
                   <div>
                     <p className="mb-1 text-[15px] font-medium text-foreground">
                       Nenhum horário corresponde aos filtros
@@ -227,10 +225,7 @@ export function Schedules() {
                   </div>
                   <button
                     type="button"
-                    onClick={() => {
-                      handleClearFilters()
-                      resetAll()
-                    }}
+                    onClick={() => { handleClearFilters(); resetAll() }}
                     className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
                   >
                     Limpar filtros
@@ -267,7 +262,7 @@ export function Schedules() {
                           </p>
                           <button
                             type="button"
-                            onClick={() => setSearchSheetOpen(true)}
+                            onClick={handleEditSearch}
                             className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
                           >
                             Ver horários de outro dia →
@@ -290,10 +285,10 @@ export function Schedules() {
                     </ScheduleSection>
                   )}
 
-                  {/* Mais tarde hoje */}
+                  {/* Mais tarde */}
                   {grouped.later.length > 0 && (
                     <ScheduleSection
-                      title="Mais tarde hoje"
+                      title={isViewingToday ? 'Mais tarde hoje' : 'Mais tarde'}
                       count={grouped.later.length}
                       variant="grid"
                     >
@@ -315,14 +310,13 @@ export function Schedules() {
                         </div>
                       )}
 
-                      {visibleLater >= grouped.later.length &&
-                        grouped.later.length > GRID_PAGE_SIZE && (
-                          <div className="col-span-full py-2 text-center">
-                            <p className="text-[12px] text-muted-foreground">
-                              Todos os horários foram carregados
-                            </p>
-                          </div>
-                        )}
+                      {visibleLater >= grouped.later.length && grouped.later.length > GRID_PAGE_SIZE && (
+                        <div className="col-span-full py-2 text-center">
+                          <p className="text-[12px] text-muted-foreground">
+                            Todos os horários foram carregados
+                          </p>
+                        </div>
+                      )}
                     </ScheduleSection>
                   )}
 
@@ -370,10 +364,7 @@ export function Schedules() {
                                 className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
                               >
                                 Mostrar mais{' '}
-                                {Math.min(
-                                  GRID_PAGE_SIZE,
-                                  grouped.cancelled.length - visibleCancelled,
-                                )}{' '}
+                                {Math.min(GRID_PAGE_SIZE, grouped.cancelled.length - visibleCancelled)}{' '}
                                 cancelados ↓
                               </button>
                             </div>
@@ -401,11 +392,6 @@ export function Schedules() {
           <SchedulesRail {...railProps} />
         </SheetContent>
       </Sheet>
-
-      <EditSearchSheet
-        open={searchSheetOpen}
-        onClose={() => setSearchSheetOpen(false)}
-      />
     </div>
   )
 }

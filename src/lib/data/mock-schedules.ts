@@ -27,37 +27,29 @@ function seededRandom(seed: number): () => number {
   }
 }
 
-// Gera horários de funcionamento distribuídos ao longo do dia (05:00–22:30).
-// Os countdowns variam naturalmente dependendo do horário atual: quem abre a
-// página às 14h vê "Em 30min", "Em 1h", "Em 2h30"… sem nenhuma injeção de
-// âncoras relativas que causaria clustering (todos mostrando "Em 8 min").
-const generateDepartureTimes = (): string[] => {
+// Gera horários de saída específicos por rota, com minutos variados dentro de
+// cada bucket. Isso garante que rotas diferentes tenham departure_time distintos
+// (ex: Fortaleza→Sobral parte às 07:23, Fortaleza→Tianguá às 07:41) em vez de
+// todos acumulados em :00/:30, o que causaria clustering de countdowns.
+const generateRouteDepartureTimes = (routeSeed: number): string[] => {
+  const rand = seededRandom(routeSeed)
+  const pad = (n: number) => n.toString().padStart(2, '0')
   const times: string[] = []
 
-  // madrugada / início de manhã
-  times.push('05:00', '05:30')
-
-  // manhã (06:00 - 12:00): frequência alta com extras no rush
-  for (let hour = 6; hour <= 11; hour++) {
-    times.push(`${hour.toString().padStart(2, '0')}:00`)
-    times.push(`${hour.toString().padStart(2, '0')}:30`)
-    if (hour >= 6 && hour <= 8) {
-      times.push(`${hour.toString().padStart(2, '0')}:15`)
-      times.push(`${hour.toString().padStart(2, '0')}:45`)
+  const addBucket = (hours: number[], count: number) => {
+    for (let i = 0; i < count; i++) {
+      const h = hours[Math.floor(rand() * hours.length)]
+      const m = Math.floor(rand() * 60)
+      times.push(`${pad(h)}:${pad(m)}`)
     }
   }
-  times.push('12:00', '12:30')
 
-  // tarde (13:00 - 18:00): frequência moderada
-  for (let hour = 13; hour <= 18; hour++) {
-    times.push(`${hour.toString().padStart(2, '0')}:00`)
-    times.push(`${hour.toString().padStart(2, '0')}:30`)
-  }
+  addBucket([4, 5], 3)           // madrugada: 3 saídas
+  addBucket([6, 7, 8, 9, 10, 11], 14)   // manhã: 14 saídas
+  addBucket([12, 13, 14, 15, 16, 17], 12) // tarde: 12 saídas
+  addBucket([18, 19, 20, 21, 22], 7)    // noite: 7 saídas
 
-  // noite (19:00 - 22:30): frequência reduzida
-  times.push('19:00', '19:30', '20:00', '20:30', '21:00', '22:00', '22:30')
-
-  return times.sort()
+  return [...new Set(times)].sort()
 }
 
 const calculateArrivalTime = (
@@ -151,9 +143,11 @@ const generateTripCode = (
 
 export function generateMockSchedules(): Schedule[] {
   const schedules: Schedule[] = []
-  const departureTimes = generateDepartureTimes()
 
   MOCK_ROUTES.forEach((route) => {
+    const routeSeed = simpleHash(`${route.origin}-${route.destination}`)
+    const departureTimes = generateRouteDepartureTimes(routeSeed)
+
     const availableCooperatives = MOCK_COOPERATIVES.filter((coop) => {
       const routes = coop.routes as readonly string[]
       return routes.includes(route.origin) && routes.includes(route.destination)
@@ -165,10 +159,10 @@ export function generateMockSchedules(): Schedule[] {
         : MOCK_COOPERATIVES.slice(0, 3)
 
     departureTimes.forEach((departureTime) => {
-      const routeSeed = simpleHash(
+      const timeSeed = simpleHash(
         `${route.origin}-${route.destination}-${departureTime}`,
       )
-      const routeRandom = seededRandom(routeSeed)
+      const routeRandom = seededRandom(timeSeed)
 
       // nem todos os horários têm todas as cooperativas (realismo)
       const activeCooperatives = cooperatives.filter(() => routeRandom() > 0.3)

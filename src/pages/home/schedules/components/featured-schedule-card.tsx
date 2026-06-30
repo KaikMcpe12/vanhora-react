@@ -62,7 +62,7 @@ export function FeaturedScheduleCard({
   return (
     <div
       className={cn(
-        'bg-card rounded-[16px] border border-border/80 overflow-hidden transition-opacity duration-200',
+        'bg-card rounded-[16px] border-[1.5px] border-[#0F6E56] overflow-hidden transition-opacity duration-200',
         isCancelled && 'opacity-75',
         className,
       )}

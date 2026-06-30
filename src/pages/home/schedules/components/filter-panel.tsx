@@ -1,9 +1,11 @@
-import { ChevronDown, ChevronUp, Filter, Star, X } from 'lucide-react'
+import { ChevronDown, ChevronUp, Filter, Moon, MoonStar, Star, Sun, Sunrise, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Slider } from '@/components/ui/slider'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import type { Schedule } from '@/lib/types/schedule'
+import type { LucideIcon } from 'lucide-react'
+
 import {
   type Period,
   PERIOD_LABELS,
@@ -11,6 +13,13 @@ import {
   PERIOD_RANGES,
   type RatingFilter,
 } from '@/lib/types/filters'
+
+const PERIOD_ICONS: Record<Period, LucideIcon> = {
+  dawn: Moon,
+  morning: Sunrise,
+  afternoon: Sun,
+  evening: MoonStar,
+}
 import {
   applyDisplayFilters,
   parseDurationToMinutes,
@@ -226,19 +235,23 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
         <div className="flex flex-wrap gap-1.5">
           {PERIOD_ORDER.map((p) => {
             const active = filters.periods.includes(p)
+            const Icon = PERIOD_ICONS[p]
             return (
               <button
                 key={p}
                 type="button"
                 onClick={() => togglePeriod(p)}
                 className={cn(
-                  'flex flex-col items-center rounded-lg border px-3 py-1.5 text-[11px] font-medium transition-all',
+                  'flex flex-col items-center rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all',
                   active
                     ? 'border-transparent bg-[#0F6E56] text-white'
                     : 'border-border/70 text-muted-foreground hover:border-border hover:text-foreground',
                 )}
               >
-                {PERIOD_LABELS[p]}
+                <span className="flex items-center gap-1">
+                  <Icon size={11} strokeWidth={1.5} />
+                  {PERIOD_LABELS[p]}
+                </span>
                 <PeriodHint period={p} />
               </button>
             )

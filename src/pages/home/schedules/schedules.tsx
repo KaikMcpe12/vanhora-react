@@ -1,4 +1,4 @@
-import { CalendarOff, ClockAlert, SlidersHorizontal } from 'lucide-react'
+import { CalendarOff, ChevronRight, ClockAlert, Map, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ScheduleCard } from '@/components/schedule-card'
@@ -11,11 +11,11 @@ import { useScheduleFilters } from '@/hooks/use-schedule-filters'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
-import { CompactSearchBar } from './components/compact-search-bar'
 import { EditSearchSheet } from './components/edit-search-sheet'
 import { FeaturedScheduleCard } from './components/featured-schedule-card'
 import { ScheduleSection } from './components/schedule-section'
 import { SchedulesRail } from './components/schedules-rail'
+import { SearchHeroBar } from './components/search-hero-bar'
 
 const GRID_PAGE_SIZE = 6
 
@@ -44,12 +44,14 @@ export function Schedules() {
 
   const [visibleLater, setVisibleLater] = useState(GRID_PAGE_SIZE)
   const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
+  const [cancelledExpanded, setCancelledExpanded] = useState(false)
   const [searchSheetOpen, setSearchSheetOpen] = useState(false)
   const [railSheetOpen, setRailSheetOpen] = useState(false)
 
   useEffect(() => {
     setVisibleLater(GRID_PAGE_SIZE)
     setVisibleCancelled(GRID_PAGE_SIZE)
+    setCancelledExpanded(false)
   }, [filtersFromUrl, displayFilters])
 
   const { grouped, rawSchedules, isLoading, isError } = useGroupedSchedules(
@@ -57,6 +59,8 @@ export function Schedules() {
     displayFilters,
     sort,
   )
+
+  const hasActiveSearch = Boolean(filtersFromUrl.origin && filtersFromUrl.destination)
 
   const referenceDate = filtersFromUrl.date
     ? new Date(filtersFromUrl.date + 'T00:00:00')
@@ -100,7 +104,6 @@ export function Schedules() {
     grouped.later.length === 0 &&
     grouped.cancelled.length === 0
 
-  // Total de filtros ativos (search + display)
   const totalFiltersBadge = activeFilterCount
 
   const railProps = {
@@ -117,13 +120,8 @@ export function Schedules() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* ── barra de busca compacta ── */}
-      <CompactSearchBar
-        origin={filtersFromUrl.origin}
-        destination={filtersFromUrl.destination}
-        date={filtersFromUrl.date}
-        onEdit={() => setSearchSheetOpen(true)}
-      />
+      {/* ── barra de busca hero ── */}
+      <SearchHeroBar onEdit={() => setSearchSheetOpen(true)} />
 
       {/* ── botão mobile/tablet ── */}
       <div className="flex items-center gap-2 border-b border-border/40 bg-background px-4 py-2.5 lg:hidden">
@@ -162,167 +160,229 @@ export function Schedules() {
 
         {/* Conteúdo */}
         <main className="space-y-8 px-4 py-6 lg:px-0">
-          {isLoading && <SchedulesSkeleton />}
 
-          {isError && (
-            <EmptyState
-              icon={ClockAlert}
-              title="Erro ao carregar horários"
-              description="Não foi possível buscar os horários. Tente novamente."
-              action={{ label: 'Tentar novamente', onClick: () => window.location.reload() }}
-            />
-          )}
-
-          {hasNoSchedules && activeFilterCount === 0 && (
-            <EmptyState
-              icon={ClockAlert}
-              title="Nenhum horário encontrado"
-              description="Não encontramos horários para essa rota e data."
-              action={{ label: 'Alterar busca', onClick: () => setSearchSheetOpen(true) }}
-            />
-          )}
-
-          {/* Empty state de filtragem zerada */}
-          {hasNoResults && activeFilterCount > 0 && (
-            <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
-              <SlidersHorizontal
-                size={32}
-                strokeWidth={1.5}
-                className="text-muted-foreground"
-              />
-              <div>
-                <p className="mb-1 text-[15px] font-medium text-foreground">
-                  Nenhum horário corresponde aos filtros
+          {/* ── Empty state: nenhuma rota selecionada ── */}
+          {!hasActiveSearch && (
+            <div className="flex flex-col items-center gap-5 py-20 text-center">
+              <Map size={48} strokeWidth={1.25} className="text-muted-foreground" />
+              <div className="space-y-1">
+                <p className="text-[15px] font-medium text-foreground">
+                  Selecione origem e destino acima
                 </p>
                 <p className="text-[13px] text-muted-foreground">
-                  Ajuste ou limpe os filtros para ver resultados.
+                  para ver os horários disponíveis
                 </p>
               </div>
+              <p className="text-[12px] text-muted-foreground">
+                Busque entre as cidades do interior do Ceará
+              </p>
               <button
                 type="button"
-                onClick={() => {
-                  handleClearFilters()
-                  resetAll()
-                }}
+                onClick={() => setSearchSheetOpen(true)}
                 className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
               >
-                Limpar filtros
+                Buscar rota →
               </button>
             </div>
           )}
 
-          {onlyHasCancelled && (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
-              Todos os horários de hoje para essa rota foram cancelados.
-            </div>
-          )}
-
-          {grouped && !isLoading && (
+          {/* ── Conteúdo com rota selecionada ── */}
+          {hasActiveSearch && (
             <>
-              {/* Próxima saída */}
-              {!hasNoSchedules && (
-                <ScheduleSection
-                  title="Próxima saída"
-                  countLabel="a mais próxima de você"
-                  variant="featured"
-                >
-                  {grouped.nextDeparture ? (
-                    <FeaturedScheduleCard
-                      schedule={grouped.nextDeparture}
-                      referenceDate={referenceDate}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center gap-3 rounded-[14px] border border-dashed border-border/60 bg-muted/20 px-6 py-8 text-center">
-                      <CalendarOff size={28} strokeWidth={1.5} className="text-muted-foreground" />
-                      <p className="text-[13px] text-muted-foreground">
-                        Nenhuma saída restante para hoje nessa rota.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => setSearchSheetOpen(true)}
-                        className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
-                      >
-                        Ver horários de outro dia →
-                      </button>
-                    </div>
-                  )}
-                </ScheduleSection>
+              {isLoading && <SchedulesSkeleton />}
+
+              {isError && (
+                <EmptyState
+                  icon={ClockAlert}
+                  title="Erro ao carregar horários"
+                  description="Não foi possível buscar os horários. Tente novamente."
+                  action={{ label: 'Tentar novamente', onClick: () => window.location.reload() }}
+                />
               )}
 
-              {/* Saindo nos próximos 30 min */}
-              {grouped.urgent.length > 0 && (
-                <ScheduleSection
-                  title="Saindo nos próximos 30 minutos"
-                  count={grouped.urgent.length}
-                  variant="grid"
-                >
-                  {grouped.urgent.map((s) => (
-                    <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
-                  ))}
-                </ScheduleSection>
+              {hasNoSchedules && activeFilterCount === 0 && (
+                <EmptyState
+                  icon={ClockAlert}
+                  title="Nenhum horário encontrado"
+                  description="Não encontramos horários para essa rota e data."
+                  action={{ label: 'Alterar busca', onClick: () => setSearchSheetOpen(true) }}
+                />
               )}
 
-              {/* Mais tarde hoje */}
-              {grouped.later.length > 0 && (
-                <ScheduleSection
-                  title="Mais tarde hoje"
-                  count={grouped.later.length}
-                  variant="grid"
-                >
-                  {grouped.later.slice(0, visibleLater).map((s) => (
-                    <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
-                  ))}
-
-                  {visibleLater < grouped.later.length && (
-                    <div className="col-span-full pt-2 text-center">
-                      <button
-                        type="button"
-                        onClick={() => setVisibleLater((v) => v + GRID_PAGE_SIZE)}
-                        className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
-                      >
-                        Mostrar mais{' '}
-                        {Math.min(GRID_PAGE_SIZE, grouped.later.length - visibleLater)}{' '}
-                        horários ↓
-                      </button>
-                    </div>
-                  )}
-
-                  {visibleLater >= grouped.later.length &&
-                    grouped.later.length > GRID_PAGE_SIZE && (
-                      <div className="col-span-full py-2 text-center">
-                        <p className="text-[12px] text-muted-foreground">
-                          Todos os horários foram carregados
-                        </p>
-                      </div>
-                    )}
-                </ScheduleSection>
+              {/* Empty state de filtragem zerada */}
+              {hasNoResults && activeFilterCount > 0 && (
+                <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border/60 bg-muted/10 px-6 py-12 text-center">
+                  <SlidersHorizontal
+                    size={32}
+                    strokeWidth={1.5}
+                    className="text-muted-foreground"
+                  />
+                  <div>
+                    <p className="mb-1 text-[15px] font-medium text-foreground">
+                      Nenhum horário corresponde aos filtros
+                    </p>
+                    <p className="text-[13px] text-muted-foreground">
+                      Ajuste ou limpe os filtros para ver resultados.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleClearFilters()
+                      resetAll()
+                    }}
+                    className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+                  >
+                    Limpar filtros
+                  </button>
+                </div>
               )}
 
-              {/* Cancelados */}
-              {grouped.cancelled.length > 0 && (
-                <ScheduleSection
-                  title="Cancelados hoje"
-                  count={grouped.cancelled.length}
-                  variant="muted"
-                >
-                  {grouped.cancelled.slice(0, visibleCancelled).map((s) => (
-                    <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
-                  ))}
+              {onlyHasCancelled && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-800/40 dark:bg-amber-900/20 dark:text-amber-300">
+                  Todos os horários de hoje para essa rota foram cancelados.
+                </div>
+              )}
 
-                  {visibleCancelled < grouped.cancelled.length && (
-                    <div className="col-span-full pt-2 text-center">
+              {grouped && !isLoading && (
+                <>
+                  {/* Próxima saída */}
+                  {!hasNoSchedules && (
+                    <ScheduleSection
+                      title="Próxima saída"
+                      badge="Em destaque"
+                      countLabel="a mais próxima de você"
+                      variant="featured"
+                    >
+                      {grouped.nextDeparture ? (
+                        <FeaturedScheduleCard
+                          schedule={grouped.nextDeparture}
+                          referenceDate={referenceDate}
+                        />
+                      ) : (
+                        <div className="flex flex-col items-center gap-3 rounded-[14px] border border-dashed border-border/60 bg-muted/20 px-6 py-8 text-center">
+                          <CalendarOff size={28} strokeWidth={1.5} className="text-muted-foreground" />
+                          <p className="text-[13px] text-muted-foreground">
+                            Nenhuma saída restante para hoje nessa rota.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setSearchSheetOpen(true)}
+                            className="cursor-pointer text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+                          >
+                            Ver horários de outro dia →
+                          </button>
+                        </div>
+                      )}
+                    </ScheduleSection>
+                  )}
+
+                  {/* Saindo nos próximos 30 min */}
+                  {grouped.urgent.length > 0 && (
+                    <ScheduleSection
+                      title="Saindo nos próximos 30 minutos"
+                      count={grouped.urgent.length}
+                      variant="grid"
+                    >
+                      {grouped.urgent.map((s) => (
+                        <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
+                      ))}
+                    </ScheduleSection>
+                  )}
+
+                  {/* Mais tarde hoje */}
+                  {grouped.later.length > 0 && (
+                    <ScheduleSection
+                      title="Mais tarde hoje"
+                      count={grouped.later.length}
+                      variant="grid"
+                    >
+                      {grouped.later.slice(0, visibleLater).map((s) => (
+                        <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
+                      ))}
+
+                      {visibleLater < grouped.later.length && (
+                        <div className="col-span-full pt-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => setVisibleLater((v) => v + GRID_PAGE_SIZE)}
+                            className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                          >
+                            Mostrar mais{' '}
+                            {Math.min(GRID_PAGE_SIZE, grouped.later.length - visibleLater)}{' '}
+                            horários ↓
+                          </button>
+                        </div>
+                      )}
+
+                      {visibleLater >= grouped.later.length &&
+                        grouped.later.length > GRID_PAGE_SIZE && (
+                          <div className="col-span-full py-2 text-center">
+                            <p className="text-[12px] text-muted-foreground">
+                              Todos os horários foram carregados
+                            </p>
+                          </div>
+                        )}
+                    </ScheduleSection>
+                  )}
+
+                  {/* Cancelados — colapsados por padrão */}
+                  {grouped.cancelled.length > 0 && (
+                    <section className="space-y-3">
                       <button
                         type="button"
-                        onClick={() => setVisibleCancelled((v) => v + GRID_PAGE_SIZE)}
-                        className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                        onClick={() => setCancelledExpanded((v) => !v)}
+                        className="flex w-full cursor-pointer items-center justify-between"
+                        aria-expanded={cancelledExpanded}
+                        aria-controls="cancelled-list"
                       >
-                        Mostrar mais{' '}
-                        {Math.min(GRID_PAGE_SIZE, grouped.cancelled.length - visibleCancelled)}{' '}
-                        cancelados ↓
+                        <span className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+                          <ChevronRight
+                            size={12}
+                            strokeWidth={2}
+                            className={cn(
+                              'transition-transform duration-200',
+                              cancelledExpanded && 'rotate-90',
+                            )}
+                          />
+                          Cancelados hoje
+                        </span>
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {grouped.cancelled.length}{' '}
+                          {grouped.cancelled.length === 1 ? 'horário' : 'horários'}
+                        </span>
                       </button>
-                    </div>
+
+                      {cancelledExpanded && (
+                        <div
+                          id="cancelled-list"
+                          className="grid grid-cols-1 gap-3 opacity-70 sm:grid-cols-2"
+                        >
+                          {grouped.cancelled.slice(0, visibleCancelled).map((s) => (
+                            <ScheduleCard key={s.id} schedule={s} referenceDate={referenceDate} />
+                          ))}
+
+                          {visibleCancelled < grouped.cancelled.length && (
+                            <div className="col-span-full pt-2 text-center">
+                              <button
+                                type="button"
+                                onClick={() => setVisibleCancelled((v) => v + GRID_PAGE_SIZE)}
+                                className="cursor-pointer text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+                              >
+                                Mostrar mais{' '}
+                                {Math.min(
+                                  GRID_PAGE_SIZE,
+                                  grouped.cancelled.length - visibleCancelled,
+                                )}{' '}
+                                cancelados ↓
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </section>
                   )}
-                </ScheduleSection>
+                </>
               )}
             </>
           )}

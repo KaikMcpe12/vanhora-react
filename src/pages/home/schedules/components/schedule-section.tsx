@@ -2,6 +2,7 @@ import { cn } from '@/lib/utils'
 
 interface ScheduleSectionProps {
   title: string
+  badge?: string
   count?: number
   countLabel?: string
   variant?: 'featured' | 'grid' | 'muted'
@@ -11,6 +12,7 @@ interface ScheduleSectionProps {
 
 export function ScheduleSection({
   title,
+  badge,
   count,
   countLabel,
   variant = 'grid',
@@ -27,7 +29,12 @@ export function ScheduleSection({
     <section className={cn('space-y-3', className)}>
       {/* header */}
       <div className="flex items-center justify-between">
-        <span className="text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+        <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+          {badge && (
+            <span className="inline-flex items-center rounded-full bg-[#0F6E56] px-1.5 py-[2px] text-[9px] font-medium tracking-[0.3px] text-white">
+              {badge}
+            </span>
+          )}
           {title}
         </span>
         {countText && (

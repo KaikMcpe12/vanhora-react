@@ -1,6 +1,5 @@
 import { Heart } from 'lucide-react'
 
-import { ScheduleSearch } from '@/components/schedule-search'
 import { useFavorites } from '@/hooks/use-favorites'
 
 export function FavoritesHero() {
@@ -56,11 +55,6 @@ export function FavoritesHero() {
             adicionar novos.
           </div>
         )}
-
-        {/* busca */}
-        <div className="mt-8">
-          <ScheduleSearch />
-        </div>
       </div>
 
       {/* decorações de fundo */}

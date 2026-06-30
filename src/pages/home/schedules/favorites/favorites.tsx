@@ -10,6 +10,7 @@ import {
 import { useFavorites } from '@/hooks/use-favorites'
 import { cn } from '@/lib/utils'
 
+import { SearchHeroBar } from '../components/search-hero-bar'
 import { FavoritesHero } from './components/favorites-hero'
 import { FavoritesNowSection } from './components/favorites-now-section'
 import { FavoritesTabs } from './components/favorites-tabs'
@@ -20,6 +21,7 @@ export function Favorites() {
   return (
     <div className="from-muted/30 to-background min-h-screen bg-linear-to-b">
       <FavoritesHero />
+      <SearchHeroBar />
 
       {/* estado vazio */}
       {favoriteIds.length === 0 ? (

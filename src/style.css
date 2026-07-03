@@ -228,4 +228,13 @@
   .animate-vh-banner-appear {
     animation: vh-banner-appear 200ms ease-out;
   }
+
+  @keyframes bottom-nav-appear {
+    from { transform: translateY(100%); }
+    to   { transform: translateY(0); }
+  }
+
+  .animate-bottom-nav-appear {
+    animation: bottom-nav-appear 200ms ease-out;
+  }
 }

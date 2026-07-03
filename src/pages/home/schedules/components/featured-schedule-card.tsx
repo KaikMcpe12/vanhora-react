@@ -61,8 +61,18 @@ export function FeaturedScheduleCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-expanded={expanded}
+      onClick={() => setExpanded((v) => !v)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          setExpanded((v) => !v)
+        }
+      }}
       className={cn(
-        'bg-card rounded-[16px] border-[1.5px] border-[#0F6E56] overflow-hidden transition-opacity duration-200',
+        'cursor-pointer bg-card rounded-[16px] border-[1.5px] border-[#0F6E56] overflow-hidden transition-opacity duration-200',
         isCancelled && 'opacity-75',
         className,
       )}

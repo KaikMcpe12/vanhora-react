@@ -1,6 +1,7 @@
 import { ArrowUpDown, Check, ChevronDown } from 'lucide-react'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
+import { useOnClickOutside } from '@/hooks/use-on-click-outside'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { SORT_OPTIONS, sortKey } from '@/lib/types/filters'
 import { cn } from '@/lib/utils'
@@ -8,13 +9,15 @@ import { cn } from '@/lib/utils'
 export function SortControl({ className }: { className?: string }) {
   const { sort, setSort } = useDisplayFilters()
   const [open, setOpen] = useState(false)
+  const handleClickOutside = useCallback(() => setOpen(false), [])
+  const containerRef = useOnClickOutside<HTMLDivElement>(handleClickOutside, open)
 
   const currentLabel =
     SORT_OPTIONS.find((o) => sortKey(o.sort) === sortKey(sort))?.label ??
     'Mais cedo primeiro'
 
   return (
-    <div className={cn('space-y-3', className)}>
+    <div ref={containerRef} className={cn('space-y-3', className)}>
       <span className="block text-[10px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
         Ordenar por
       </span>

@@ -1,15 +1,18 @@
 import { Link, Outlet } from 'react-router-dom'
 
 import { HeaderHome } from '@/components/header-home'
+import { MobileBottomNav } from '@/components/layout/mobile-bottom-nav'
 
 export function Home() {
   return (
     <div className="text-text-main-light dark:text-text-main-dark relative flex min-h-screen flex-col antialiased shadow-xl transition-colors duration-300">
       <HeaderHome />
 
-      <div className="flex flex-1 flex-col">
+      <div className="flex flex-1 flex-col pb-[calc(60px+env(safe-area-inset-bottom)+16px)] md:pb-0">
         <Outlet />
       </div>
+
+      <MobileBottomNav />
 
       <footer className="bg-muted border-border flex h-20 w-full items-center justify-between border-t px-8">
         <span className="text-muted-foreground text-sm">

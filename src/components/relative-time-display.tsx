@@ -77,7 +77,7 @@ export function RelativeTimeDisplay({
             style={{
               fontSize: size === 'featured' ? 42 : 27,
               letterSpacing: size === 'featured' ? '-0.8px' : '-0.4px',
-              color: isUrgent ? '#0F6E56' : 'inherit',
+              color: isUrgent ? '#0F6E56' : mins < 0 ? 'var(--color-muted-foreground)' : 'inherit',
             }}
           >
             {formatRelativeTime(mins)}

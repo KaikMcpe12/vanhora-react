@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
 import {
@@ -29,8 +29,31 @@ function parseSort(raw: string | null): ScheduleSort {
   return DEFAULT_SORT
 }
 
+const SORT_STORAGE_KEY = 'vh_last_sort'
+
 export function useDisplayFilters() {
   const [searchParams, setSearchParams] = useSearchParams()
+
+  // sync localStorage → URL on mount (only when URL has no sort param)
+  useEffect(() => {
+    if (searchParams.get('sort')) return
+    try {
+      const stored = localStorage.getItem(SORT_STORAGE_KEY)
+      if (!stored) return
+      const parsed = parseSort(stored)
+      if (!isDefaultSort(parsed)) {
+        setSearchParams(
+          (prev) => {
+            const next = new URLSearchParams(prev)
+            next.set('sort', stored)
+            return next
+          },
+          { replace: true },
+        )
+      }
+    } catch { /* ignore */ }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // only on mount
 
   const sort = useMemo(
     () => parseSort(searchParams.get('sort')),
@@ -55,6 +78,10 @@ export function useDisplayFilters() {
 
   const setSort = useCallback(
     (s: ScheduleSort) => {
+      try {
+        if (isDefaultSort(s)) localStorage.removeItem(SORT_STORAGE_KEY)
+        else localStorage.setItem(SORT_STORAGE_KEY, `${s.field}:${s.direction}`)
+      } catch { /* ignore */ }
       setSearchParams(
         (prev) => {
           const next = new URLSearchParams(prev)

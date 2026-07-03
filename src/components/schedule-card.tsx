@@ -59,8 +59,18 @@ export function ScheduleCard({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
+      aria-expanded={expanded}
+      onClick={() => setExpanded((v) => !v)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          setExpanded((v) => !v)
+        }
+      }}
       className={cn(
-        'bg-card rounded-[14px] border border-border/80 overflow-hidden',
+        'cursor-pointer bg-card rounded-[14px] border border-border/80 overflow-hidden',
         'transition-[opacity,transform] duration-150 hover:-translate-y-px',
         isCancelled && 'opacity-80',
       )}

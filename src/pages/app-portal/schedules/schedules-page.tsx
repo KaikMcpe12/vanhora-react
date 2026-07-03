@@ -539,24 +539,38 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
         </div>
       </div>
 
-      {/* schedule rows — hidden when collapsed on mobile, always shown on desktop */}
-      <div className={cn('border-t', collapsed && 'hidden md:block')}>
-        {route.schedules.map((schedule) => (
-          <ScheduleRowItem key={schedule.id} schedule={schedule} routeStops={route.stops} />
-        ))}
+      {/* schedule rows — animated collapse on mobile, always visible on desktop */}
+      <div
+        className={cn(
+          'border-t grid transition-all duration-200 ease-in-out',
+          collapsed ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]' : 'grid-rows-[1fr]',
+        )}
+      >
+        <div className="overflow-hidden">
+          {route.schedules.map((schedule) => (
+            <ScheduleRowItem key={schedule.id} schedule={schedule} routeStops={route.stops} />
+          ))}
+        </div>
       </div>
 
       {/* temporary schedules */}
       {route.temporarySchedules && route.temporarySchedules.length > 0 && (
-        <div className={cn('border-t', collapsed && 'hidden md:block')}>
-          <div className="px-4 pb-1 pt-2.5">
-            <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
-              Servicos extras
-            </p>
+        <div
+          className={cn(
+            'border-t grid transition-all duration-200 ease-in-out',
+            collapsed ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]' : 'grid-rows-[1fr]',
+          )}
+        >
+          <div className="overflow-hidden">
+            <div className="px-4 pb-1 pt-2.5">
+              <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+                Servicos extras
+              </p>
+            </div>
+            {route.temporarySchedules.map((tmp) => (
+              <TemporaryScheduleRow key={tmp.id} tmp={tmp} />
+            ))}
           </div>
-          {route.temporarySchedules.map((tmp) => (
-            <TemporaryScheduleRow key={tmp.id} tmp={tmp} />
-          ))}
         </div>
       )}
 

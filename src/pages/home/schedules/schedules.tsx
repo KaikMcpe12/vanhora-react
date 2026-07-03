@@ -1,5 +1,5 @@
 import { isToday } from 'date-fns'
-import { CalendarOff, ChevronRight, ClockAlert, Map, SlidersHorizontal } from 'lucide-react'
+import { CalendarOff, ChevronRight, ClockAlert, Map, MapPinOff, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
 import { ScheduleCard } from '@/components/schedule-card'
@@ -9,7 +9,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { useGroupedSchedules } from '@/hooks/use-grouped-schedules'
 import { useScheduleFilters } from '@/hooks/use-schedule-filters'
-import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
+import { useUserCity } from '@/hooks/use-user-city'
+import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
 import { addRecentDestination } from '@/lib/recent-destinations'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
@@ -43,6 +44,7 @@ function SchedulesSkeleton() {
 export function Schedules() {
   const { filtersFromUrl, handleClearFilters } = useScheduleFilters()
   const { filters: displayFilters, sort, activeFilterCount, resetAll } = useDisplayFilters()
+  const { cityId: detectedCityId } = useUserCity()
 
   const [visibleLater, setVisibleLater] = useState(GRID_PAGE_SIZE)
   const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
@@ -212,12 +214,21 @@ export function Schedules() {
               )}
 
               {hasNoSchedules && activeFilterCount === 0 && (
-                <EmptyState
-                  icon={ClockAlert}
-                  title="Nenhum horário encontrado"
-                  description="Não encontramos horários para essa rota e data."
-                  action={{ label: 'Alterar busca', onClick: handleEditSearch }}
-                />
+                detectedCityId && detectedCityId === filtersFromUrl.origin ? (
+                  <EmptyState
+                    icon={MapPinOff}
+                    title={`Ainda não temos rotas saindo de ${getCityNameById(detectedCityId)}`}
+                    description="Você pode buscar com outra origem, ou nos avisar se conhece cooperativas que operam nessa cidade."
+                    action={{ label: 'Buscar de outra cidade', onClick: handleClearFilters, variant: 'outline' }}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={ClockAlert}
+                    title="Nenhum horário encontrado"
+                    description="Não encontramos horários para essa rota e data."
+                    action={{ label: 'Alterar busca', onClick: handleEditSearch }}
+                  />
+                )
               )}
 
               {/* Empty state de filtragem zerada */}

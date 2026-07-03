@@ -1,29 +1,35 @@
-import { StubLink } from '@/components/ui/stub-link'
+import { Link, useNavigate } from 'react-router-dom'
+
 import { Section } from '@/components/section'
-import { MOCK_COOPERATIVES } from '@/lib/data/mock-cooperatives'
-import { COOPERATIVE_COLORS } from '@/lib/utils/schedule-status'
+import { MOCK_COOPERATIVE_DETAILS } from '@/lib/data/mock-cooperative-details'
 
 import { CooperativeCard } from './cooperative-card'
 
-const FEATURED_COOPERATIVES = MOCK_COOPERATIVES.slice(0, 3).map((coop) => ({
-  name: coop.name,
-  brandColor: COOPERATIVE_COLORS[coop.name] ?? '#185FA5',
-  citiesServed: [...coop.routes] as string[],
-  rating: coop.rating,
-  ratingCount: coop.reviews,
-  routeCount: coop.routes.length,
-}))
+const FEATURED_COOPERATIVES = MOCK_COOPERATIVE_DETAILS.slice(0, 3)
 
 export function PartnerCoopsSection() {
+  const navigate = useNavigate()
+
   return (
     <Section title="Cooperativas parceiras">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {FEATURED_COOPERATIVES.map((coop) => (
-          <CooperativeCard key={coop.name} {...coop} />
+          <CooperativeCard
+            key={coop.id}
+            name={coop.name}
+            brandColor={coop.brandColor}
+            citiesServed={coop.citiesServed}
+            rating={coop.rating}
+            ratingCount={coop.ratingCount}
+            routeCount={coop.routeCount}
+            onClick={() => navigate(`/cooperatives/${coop.id}`)}
+          />
         ))}
       </div>
       <div className="mt-1 text-center">
-        <StubLink className="text-sm text-muted-foreground">Ver todas as cooperativas →</StubLink>
+        <Link to="/cooperatives" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          Ver todas as cooperativas →
+        </Link>
       </div>
     </Section>
   )

@@ -17,6 +17,7 @@ dist-ssr
 .opencode
 design-system
 docs
+.claude
 
 
 # Editor directories and files

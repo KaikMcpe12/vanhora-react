@@ -27,6 +27,7 @@ export function ScheduleCard({
 }) {
   const [expanded, setExpanded] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [heartPulsing, setHeartPulsing] = useState(false)
   const { isFavorite: checkIsFavorite, toggleFavorite } = useFavorites()
 
   const isFavorite = checkIsFavorite(schedule.id)
@@ -51,13 +52,16 @@ export function ScheduleCard({
       toast.success('Adicionado aos favoritos', {
         description: `${schedule.origin} → ${schedule.destination} às ${schedule.departureTime}`,
       })
+      setHeartPulsing(true)
+      setTimeout(() => setHeartPulsing(false), 400)
     }
   }
 
   return (
     <div
       className={cn(
-        'bg-card rounded-[14px] border border-border/80 overflow-hidden transition-opacity duration-200',
+        'bg-card rounded-[14px] border border-border/80 overflow-hidden',
+        'transition-[opacity,transform] duration-150 hover:-translate-y-px',
         isCancelled && 'opacity-80',
       )}
     >
@@ -82,6 +86,7 @@ export function ScheduleCard({
               strokeWidth={1.75}
               className={cn(
                 'transition-colors duration-150',
+                heartPulsing && 'animate-vh-heart-pulse',
                 isFavorite
                   ? 'fill-[#D4537E] text-[#D4537E]'
                   : 'fill-none text-muted-foreground hover:text-foreground',

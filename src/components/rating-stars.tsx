@@ -88,10 +88,10 @@ export function RatingStars({
                 !isFilled && 'fill-muted/30 text-muted-foreground/40',
 
                 // Hover preview
-                isHovered && 'fill-yellow-300 text-yellow-400',
+                isHovered && 'fill-vh-amber/70 text-vh-amber',
 
                 // Selected
-                isFilled && !isHovered && 'fill-yellow-400 text-yellow-400',
+                isFilled && !isHovered && 'fill-vh-amber text-vh-amber',
               )}
             />
           </button>

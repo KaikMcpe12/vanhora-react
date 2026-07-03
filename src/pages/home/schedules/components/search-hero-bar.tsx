@@ -88,9 +88,10 @@ function CityList({ selectedId, excludeId, allowAny, onSelect }: CityListProps) 
 
 interface SearchHeroBarProps {
   className?: string
+  onSearch?: () => void
 }
 
-export function SearchHeroBar({ className }: SearchHeroBarProps) {
+export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
   const [searchParams, setSearchParams] = useSearchParams()
 
   const originId = searchParams.get('origin') || ''
@@ -271,6 +272,7 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
 
         <button
           type="button"
+          onClick={() => originId && onSearch?.()}
           className={cn(
             'flex h-[60px] w-[60px] shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-colors',
             originId ? 'bg-[#0F6E56] hover:bg-[#0a5a45]' : 'cursor-not-allowed bg-muted-foreground/40',
@@ -355,6 +357,7 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
 
         <button
           type="button"
+          onClick={() => originId && onSearch?.()}
           className={cn(
             'h-12 w-full rounded-xl text-[14px] font-medium text-white transition-colors',
             originId ? 'cursor-pointer bg-[#0F6E56] hover:bg-[#0a5a45]' : 'cursor-not-allowed bg-muted-foreground/40',

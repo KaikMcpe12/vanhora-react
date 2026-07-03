@@ -40,6 +40,12 @@
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --radius: 0.625rem;
+  --vh-surface-warm: #F7F2E7;
+  --vh-amber: #BA7517;
+  --vh-amber-bg: #FAEEDA;
+  --vh-amber-text: #854F0B;
+  --vh-amber-border: #EF9F27;
+  --vh-amber-card-bg: #FDF8ED;
 }
 
 .dark {
@@ -78,6 +84,12 @@
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   --radius: 0.625rem;
+  --vh-surface-warm: #1A1815;
+  --vh-amber: #EF9F27;
+  --vh-amber-bg: #3D2A0B;
+  --vh-amber-text: #FAC775;
+  --vh-amber-border: #BA7517;
+  --vh-amber-card-bg: #241A0A;
 }
 
 @theme inline {
@@ -112,6 +124,12 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --color-vh-surface-warm: var(--vh-surface-warm);
+  --color-vh-amber: var(--vh-amber);
+  --color-vh-amber-bg: var(--vh-amber-bg);
+  --color-vh-amber-text: var(--vh-amber-text);
+  --color-vh-amber-border: var(--vh-amber-border);
+  --color-vh-amber-card-bg: var(--vh-amber-card-bg);
 
   --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
@@ -132,7 +150,7 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-vh-surface-warm text-foreground font-sans antialiased;
   }
 }
 
@@ -190,5 +208,24 @@
   }
   .animate-collapsible-up {
     animation: collapsible-up 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes vh-heart-pulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.35); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes vh-banner-appear {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .animate-vh-heart-pulse {
+    animation: vh-heart-pulse 400ms ease;
+  }
+
+  .animate-vh-banner-appear {
+    animation: vh-banner-appear 200ms ease-out;
   }
 }

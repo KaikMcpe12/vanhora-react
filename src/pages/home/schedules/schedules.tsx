@@ -9,6 +9,8 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { useGroupedSchedules } from '@/hooks/use-grouped-schedules'
 import { useScheduleFilters } from '@/hooks/use-schedule-filters'
+import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
+import { addRecentDestination } from '@/lib/recent-destinations'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
 
@@ -52,6 +54,13 @@ export function Schedules() {
     setVisibleCancelled(GRID_PAGE_SIZE)
     setCancelledExpanded(false)
   }, [filtersFromUrl, displayFilters])
+
+  useEffect(() => {
+    const { destination } = filtersFromUrl
+    if (!destination) return
+    const city = CITIES_WITH_IDS.find((c) => c.id === destination)
+    if (city) addRecentDestination(city.id, city.name)
+  }, [filtersFromUrl.destination])
 
   const { grouped, rawSchedules, isLoading, isError } = useGroupedSchedules(
     filtersFromUrl,

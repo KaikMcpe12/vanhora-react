@@ -84,8 +84,7 @@ export function RelativeTimeDisplay({
           </span>
           {isDelayed && delayMinutes && (
             <span
-              className="text-sm font-medium"
-              style={{ color: '#BA7517' }}
+              className="text-sm font-medium text-vh-amber"
             >
               +{delayMinutes}min atraso
             </span>

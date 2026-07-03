@@ -33,7 +33,7 @@ export function RatingDisplay({
   if (variant === 'compact') {
     return (
       <div className={cn('flex items-center', config.gap, className)}>
-        <Star className={cn(config.star, 'fill-yellow-400 text-yellow-400')} />
+        <Star className={cn(config.star, 'fill-vh-amber text-vh-amber')} />
         <span className={cn('font-medium', config.text)}>
           {rating.toFixed(1)}
         </span>
@@ -72,7 +72,7 @@ export function RatingDisplay({
                   <Star
                     className={cn(
                       config.star,
-                      'fill-yellow-400 text-yellow-400',
+                      'fill-vh-amber text-vh-amber',
                     )}
                   />
                 </div>

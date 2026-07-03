@@ -1,70 +1,136 @@
-import { ChevronDown, Filter, Heart } from 'lucide-react'
+import { Filter } from 'lucide-react'
+import { useMemo, useState } from 'react'
 
-import { AdvanceFilter } from '@/components/advance-filter'
-import { EmptyState } from '@/components/empty-state'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
+import { Button } from '@/components/ui/button'
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useFavorites } from '@/hooks/use-favorites'
-import { cn } from '@/lib/utils'
+import { getMockSchedules } from '@/lib/data/mock-schedules'
+import type { Schedule } from '@/lib/types/schedule'
+import { getCooperativeColor } from '@/lib/utils/schedule-status'
 
-import { SearchHeroBar } from '../components/search-hero-bar'
-import { FavoritesHero } from './components/favorites-hero'
-import { FavoritesNowSection } from './components/favorites-now-section'
-import { FavoritesTabs } from './components/favorites-tabs'
+import { FavoritesEmptyState } from './components/favorites-empty-state'
+import { FavoritesFeed } from './components/favorites-feed'
+import { FavoritesHeader } from './components/favorites-header'
+import {
+  FavoritesFilterPanel,
+  type AvailableCoop,
+  type AvailableRoute,
+  type FavoritesFilters,
+} from './components/favorites-filter-panel'
+
+function deriveAvailableRoutes(schedules: Schedule[]): AvailableRoute[] {
+  const map = new Map<string, { label: string; count: number }>()
+  schedules.forEach((s) => {
+    const key = `${s.origin}|${s.destination}`
+    const existing = map.get(key)
+    if (existing) existing.count++
+    else map.set(key, { label: `${s.origin} → ${s.destination}`, count: 1 })
+  })
+  return Array.from(map.entries()).map(([id, { label, count }]) => ({ id, label, count }))
+}
+
+function deriveAvailableCoops(schedules: Schedule[]): AvailableCoop[] {
+  const map = new Map<string, { color: string; count: number }>()
+  schedules.forEach((s) => {
+    const existing = map.get(s.cooperativeName)
+    if (existing) existing.count++
+    else map.set(s.cooperativeName, { color: getCooperativeColor(s.cooperativeName), count: 1 })
+  })
+  return Array.from(map.entries()).map(([name, { color, count }]) => ({ name, color, count }))
+}
+
+function applyFavoritesFilters(schedules: Schedule[], filters: FavoritesFilters): Schedule[] {
+  return schedules.filter((s) => {
+    if (filters.status === 'active' && s.badge === 'cancelled') return false
+    if (filters.status === 'cancelled' && s.badge !== 'cancelled') return false
+    if (filters.routeKeys.length > 0) {
+      const key = `${s.origin}|${s.destination}`
+      if (!filters.routeKeys.includes(key)) return false
+    }
+    if (filters.cooperativeNames.length > 0) {
+      if (!filters.cooperativeNames.includes(s.cooperativeName)) return false
+    }
+    return true
+  })
+}
 
 export function Favorites() {
   const { favoriteIds } = useFavorites()
+  const [filters, setFilters] = useState<FavoritesFilters>({
+    routeKeys: [],
+    cooperativeNames: [],
+    status: 'active',
+  })
+  const [sheetOpen, setSheetOpen] = useState(false)
+
+  const allFavoriteSchedules = useMemo(
+    () => getMockSchedules().filter((s) => favoriteIds.includes(s.id)),
+    [favoriteIds],
+  )
+
+  const availableRoutes = useMemo(() => deriveAvailableRoutes(allFavoriteSchedules), [allFavoriteSchedules])
+  const availableCooperatives = useMemo(() => deriveAvailableCoops(allFavoriteSchedules), [allFavoriteSchedules])
+
+  const filteredSchedules = useMemo(
+    () => applyFavoritesFilters(allFavoriteSchedules, filters),
+    [allFavoriteSchedules, filters],
+  )
+
+  const activeFilterCount =
+    filters.routeKeys.length +
+    filters.cooperativeNames.length +
+    (filters.status !== 'all' ? 1 : 0)
+
+  if (favoriteIds.length === 0) return <FavoritesEmptyState />
 
   return (
-    <div className="from-muted/30 to-background min-h-screen bg-linear-to-b">
-      <FavoritesHero />
-      <SearchHeroBar />
+    <div className="min-h-screen">
+      {/* header */}
+      <div className="mx-auto flex max-w-7xl items-end justify-between px-6">
+        <FavoritesHeader
+          favoriteCount={favoriteIds.length}
+          distinctRoutesCount={availableRoutes.length}
+        />
+        <Button
+          variant="outline"
+          size="sm"
+          className="mb-8 flex items-center gap-2 lg:hidden"
+          onClick={() => setSheetOpen(true)}
+        >
+          <Filter className="h-3.5 w-3.5" />
+          Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+        </Button>
+      </div>
 
-      {/* estado vazio */}
-      {favoriteIds.length === 0 ? (
-        <div className="mx-auto max-w-2xl px-4 py-16">
-          <EmptyState
-            icon={Heart}
-            title="Você ainda não tem favoritos"
-            description="Explore horários e adicione seus preferidos tocando no coração"
+      {/* content grid */}
+      <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 pb-16 lg:grid-cols-[240px_1fr]">
+        <aside className="hidden lg:block">
+          <FavoritesFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableRoutes={availableRoutes}
+            availableCooperatives={availableCooperatives}
           />
-        </div>
-      ) : (
-        <div className="px-2 py-8">
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-3 lg:grid-cols-12">
-            {/* sidebar */}
-            <aside
-              className={cn(
-                'col-span-1 space-y-6 transition-all duration-300 sm:col-span-1 lg:col-span-4',
-                'lg:sticky lg:top-24 lg:max-h-[calc(100vh-6rem)] lg:overflow-y-auto',
-              )}
-            >
-              {/* filtros avançados */}
-              <Collapsible defaultOpen={false}>
-                <CollapsibleTrigger className="hover:bg-muted/50 flex w-full items-center justify-between rounded-lg border p-4 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    <span className="font-medium">Filtros Avançados</span>
-                  </div>
-                  <ChevronDown className="h-4 w-4 transition-transform data-[state=open]:rotate-180" />
-                </CollapsibleTrigger>
-                <CollapsibleContent className="mt-3">
-                  <AdvanceFilter />
-                </CollapsibleContent>
-              </Collapsible>
-            </aside>
+        </aside>
+        <main>
+          <FavoritesFeed schedules={filteredSchedules} />
+        </main>
+      </div>
 
-            {/* conteúdo principal */}
-            <main className="col-span-1 sm:col-span-2 lg:col-span-8">
-              <FavoritesNowSection />
-              <FavoritesTabs />
-            </main>
-          </div>
-        </div>
-      )}
+      {/* mobile sheet */}
+      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+        <SheetContent side="left" className="w-72 overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Filtros</SheetTitle>
+          </SheetHeader>
+          <FavoritesFilterPanel
+            filters={filters}
+            onFiltersChange={setFilters}
+            availableRoutes={availableRoutes}
+            availableCooperatives={availableCooperatives}
+          />
+        </SheetContent>
+      </Sheet>
     </div>
   )
 }

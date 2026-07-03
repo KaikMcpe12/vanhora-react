@@ -26,8 +26,6 @@ import {
 } from '@/lib/utils/apply-display-filters'
 import { cn } from '@/lib/utils'
 
-// ─── helpers ───────────────────────────────────────────────────────────────
-
 function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60)
   const m = mins % 60
@@ -77,8 +75,6 @@ function StarDisplay({ filled, total = 5 }: { filled: number; total?: number }) 
   )
 }
 
-// ─── FilterPanel ───────────────────────────────────────────────────────────
-
 interface FilterPanelProps {
   rawSchedules: Schedule[]
   className?: string
@@ -91,7 +87,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
   const [showMore, setShowMore] = useState(false)
   const [expandedCoops, setExpandedCoops] = useState(false)
 
-  // ── computed ranges from loaded data ──────────────────────────────────
   const { listMinPrice, listMaxPrice, listMinDuration, listMaxDuration } = useMemo(() => {
     if (rawSchedules.length === 0)
       return { listMinPrice: 0, listMaxPrice: 200, listMinDuration: 0, listMaxDuration: 600 }
@@ -105,7 +100,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
     }
   }, [rawSchedules])
 
-  // Local slider state (debounced → URL)
   const [priceRange, setPriceRange] = useState<[number, number]>([
     filters.priceMin ?? listMinPrice,
     filters.priceMax ?? listMaxPrice,
@@ -114,7 +108,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
     filters.durationMaxMinutes ?? listMaxDuration,
   )
 
-  // Sync local slider from URL on mount / external change
   useEffect(() => {
     setPriceRange([
       filters.priceMin ?? listMinPrice,
@@ -157,7 +150,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
     [setFilters, listMaxDuration],
   )
 
-  // ── cooperative dynamic counts ─────────────────────────────────────────
   const cooperativesWithCount = useMemo(() => {
     const names = [...new Set(rawSchedules.map((s) => s.cooperativeName))].sort()
     return names.map((name) => ({
@@ -168,7 +160,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
     }))
   }, [rawSchedules, filters])
 
-  // ── stop cities dynamic counts ────────────────────────────────────────
   const stopCitiesWithCount = useMemo(() => {
     const cities = [
       ...new Set(rawSchedules.flatMap((s) => [s.origin, s.destination])),
@@ -185,7 +176,6 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
     ? cooperativesWithCount
     : cooperativesWithCount.slice(0, 5)
 
-  // ── toggle helpers ─────────────────────────────────────────────────────
   const togglePeriod = (p: Period) => {
     const next = filters.periods.includes(p)
       ? filters.periods.filter((x) => x !== p)

@@ -63,8 +63,6 @@ interface AppPortalOutletContext {
   basePath: string
 }
 
-// ─── constants ───────────────────────────────────────────────────────────────
-
 const ALL_DAYS: DayOfWeek[] = ['seg', 'ter', 'qua', 'qui', 'sex', 'sab', 'dom']
 
 const DAY_CIRCLE_LABEL: Record<DayOfWeek, string> = {
@@ -139,8 +137,6 @@ const OP_STATUS_META: Record<
     icon: PauseCircle,
   },
 }
-
-// ─── sub-components ──────────────────────────────────────────────────────────
 
 function DayCircles({ activeDays }: { activeDays: DayOfWeek[] }) {
   return (
@@ -579,8 +575,6 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
     </article>
   )
 }
-
-// ─── main page ───────────────────────────────────────────────────────────────
 
 export function SchedulesPage() {
   useOutletContext<AppPortalOutletContext>()

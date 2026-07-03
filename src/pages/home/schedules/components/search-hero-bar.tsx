@@ -22,8 +22,6 @@ import {
 import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 
-// ─── helpers ───────────────────────────────────────────────────────────────
-
 function formatDateLabel(dateStr?: string): string {
   if (!dateStr) return 'hoje'
   const d = new Date(dateStr + 'T00:00:00')
@@ -43,8 +41,6 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
     </span>
   )
 }
-
-// ─── CityList ─── compartilhado nos pickers de origem e destino ────────────
 
 interface CityListProps {
   selectedId: string
@@ -90,13 +86,6 @@ function CityList({ selectedId, excludeId, allowAny, onSelect }: CityListProps) 
   )
 }
 
-// ─── SearchHeroBar ──────────────────────────────────────────────────────────
-//
-// Cada layout (desktop / mobile) usa seu próprio estado de abertura para os
-// Popovers. Compartilhar um único estado faz com que o Popover do layout
-// oculto também abra (open={true}), portalando conteúdo posicionado em (0,0)
-// que sobrepõe os botões do layout visível e intercepta os cliques.
-
 interface SearchHeroBarProps {
   className?: string
 }
@@ -104,32 +93,25 @@ interface SearchHeroBarProps {
 export function SearchHeroBar({ className }: SearchHeroBarProps) {
   const [searchParams, setSearchParams] = useSearchParams()
 
-  // Lê IDs da URL
   const originId = searchParams.get('origin') || ''
   const destinationId = searchParams.get('destination') || ''
   const date = searchParams.get('date') || ''
 
-  // Converte ID → nome para exibição
   const originName = getCityNameById(originId)
   const destinationName = getCityNameById(destinationId)
   const dateLabel = formatDateLabel(date)
   const today = todayStr()
   const canSwap = Boolean(originId && destinationId)
 
-  // ── Estado de abertura independente por layout ────────────────────────────
-  // Desktop
+  // estados separados por layout: um popover open={true} no layout oculto
+  // (css hidden) porta conteúdo sem âncora e sobrepõe o layout visível
   const [dOriginOpen, setDOriginOpen] = useState(false)
   const [dDestOpen, setDDestOpen] = useState(false)
   const [dDateOpen, setDDateOpen] = useState(false)
-  // Mobile
   const [mOriginOpen, setMOriginOpen] = useState(false)
   const [mDestOpen, setMDestOpen] = useState(false)
   const [mDateOpen, setMDateOpen] = useState(false)
 
-  // ── Detecção de cidade via IP ─────────────────────────────────────────────
-  // Aguarda o hook resolver (isLoading=false), então seta a origem na URL se
-  // ainda não estiver preenchida. Se a cidade não for encontrada no banco
-  // (cityId=null), deixa o campo vazio para o usuário preencher manualmente.
   const { cityId: detectedCityId, isLoading: isDetectingCity } = useUserCity()
 
   useEffect(() => {
@@ -145,7 +127,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
     )
   }, [isDetectingCity, detectedCityId, setSearchParams])
 
-  // ── Helpers ──────────────────────────────────────────────────────────────
   const setParam = (key: string, value: string) => {
     setSearchParams(
       (prev) => {
@@ -172,7 +153,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
     )
   }
 
-  // Desktop handlers: fecha picker atual, abre destino se estiver vazio
   const handleDOriginSelect = (id: string) => {
     setParam('origin', id)
     setDOriginOpen(false)
@@ -187,7 +167,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
     setDDateOpen(false)
   }
 
-  // Mobile handlers: mesma lógica
   const handleMOriginSelect = (id: string) => {
     setParam('origin', id)
     setMOriginOpen(false)
@@ -202,20 +181,14 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
     setMDateOpen(false)
   }
 
-  // ── Classes base ─────────────────────────────────────────────────────────
   const fieldDesktop = 'flex h-full cursor-pointer items-center gap-3 px-5 transition-colors hover:bg-muted/20'
   const fieldMobile  = 'flex h-14 w-full cursor-pointer items-center gap-3 rounded-xl border border-border/70 bg-card px-4 text-left transition-colors hover:bg-muted/10'
 
   return (
     <div className={cn('border-b border-border/60 bg-muted/40 px-4 py-5 lg:px-6 lg:py-6', className)}>
 
-      {/* ── Desktop (≥1024px) ────────────────────────────────────────────── */}
       <div className="mx-auto hidden max-w-6xl items-center gap-3.5 lg:flex">
-
-        {/* Barra */}
         <div className="flex h-16 flex-1 overflow-hidden rounded-2xl border border-border/70 bg-card">
-
-          {/* Origem */}
           <Popover open={dOriginOpen} onOpenChange={setDOriginOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'flex-1')}>
@@ -234,7 +207,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
             </PopoverContent>
           </Popover>
 
-          {/* Swap */}
           {canSwap && (
             <div className="flex shrink-0 items-center px-1">
               <button
@@ -252,7 +224,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
             </div>
           )}
 
-          {/* Destino */}
           <Popover open={dDestOpen} onOpenChange={setDDestOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'flex-1')}>
@@ -271,10 +242,8 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
             </PopoverContent>
           </Popover>
 
-          {/* Divisória */}
           <div className="my-3.5 w-px shrink-0 bg-border/60" />
 
-          {/* Data */}
           <Popover open={dDateOpen} onOpenChange={setDDateOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'w-44 shrink-0')}>
@@ -300,7 +269,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
           </Popover>
         </div>
 
-        {/* Botão busca */}
         <button
           type="button"
           className={cn(
@@ -313,10 +281,7 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
         </button>
       </div>
 
-      {/* ── Mobile (<1024px) ─────────────────────────────────────────────── */}
       <div className="flex flex-col gap-2 lg:hidden">
-
-        {/* Origem */}
         <Popover open={mOriginOpen} onOpenChange={setMOriginOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
@@ -335,7 +300,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
           </PopoverContent>
         </Popover>
 
-        {/* Swap mobile */}
         {canSwap && (
           <button
             type="button"
@@ -347,7 +311,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
           </button>
         )}
 
-        {/* Destino */}
         <Popover open={mDestOpen} onOpenChange={setMDestOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
@@ -366,7 +329,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
           </PopoverContent>
         </Popover>
 
-        {/* Data */}
         <Popover open={mDateOpen} onOpenChange={setMDateOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
@@ -391,7 +353,6 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
           </PopoverContent>
         </Popover>
 
-        {/* Buscar */}
         <button
           type="button"
           className={cn(

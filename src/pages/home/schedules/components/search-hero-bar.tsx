@@ -4,6 +4,8 @@ import { ArrowLeftRight, Calendar, Check, MapPin, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
+import { useUserCity } from '@/hooks/use-user-city'
+
 import {
   Command,
   CommandEmpty,
@@ -124,18 +126,24 @@ export function SearchHeroBar({ className }: SearchHeroBarProps) {
   const [mDestOpen, setMDestOpen] = useState(false)
   const [mDateOpen, setMDateOpen] = useState(false)
 
-  // ── Default: Fortaleza quando a URL não tem origem ────────────────────────
+  // ── Detecção de cidade via IP ─────────────────────────────────────────────
+  // Aguarda o hook resolver (isLoading=false), então seta a origem na URL se
+  // ainda não estiver preenchida. Se a cidade não for encontrada no banco
+  // (cityId=null), deixa o campo vazio para o usuário preencher manualmente.
+  const { cityId: detectedCityId, isLoading: isDetectingCity } = useUserCity()
+
   useEffect(() => {
+    if (isDetectingCity) return
     setSearchParams(
       (prev) => {
-        if (prev.get('origin')) return prev
+        if (prev.get('origin')) return prev // usuário já definiu origem
         const next = new URLSearchParams(prev)
-        next.set('origin', '1')
-        return next
+        if (detectedCityId) next.set('origin', detectedCityId)
+        return next // sem match → deixa vazio (fallback: usuário seleciona)
       },
       { replace: true },
     )
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isDetectingCity, detectedCityId, setSearchParams])
 
   // ── Helpers ──────────────────────────────────────────────────────────────
   const setParam = (key: string, value: string) => {

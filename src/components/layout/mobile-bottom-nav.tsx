@@ -122,12 +122,15 @@ export function MobileBottomNav() {
       </nav>
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="bottom" className="max-h-[70vh] rounded-t-2xl pb-safe">
-          <SheetHeader className="mb-2">
+        <SheetContent
+          side="bottom"
+          className="max-h-[70vh] rounded-t-2xl gap-0 pb-[max(20px,env(safe-area-inset-bottom))]"
+        >
+          <SheetHeader className="px-4 pt-4 pb-2">
             <SheetTitle>Mais</SheetTitle>
           </SheetHeader>
 
-          <div className="flex flex-col">
+          <div className="flex flex-col px-2">
             {MENU_LINKS.map(({ href, Icon, label }) => (
               <button
                 key={href}

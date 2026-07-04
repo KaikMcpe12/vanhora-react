@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useFavorites } from '@/hooks/use-favorites'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { getMockSchedules } from '@/lib/data/mock-schedules'
 import type { Schedule } from '@/lib/types/schedule'
 import { getCooperativeColor } from '@/lib/utils/schedule-status'
@@ -62,6 +63,7 @@ export function Favorites() {
     status: 'active',
   })
   const [sheetOpen, setSheetOpen] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 1023px)')
 
   const allFavoriteSchedules = useMemo(
     () => getMockSchedules().filter((s) => favoriteIds.includes(s.id)),
@@ -83,6 +85,15 @@ export function Favorites() {
 
   if (favoriteIds.length === 0) return <FavoritesEmptyState />
 
+  const filterPanel = (
+    <FavoritesFilterPanel
+      filters={filters}
+      onFiltersChange={setFilters}
+      availableRoutes={availableRoutes}
+      availableCooperatives={availableCooperatives}
+    />
+  )
+
   return (
     <div className="min-h-screen">
       {/* header */}
@@ -91,46 +102,37 @@ export function Favorites() {
           favoriteCount={favoriteIds.length}
           distinctRoutesCount={availableRoutes.length}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="mb-8 flex items-center gap-2 lg:hidden"
-          onClick={() => setSheetOpen(true)}
-        >
-          <Filter className="h-3.5 w-3.5" />
-          Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-        </Button>
+        {isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-8 flex items-center gap-2"
+            onClick={() => setSheetOpen(true)}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </Button>
+        )}
       </div>
 
       {/* content grid */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 pb-16 lg:grid-cols-[240px_1fr]">
-        <aside className="hidden lg:block">
-          <FavoritesFilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableRoutes={availableRoutes}
-            availableCooperatives={availableCooperatives}
-          />
-        </aside>
+        {!isMobile && <aside>{filterPanel}</aside>}
         <main>
           <FavoritesFeed schedules={filteredSchedules} />
         </main>
       </div>
 
-      {/* mobile sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-72 overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Filtros</SheetTitle>
-          </SheetHeader>
-          <FavoritesFilterPanel
-            filters={filters}
-            onFiltersChange={setFilters}
-            availableRoutes={availableRoutes}
-            availableCooperatives={availableCooperatives}
-          />
-        </SheetContent>
-      </Sheet>
+      {isMobile && (
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="left" className="w-72 overflow-y-auto">
+            <SheetHeader className="mb-6">
+              <SheetTitle>Filtros</SheetTitle>
+            </SheetHeader>
+            {filterPanel}
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }

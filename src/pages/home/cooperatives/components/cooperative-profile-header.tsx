@@ -15,8 +15,7 @@ type CooperativeProfileHeaderProps = {
 }
 
 export function CooperativeProfileHeader({ cooperative }: CooperativeProfileHeaderProps) {
-  const { name, brandColor, routeCount, rating, ratingCount, citiesServed, phoneNumber, website } =
-    cooperative
+  const { name, brandColor, routeCount, rating, ratingCount, phoneNumber, website } = cooperative
 
   return (
     <div className="rounded-[14px] border border-border/50 bg-card p-[24px_28px]">
@@ -47,20 +46,6 @@ export function CooperativeProfileHeader({ cooperative }: CooperativeProfileHead
       <div className="my-5 border-t border-border/50" />
 
       <div className="space-y-4">
-        {/* cidades atendidas */}
-        <div>
-          <span className="block text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
-            Cidades atendidas
-          </span>
-          <p className="mt-1 text-[14px] text-foreground">
-            {citiesServed.slice(0, 4).join(', ')}
-            {citiesServed.length > 4 && (
-              <span className="text-muted-foreground"> +{citiesServed.length - 4}</span>
-            )}
-          </p>
-        </div>
-
-        {/* contato */}
         {(phoneNumber || website) && (
           <div>
             <span className="block text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">

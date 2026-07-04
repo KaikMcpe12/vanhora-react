@@ -9,6 +9,7 @@ import {
   type CooperativeDetail,
 } from '@/lib/data/mock-cooperative-details'
 import { useCooperativesFilters, type CoopSort } from '@/hooks/use-cooperatives-filters'
+import { useMediaQuery } from '@/hooks/use-media-query'
 
 import { CooperativesHeader } from './components/cooperatives-header'
 import { CooperativesSearchBar } from './components/cooperatives-search-bar'
@@ -37,6 +38,7 @@ export function Cooperatives() {
   const { q, cities, minRating, sort, setQ, setCities, setMinRating, setSort, resetAll, activeFilterCount } =
     useCooperativesFilters()
   const [sheetOpen, setSheetOpen] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 1023px)')
 
   const filtered = useMemo(() => {
     let list = MOCK_COOPERATIVE_DETAILS
@@ -46,7 +48,6 @@ export function Cooperatives() {
     return sortCooperatives(list, sort)
   }, [q, cities, minRating, sort])
 
-  // cidades disponíveis — respeita todos os filtros exceto city para manter contagens dinâmicas
   const availableCities = useMemo(() => {
     const baseList = MOCK_COOPERATIVE_DETAILS.filter((c) => {
       if (q && !c.name.toLowerCase().includes(q.toLowerCase())) return false
@@ -68,19 +69,17 @@ export function Cooperatives() {
     [],
   )
 
-  const filterPanel = (
-    <CooperativesFilterPanel
-      filters={{ cities, minRating, sort }}
-      onFiltersChange={(updates) => {
-        if (updates.cities !== undefined) setCities(updates.cities)
-        if (updates.minRating !== undefined) setMinRating(updates.minRating)
-        if (updates.sort !== undefined) setSort(updates.sort)
-      }}
-      availableCities={availableCities}
-      activeFilterCount={activeFilterCount}
-      onReset={resetAll}
-    />
-  )
+  const filterPanelProps = {
+    filters: { cities, minRating, sort },
+    onFiltersChange: (updates: Partial<{ cities: string[]; minRating: typeof minRating; sort: typeof sort }>) => {
+      if (updates.cities !== undefined) setCities(updates.cities)
+      if (updates.minRating !== undefined) setMinRating(updates.minRating)
+      if (updates.sort !== undefined) setSort(updates.sort)
+    },
+    availableCities,
+    activeFilterCount,
+    onReset: resetAll,
+  }
 
   return (
     <div className="min-h-screen">
@@ -90,25 +89,27 @@ export function Cooperatives() {
           cooperativeCount={MOCK_COOPERATIVE_DETAILS.length}
           citiesServedCount={totalCities}
         />
-        <Button
-          variant="outline"
-          size="sm"
-          className="mb-8 flex items-center gap-2 lg:hidden"
-          onClick={() => setSheetOpen(true)}
-        >
-          <Filter className="h-3.5 w-3.5" />
-          Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
-        </Button>
+        {isMobile && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="mb-8 flex items-center gap-2"
+            onClick={() => setSheetOpen(true)}
+          >
+            <Filter className="h-3.5 w-3.5" />
+            Filtros{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
+          </Button>
+        )}
       </div>
 
       {/* content */}
       <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 px-6 pb-16 lg:grid-cols-[240px_1fr]">
-        {/* rail desktop */}
-        <aside className="hidden lg:block">
-          {filterPanel}
-        </aside>
+        {!isMobile && (
+          <aside>
+            <CooperativesFilterPanel {...filterPanelProps} />
+          </aside>
+        )}
 
-        {/* main */}
         <main className="flex flex-col gap-4">
           <CooperativesSearchBar value={q} onChange={setQ} />
           <CooperativesList
@@ -119,15 +120,16 @@ export function Cooperatives() {
         </main>
       </div>
 
-      {/* mobile sheet */}
-      <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-        <SheetContent side="left" className="w-72 overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Filtros</SheetTitle>
-          </SheetHeader>
-          {filterPanel}
-        </SheetContent>
-      </Sheet>
+      {isMobile && (
+        <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          <SheetContent side="left" className="w-72 overflow-y-auto">
+            <SheetHeader className="mb-6">
+              <SheetTitle>Filtros</SheetTitle>
+            </SheetHeader>
+            <CooperativesFilterPanel {...filterPanelProps} />
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }

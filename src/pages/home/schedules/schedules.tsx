@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/empty-state'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { useGroupedSchedules } from '@/hooks/use-grouped-schedules'
+import { useMediaQuery } from '@/hooks/use-media-query'
 import { useScheduleFilters } from '@/hooks/use-schedule-filters'
 import { useUserCity } from '@/hooks/use-user-city'
 import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
@@ -50,6 +51,7 @@ export function Schedules() {
   const [visibleCancelled, setVisibleCancelled] = useState(GRID_PAGE_SIZE)
   const [cancelledExpanded, setCancelledExpanded] = useState(false)
   const [railSheetOpen, setRailSheetOpen] = useState(false)
+  const isMobile = useMediaQuery('(max-width: 1023px)')
 
   useEffect(() => {
     setVisibleLater(GRID_PAGE_SIZE)
@@ -172,11 +174,13 @@ export function Schedules() {
         style={{ gridTemplateColumns: '240px 1fr' }}
       >
         {/* Rail desktop */}
-        <aside className="hidden lg:block">
-          <div className="sticky top-4">
-            <SchedulesRail {...railProps} />
-          </div>
-        </aside>
+        {!isMobile && (
+          <aside>
+            <div className="sticky top-4">
+              <SchedulesRail {...railProps} />
+            </div>
+          </aside>
+        )}
 
         {/* Conteúdo */}
         <main className="space-y-8 px-4 py-6 lg:px-0">
@@ -401,17 +405,19 @@ export function Schedules() {
       </div>
 
       {/* Rail Sheet mobile */}
-      <Sheet open={railSheetOpen} onOpenChange={(v) => !v && setRailSheetOpen(false)}>
-        <SheetContent
-          side="bottom"
-          className="max-h-[88vh] overflow-y-auto rounded-t-2xl px-5 pb-10 pt-5"
-        >
-          <SheetHeader className="mb-5">
-            <SheetTitle className="text-base font-semibold">Filtros e ordenação</SheetTitle>
-          </SheetHeader>
-          <SchedulesRail {...railProps} />
-        </SheetContent>
-      </Sheet>
+      {isMobile && (
+        <Sheet open={railSheetOpen} onOpenChange={(v) => !v && setRailSheetOpen(false)}>
+          <SheetContent
+            side="bottom"
+            className="max-h-[88vh] overflow-y-auto rounded-t-2xl px-5 pb-10 pt-5"
+          >
+            <SheetHeader className="mb-5">
+              <SheetTitle className="text-base font-semibold">Filtros e ordenação</SheetTitle>
+            </SheetHeader>
+            <SchedulesRail {...railProps} />
+          </SheetContent>
+        </Sheet>
+      )}
     </div>
   )
 }

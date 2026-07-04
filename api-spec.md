@@ -550,23 +550,62 @@ detalhe completo de uma cooperativa.
   "logo_url": null,
   "site": "www.saobenedito.com.br",
   "brand_color": "#185FA5",
+  "description": "Cooperativa com sede em São Benedito, atua nas rotas do litoral noroeste do Ceará há mais de três décadas.",
   "rating": 4.2,
   "rating_count": 1845,
-  "route_count": 12,
-  "cities_served": ["Fortaleza", "Sobral", "Camocim", "Acaraú"],
+  "route_count": 4,
+  "cities_served": [
+    { "id": "1", "name": "Fortaleza", "state": "CE", "role": "origin_or_destination" },
+    { "id": "2", "name": "Sobral", "state": "CE", "role": "origin_or_destination" },
+    { "id": "camocim", "name": "Camocim", "state": "CE", "role": "origin_or_destination" },
+    { "id": "acarau", "name": "Acaraú", "state": "CE", "role": "origin_or_destination" }
+  ],
+  "operating_stats": {
+    "schedules_per_weekday": {
+      "monday": 18, "tuesday": 18, "wednesday": 19, "thursday": 18,
+      "friday": 23, "saturday": 16, "sunday": 13
+    },
+    "busiest_day": "friday",
+    "top_destination": { "city": { "id": "2", "name": "Sobral" }, "schedule_count": 8 },
+    "avg_price": 26.50,
+    "price_range": { "min": 18.00, "max": 38.00 }
+  },
+  "recent_history": {
+    "delays": {
+      "last_30_days_count": 8,
+      "average_delay_minutes": 9,
+      "severity_distribution": { "low": 6, "medium": 2, "high": 0 }
+    },
+    "cancellations": {
+      "last_30_days_count": 2,
+      "recent": [
+        { "date": "2026-06-28", "route": "Fortaleza → Sobral", "reason": "veículo em manutenção" }
+      ]
+    },
+    "on_time_rate": 0.91
+  },
   "routes": [
     {
       "id": "uuid",
-      "name": "Fortaleza → Sobral (direto)",
-      "origin": "Fortaleza",
-      "destination": "Sobral",
-      "price": 28.50,
-      "active_days": ["seg", "ter", "qua", "qui", "sex"],
-      "status": "active"
+      "display_name": "Fortaleza → Sobral",
+      "origin_city": { "id": "1", "name": "Fortaleza" },
+      "destination_city": { "id": "2", "name": "Sobral" },
+      "duration_text": "4h 48min",
+      "stops_count": 0,
+      "price": 30.00,
+      "schedules_today_count": 8,
+      "next_departure": {
+        "departure_time": "14:30:00",
+        "minutes_until": 32
+      },
+      "rating": { "average": 4.3, "count": 1842 }
     }
   ]
 }
 ```
+
+> **Nota:** `brand_color` permanece no mapa hardcoded do frontend (`COOPERATIVE_COLORS`) até
+> decisão sobre adicionar coluna no schema de banco. Ver pendência em Seção 5.
 
 **response 404:**
 ```json
@@ -574,7 +613,7 @@ detalhe completo de uma cooperativa.
 ```
 
 **consumido por:**
-- futura página `/cooperatives/:id`
+- página `/cooperatives/:id`
 
 ---
 
@@ -1953,6 +1992,23 @@ os campos abaixo são consumidos pelo dialog mas não existem no schema:
 - frontend envia `severity` no body de `POST /api/admin/delays`
 - o backend pode ignorar o valor enviado e calcular: `low` < 15min, `medium` 15-30, `high` > 30
 - recomendação: calcular no backend baseado em `delay_minutes`; ignorar campo enviado pelo client (evita inconsistência)
+
+---
+
+**11. `cooperatives.description` — bio da cooperativa**
+
+- endpoint que precisa: `GET /api/cooperatives/:id`
+- tipo: `varchar(500)` nullable
+- hoje: hardcoded em `DESCRIPTION_DATA` em `src/lib/data/mock-cooperative-details.ts`
+- impacto: additive; quando null a seção "Sobre a cooperativa" não renderiza no frontend
+
+---
+
+**12. `cooperatives.brand_color` — decisão pendente**
+
+- frontend mantém mapa hardcoded `COOPERATIVE_COLORS` em `src/lib/utils/schedule-status.ts`
+- alternativa: adicionar `cooperatives.brand_color varchar(7) nullable` no schema
+- recomendação: manter mapa hardcoded por ora; migrar para banco quando houver tela de edição de cooperativa no painel admin
 
 ---
 

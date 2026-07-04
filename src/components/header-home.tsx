@@ -42,7 +42,7 @@ export function HeaderHome() {
           className="flex items-center gap-3 transition-transform duration-200 hover:scale-105"
         >
           <img src={Logo} alt="VanHora Logo" className="h-10 w-10" />
-          <span className="text-foreground hidden text-xl font-bold tracking-tight sm:inline">
+          <span className="text-foreground text-[15px] font-bold tracking-tight sm:text-xl">
             VanHora
           </span>
         </Link>

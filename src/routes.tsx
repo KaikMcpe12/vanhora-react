@@ -28,6 +28,7 @@ import { Author } from './pages/home/author/author'
 import { CooperativeDetail } from './pages/home/cooperatives/cooperative-detail'
 import { Cooperatives } from './pages/home/cooperatives/cooperatives'
 import { HomePage } from './pages/home/homepage/homepage'
+import { RouteDetail } from './pages/home/routes/route-detail'
 import { Favorites } from './pages/home/schedules/favorites/favorites'
 import { Schedules } from './pages/home/schedules/schedules'
 
@@ -71,6 +72,15 @@ export const router = createBrowserRouter([
           {
             path: ':id',
             element: <CooperativeDetail />,
+          },
+        ],
+      },
+      {
+        path: 'routes',
+        children: [
+          {
+            path: ':id',
+            element: <RouteDetail />,
           },
         ],
       },

@@ -5,6 +5,7 @@ import type {
 } from '@/lib/types/schedule'
 
 import { calculatePrice, MOCK_ROUTES } from './mock-cities'
+import { MOCK_COOPERATIVE_DETAILS } from './mock-cooperative-details'
 import { MOCK_COOPERATIVES } from './mock-cooperatives'
 
 /** hash simples para gerar seed a partir de string */
@@ -232,13 +233,28 @@ export function expandToScheduleDetails(schedule: Schedule) {
     ...schedule,
     description: `Viagem confortável de ${schedule.origin} para ${schedule.destination} com a ${schedule.cooperativeName}.`,
     cities: [schedule.origin, schedule.destination],
-    operatingDays: ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'],
+    operatingDays: ['Seg', 'Ter', 'Qua', 'Qui', 'Sex'],
     contact: {
       phone: '(85) 3234-5678',
       email: `contato@${schedule.cooperativeName.toLowerCase().replace(/\s+/g, '')}.com.br`,
       website: `www.${schedule.cooperativeName.toLowerCase().replace(/\s+/g, '')}.com.br`,
     },
   }
+}
+
+export function getRouteIdFromScheduleId(scheduleId: string): string | null {
+  const schedule = getMockScheduleById(scheduleId)
+  if (!schedule) return null
+
+  for (const coop of MOCK_COOPERATIVE_DETAILS) {
+    if (coop.name !== schedule.cooperativeName) continue
+    const route = coop.routes.find(
+      (r) => r.displayName === `${schedule.origin} → ${schedule.destination}`,
+    )
+    if (route) return route.id
+  }
+
+  return null
 }
 
 export function getMockScheduleStats() {

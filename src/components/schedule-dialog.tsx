@@ -15,6 +15,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -23,6 +24,7 @@ import { Separator } from '@/components/ui/separator'
 import {
   expandToScheduleDetails,
   getMockScheduleById,
+  getRouteIdFromScheduleId,
 } from '@/lib/data/mock-schedules'
 import { cn } from '@/lib/utils'
 
@@ -426,6 +428,22 @@ export function ScheduleDialog({
             </div>
 
             <Separator className="mx-5" />
+
+            {/* link para perfil completo da rota */}
+            {(() => {
+              const routeId = getRouteIdFromScheduleId(scheduleId)
+              return routeId ? (
+                <div className="px-5 py-4">
+                  <Link
+                    to={`/routes/${routeId}`}
+                    onClick={() => onOpenChange?.(false)}
+                    className="flex w-full items-center justify-end gap-1 text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+                  >
+                    Ver perfil completo da rota →
+                  </Link>
+                </div>
+              ) : null
+            })()}
 
             {/* footer */}
             <div className="px-5 py-4">

@@ -70,6 +70,33 @@ function subscribe(listener: () => void): () => void {
 // inicializa ao carregar o módulo
 currentFavorites = loadFavorites()
 
+export function batchFavoriteSchedules(ids: string[]): void {
+  const allFavorited = ids.length > 0 && ids.every((id) => currentFavorites.includes(id))
+
+  if (allFavorited) {
+    currentFavorites = currentFavorites.filter((id) => !ids.includes(id))
+    saveFavorites(currentFavorites)
+    toast.success('Horários removidos dos favoritos')
+    return
+  }
+
+  const toAdd = ids.filter((id) => !currentFavorites.includes(id))
+  const available = MAX_FAVORITES - currentFavorites.length
+  if (available <= 0) {
+    toast.error(`Limite de ${MAX_FAVORITES} favoritos atingido!`, {
+      description: 'Remova alguns favoritos para adicionar novos.',
+    })
+    return
+  }
+  const adding = toAdd.slice(0, available)
+  if (adding.length < toAdd.length) {
+    toast.warning(`Limite atingido: ${toAdd.length - adding.length} horários não foram adicionados.`)
+  }
+  currentFavorites = [...currentFavorites, ...adding]
+  saveFavorites(currentFavorites)
+  toast.success('Horários adicionados aos favoritos')
+}
+
 /** hook para gerenciar favoritos via localstorage */
 export function useFavorites(): UseFavoritesReturn {
   const favoriteIds = useSyncExternalStore(subscribe, getSnapshot, getSnapshot)

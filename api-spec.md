@@ -1795,6 +1795,36 @@ KPIs globais do sistema. apenas role `admin`.
 **consumido por:**
 - `/admin/dashboard`
 
+**estrutura expandida (mock — Fase 5 PR 3):**
+
+O mock em `src/lib/api/mock-dashboard-api.ts` retorna estrutura enriquecida:
+
+```ts
+{
+  criticalAlerts: Array<{
+    id: string
+    severity: 'attention' | 'critical'
+    title: string
+    description: string
+    actionPath: string   // e.g. '/admin/delays'
+  }>
+  operationKpis: {
+    activeCooperatives: KpiMetric   // { value, trend?, severity? }
+    activeRoutes: KpiMetric
+    todaySchedules: KpiMetric
+  }
+  qualityKpis: {
+    delays24h: KpiMetric            // severity: 'attention'
+    averageRating: KpiMetric        // severity: 'default'
+    criticalDelays24h: KpiMetric    // severity: 'critical'
+  }
+  recentDelays: DelayRecord[]       // 4 últimos atrasos
+  upcomingDepartures: DepartureRecord[]  // próximas 4 partidas
+}
+```
+
+Tipos completos em `src/lib/data/mock-dashboard.ts`.
+
 ---
 
 #### `GET /api/admin/dashboard/cooperative-stats`

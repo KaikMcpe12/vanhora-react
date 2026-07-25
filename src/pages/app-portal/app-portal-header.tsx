@@ -1,106 +1,90 @@
-import { ChevronDown, LogOut, Menu, UserRound } from 'lucide-react'
+import { Menu } from 'lucide-react'
+import { Fragment } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
-import {
-  APP_PORTAL_ROLE_LABEL,
-  type AppPortalRole,
-  getNavigationPath,
-} from '@/pages/app-portal/app-portal-navigation'
+import { cn } from '@/lib/utils'
 
-interface AppPortalHeaderProps {
-  role: AppPortalRole
-  userName: string
-  title: string
-  breadcrumb: string
-  basePath: string
-  onOpenMobileMenu: () => void
-  onSignOut: () => void
+export interface BreadcrumbItem {
+  label: string
+  href?: string
 }
 
-function getInitials(name: string) {
-  const [first = '', second = ''] = name.split(' ')
-  return `${first[0] ?? ''}${second[0] ?? ''}`.toUpperCase()
+interface AppPortalHeaderProps {
+  breadcrumb: BreadcrumbItem[]
+  actions?: React.ReactNode
+  onOpenMobileMenu: () => void
 }
 
 export function AppPortalHeader({
-  role,
-  userName,
-  title,
   breadcrumb,
-  basePath,
+  actions,
   onOpenMobileMenu,
-  onSignOut,
 }: AppPortalHeaderProps) {
-  const profilePath =
-    role === 'driver' ? getNavigationPath(basePath, 'me') : basePath
+  const currentItem = breadcrumb.at(-1)
 
   return (
-    <header className="bg-background/95 border-border supports-backdrop-filter:bg-background/80 sticky top-0 z-40 flex h-20 items-center justify-between border-b px-4 backdrop-blur md:px-6">
-      <div className="flex items-center gap-3">
+    <header className="bg-card border-border sticky top-0 z-40 flex h-16 items-center justify-between border-b px-6 md:px-10">
+      <div className="flex min-w-0 items-center gap-3">
         <Button
           type="button"
           size="icon"
           variant="ghost"
-          className="lg:hidden"
+          className="shrink-0 lg:hidden"
           onClick={onOpenMobileMenu}
         >
-          <span className="sr-only">Abrir menu administrativo</span>
+          <span className="sr-only">Abrir menu</span>
           <Menu className="h-5 w-5" />
         </Button>
 
         <div className="min-w-0">
-          <p className="text-muted-foreground text-xs">{breadcrumb}</p>
-          <p className="text-foreground truncate text-sm font-semibold md:text-base">
-            {title}
-          </p>
+          <h1 className="text-foreground truncate text-xl font-medium leading-tight md:text-2xl">
+            {currentItem?.label}
+          </h1>
+          {breadcrumb.length > 1 && (
+            <nav
+              aria-label="breadcrumb"
+              className="mt-0.5 flex items-center gap-1 text-[11px]"
+            >
+              {breadcrumb.map((item, index) => {
+                const isLast = index === breadcrumb.length - 1
+                return (
+                  <Fragment key={item.label}>
+                    {index > 0 && (
+                      <span className="text-muted-foreground select-none">
+                        ·
+                      </span>
+                    )}
+                    {item.href && !isLast ? (
+                      <Link
+                        to={item.href}
+                        className={cn(
+                          'transition-colors',
+                          'text-muted-foreground hover:text-foreground',
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    ) : (
+                      <span
+                        className={
+                          isLast
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                        }
+                      >
+                        {item.label}
+                      </span>
+                    )}
+                  </Fragment>
+                )
+              })}
+            </nav>
+          )}
         </div>
       </div>
 
-      <div className="flex items-center gap-2.5">
-        <Badge variant="secondary" className="hidden md:inline-flex">
-          {APP_PORTAL_ROLE_LABEL[role]}
-        </Badge>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              type="button"
-              variant="ghost"
-              className="hover:bg-accent/80 h-10 rounded-full px-1.5"
-            >
-              <Avatar className="h-8 w-8">
-                <AvatarFallback>{getInitials(userName)}</AvatarFallback>
-              </Avatar>
-              <ChevronDown className="text-muted-foreground h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuLabel>{userName}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to={profilePath}>
-                <UserRound className="h-4 w-4" />
-                Meu perfil
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={onSignOut}>
-              <LogOut className="h-4 w-4" />
-              Sair
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      {actions && <div className="ml-4 flex shrink-0 items-center gap-2">{actions}</div>}
     </header>
   )
 }

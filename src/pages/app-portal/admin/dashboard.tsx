@@ -1,394 +1,396 @@
 import {
   AlertTriangle,
-  Building2,
   CalendarClock,
+  Check,
+  CheckCircle,
   CircleAlert,
-  Clock3,
-  Map,
-  Star,
-  TrendingUp,
+  ExternalLink,
+  RefreshCcw,
 } from 'lucide-react'
-import { type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { Badge } from '@/components/ui/badge'
+import {
+  AdminActionMenu,
+  AdminEmptyState,
+  AdminKPICard,
+  AdminSectionTitle,
+  AdminStatusBadge,
+  AdminTable,
+  type AdminTableColumn,
+} from '@/components/admin'
 import { Button } from '@/components/ui/button'
+import { Separator } from '@/components/ui/separator'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useAdminDashboardStats } from '@/lib/api/mock-dashboard-api'
+import type { DelayRecord, DepartureRecord } from '@/lib/data/mock-dashboard'
+import { cn } from '@/lib/utils'
 
-const adminKpis = [
-  {
-    id: 'active-cooperatives',
-    label: 'Cooperativas Ativas',
-    value: '48',
-    trend: '+3.2%',
-    helper: 'com operacao ativa',
-    icon: Building2,
-    iconClassName:
-      'bg-sky-100 text-sky-700 ring-sky-500/10 dark:bg-sky-500/15 dark:text-sky-300',
-  },
-  {
-    id: 'registered-routes',
-    label: 'Rotas Cadastradas',
-    value: '892',
-    trend: '+18',
-    helper: 'novas nos ultimos 30 dias',
-    icon: Map,
-    iconClassName:
-      'bg-indigo-100 text-indigo-700 ring-indigo-500/10 dark:bg-indigo-500/15 dark:text-indigo-300',
-  },
-  {
-    id: 'today-schedules',
-    label: 'Horarios de Hoje',
-    value: '3.405',
-    trend: '+5%',
-    helper: 'considerando todas as cooperativas',
-    icon: CalendarClock,
-    iconClassName:
-      'bg-emerald-100 text-emerald-700 ring-emerald-500/10 dark:bg-emerald-500/15 dark:text-emerald-300',
-  },
-  {
-    id: 'delays-24h',
-    label: 'Atrasos (24h)',
-    value: '14',
-    trend: '+5',
-    helper: 'vs periodo anterior',
-    icon: Clock3,
-    iconClassName:
-      'bg-orange-100 text-orange-700 ring-orange-500/10 dark:bg-orange-500/15 dark:text-orange-300',
-  },
-  {
-    id: 'average-rating',
-    label: 'Avaliacao Media Geral',
-    value: '4.6',
-    trend: '+0.2',
-    helper: 'com base nas avaliacoes recentes',
-    icon: Star,
-    iconClassName:
-      'bg-violet-100 text-violet-700 ring-violet-500/10 dark:bg-violet-500/15 dark:text-violet-300',
-  },
-  {
-    id: 'critical-delays',
-    label: 'Atrasos Criticos (24h)',
-    value: '6',
-    trend: 'Alta',
-    helper: 'severidade alta',
-    icon: AlertTriangle,
-    iconClassName:
-      'bg-red-100 text-red-700 ring-red-500/10 dark:bg-red-500/15 dark:text-red-300',
-  },
-] as const
-
-const delayRows = [
-  {
-    route: 'R-402 (Centro - Norte)',
-    cooperative: 'Metro Transporters',
-    delay: '32 min',
-    reason: 'Fluxo intenso no centro',
-    severity: 'Alta',
-    severityTone: 'high',
-    action: 'Abrir',
-  },
-  {
-    route: 'L-12 (Vila Nova - Shopping)',
-    cooperative: 'Cooperativa Vale',
-    delay: '8 min',
-    reason: 'Parada prolongada',
-    severity: 'Media',
-    severityTone: 'medium',
-    action: 'Abrir',
-  },
-  {
-    route: 'X-09 (Express Aeroporto)',
-    cooperative: 'Swift Bus Co.',
-    delay: '5 min',
-    reason: 'Embarque acima do previsto',
-    severity: 'Baixa',
-    severityTone: 'low',
-    action: 'Abrir',
-  },
-  {
-    route: 'R-101 (Distrito Industrial)',
-    cooperative: 'Metro Transporters',
-    delay: '22 min',
-    reason: 'Manutencao emergencial',
-    severity: 'Alta',
-    severityTone: 'high',
-    action: 'Abrir',
-  },
-] as const
-
-const departureRows = [
-  {
-    route: 'R-402 (Centro - Norte)',
-    cooperative: 'Metro Transporters',
-    departure: '14:30',
-    destination: 'Terminal Central',
-    status: 'No Horario',
-    statusTone: 'on-time',
-    action: 'Detalhes',
-  },
-  {
-    route: 'L-12 (Vila Nova - Shopping)',
-    cooperative: 'Cooperativa Vale',
-    departure: '14:45',
-    destination: 'Ponto Final Sul',
-    status: 'Atrasado 5m',
-    statusTone: 'delayed',
-    action: 'Detalhes',
-  },
-  {
-    route: 'X-09 (Express Aeroporto)',
-    cooperative: 'Swift Bus Co.',
-    departure: '15:00',
-    destination: 'Aeroporto Int.',
-    status: 'No Horario',
-    statusTone: 'on-time',
-    action: 'Detalhes',
-  },
-  {
-    route: 'R-101 (Distrito Industrial)',
-    cooperative: 'Metro Transporters',
-    departure: '15:15',
-    destination: 'Plataforma 4',
-    status: 'Atrasado 10m',
-    statusTone: 'delayed',
-    action: 'Detalhes',
-  },
-] as const
-
-function SeverityBadge({
-  tone,
-  label,
-}: {
-  tone: 'high' | 'medium' | 'low'
-  label: string
-}) {
-  if (tone === 'high') {
-    return (
-      <Badge className="border-red-200 bg-red-100 text-red-700 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-200">
-        {label}
-      </Badge>
-    )
-  }
-
-  if (tone === 'medium') {
-    return (
-      <Badge className="border-amber-200 bg-amber-100 text-amber-700 dark:border-amber-500/30 dark:bg-amber-500/20 dark:text-amber-200">
-        {label}
-      </Badge>
-    )
-  }
-
-  return (
-    <Badge className="border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-200">
-      {label}
-    </Badge>
-  )
-}
-
-function StatusBadge({
-  tone,
-  label,
-}: {
-  tone: 'on-time' | 'delayed'
-  label: string
-}) {
-  if (tone === 'delayed') {
-    return (
-      <Badge className="border-red-200 bg-red-100 text-red-700 dark:border-red-500/30 dark:bg-red-500/20 dark:text-red-200">
-        {label}
-      </Badge>
-    )
-  }
-
-  return (
-    <Badge className="border-emerald-200 bg-emerald-100 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/20 dark:text-emerald-200">
-      {label}
-    </Badge>
-  )
-}
-
-function DataSection({
-  title,
-  actionLabel,
-  children,
-}: {
+interface DashboardCriticalAlertProps {
   title: string
+  description: string
   actionLabel: string
-  children: ReactNode
-}) {
+  onAction: () => void
+  severity: 'attention' | 'critical'
+}
+
+function DashboardCriticalAlert({
+  title,
+  description,
+  actionLabel,
+  onAction,
+  severity,
+}: DashboardCriticalAlertProps) {
+  const isAttention = severity === 'attention'
+
   return (
-    <section className="bg-card overflow-hidden rounded-xl border shadow-xs">
-      <header className="flex items-center justify-between border-b px-4 py-3 sm:px-6">
-        <h2 className="text-foreground text-base font-semibold">{title}</h2>
-        <Button variant="link" className="text-primary h-auto px-0 text-sm">
-          {actionLabel}
-        </Button>
-      </header>
-      <div className="overflow-x-auto">{children}</div>
-    </section>
+    <div
+      className={cn(
+        'flex items-start justify-between gap-4 rounded-xl border p-[18px]',
+        isAttention
+          ? 'border-amber-300 bg-amber-50/40 dark:border-amber-500/40 dark:bg-amber-500/5'
+          : 'border-red-300 bg-red-50/40 dark:border-red-500/40 dark:bg-red-500/5',
+      )}
+    >
+      <div className="flex items-start gap-3">
+        {isAttention ? (
+          <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
+        ) : (
+          <CircleAlert className="mt-0.5 h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
+        )}
+        <div>
+          <p
+            className={cn(
+              'text-[14px] font-medium',
+              isAttention
+                ? 'text-amber-800 dark:text-amber-200'
+                : 'text-red-800 dark:text-red-200',
+            )}
+          >
+            {title}
+          </p>
+          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+            {description}
+          </p>
+        </div>
+      </div>
+
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={onAction}
+        className={cn(
+          'shrink-0',
+          isAttention
+            ? 'border-amber-300 text-amber-700 hover:bg-amber-50 dark:border-amber-500/50 dark:text-amber-300 dark:hover:bg-amber-500/10'
+            : 'border-red-300 text-red-700 hover:bg-red-50 dark:border-red-500/50 dark:text-red-300 dark:hover:bg-red-500/10',
+        )}
+      >
+        {actionLabel}
+      </Button>
+    </div>
   )
+}
+
+function KpiSkeleton() {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+      {Array.from({ length: 3 }).map((_, i) => (
+        <Skeleton key={i} className="h-[108px] rounded-xl" />
+      ))}
+    </div>
+  )
+}
+
+function getSeverityBadge(severity: 'low' | 'medium' | 'high') {
+  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
+  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
+  return { variant: 'info' as const, label: 'Baixa' }
+}
+
+function getDepartureBadge(
+  status: DepartureRecord['status'],
+  delayMinutes?: number,
+) {
+  if (status === 'on_time') return { variant: 'success' as const, label: 'No horário' }
+  if (status === 'cancelled') return { variant: 'critical' as const, label: 'Cancelado' }
+  return {
+    variant: 'attention' as const,
+    label: delayMinutes ? `Atrasado ${delayMinutes}m` : 'Atrasado',
+  }
 }
 
 export function AdminDashboardPage() {
+  const navigate = useNavigate()
+  const { data: stats, isLoading, error, refetch } = useAdminDashboardStats()
+
+  if (error) {
+    return (
+      <div className="flex min-h-[400px] items-center justify-center">
+        <AdminEmptyState
+          icon={CircleAlert}
+          title="Não conseguimos carregar os dados"
+          description="Verifique a conexão e tente novamente."
+          action={{
+            label: 'Tentar novamente',
+            onClick: () => refetch(),
+            icon: RefreshCcw,
+          }}
+        />
+      </div>
+    )
+  }
+
+  const delayColumns: AdminTableColumn<DelayRecord>[] = [
+    {
+      key: 'route',
+      label: 'Rota',
+      render: (d) => (
+        <span className="font-medium text-foreground">
+          {d.routeCode} ({d.routeName})
+        </span>
+      ),
+    },
+    {
+      key: 'cooperative',
+      label: 'Cooperativa',
+      render: (d) => (
+        <span className="text-muted-foreground">{d.cooperativeName}</span>
+      ),
+    },
+    {
+      key: 'delay',
+      label: 'Atraso',
+      align: 'right',
+      render: (d) => (
+        <span className="font-semibold">{d.delayMinutes} min</span>
+      ),
+    },
+    {
+      key: 'reason',
+      label: 'Motivo',
+      render: (d) => (
+        <span className="text-muted-foreground">{d.reason}</span>
+      ),
+    },
+    {
+      key: 'severity',
+      label: 'Severidade',
+      render: (d) => {
+        const badge = getSeverityBadge(d.severity)
+        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
+      },
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'right',
+      render: (_d) => (
+        <AdminActionMenu
+          items={[
+            {
+              label: 'Abrir detalhes',
+              icon: ExternalLink,
+              onClick: () => navigate('/admin/delays'),
+            },
+            {
+              label: 'Marcar como resolvido',
+              icon: Check,
+              onClick: () => {},
+            },
+          ]}
+        />
+      ),
+    },
+  ]
+
+  const departureColumns: AdminTableColumn<DepartureRecord>[] = [
+    {
+      key: 'route',
+      label: 'Rota',
+      render: (d) => (
+        <span className="font-medium text-foreground">
+          {d.routeCode} ({d.routeName})
+        </span>
+      ),
+    },
+    {
+      key: 'cooperative',
+      label: 'Cooperativa',
+      render: (d) => (
+        <span className="text-muted-foreground">{d.cooperativeName}</span>
+      ),
+    },
+    {
+      key: 'departure',
+      label: 'Partida',
+      render: (d) => <span className="font-semibold">{d.departureTime}</span>,
+    },
+    {
+      key: 'destination',
+      label: 'Destino',
+      render: (d) => (
+        <span className="text-muted-foreground">{d.destination}</span>
+      ),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (d) => {
+        const badge = getDepartureBadge(d.status, d.delayMinutes)
+        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
+      },
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'right',
+      render: (_d) => (
+        <AdminActionMenu
+          items={[
+            {
+              label: 'Ver detalhes',
+              icon: ExternalLink,
+              onClick: () => navigate('/admin/schedules'),
+            },
+          ]}
+        />
+      ),
+    },
+  ]
+
   return (
-    <section className="space-y-6">
-      <header className="space-y-2">
-        <h1 className="text-foreground text-2xl font-semibold sm:text-3xl">
-          Dashboard Admin
-        </h1>
-        <p className="text-muted-foreground text-sm">
-          Visao consolidada de operacao, qualidade e incidentes da rede.
-        </p>
-      </header>
+    <div className="space-y-10">
+      {!isLoading &&
+        stats?.criticalAlerts.map((alert) => (
+          <DashboardCriticalAlert
+            key={alert.id}
+            title={alert.title}
+            description={alert.description}
+            actionLabel="Ver atrasos"
+            onAction={() => navigate(alert.actionPath)}
+            severity={alert.severity}
+          />
+        ))}
 
-      <section className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 dark:border-amber-500/30 dark:bg-amber-500/10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <CircleAlert className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
-            <div>
-              <p className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-                Atencao: 6 atrasos criticos nas ultimas 24h
-              </p>
-              <p className="text-xs text-amber-700 dark:text-amber-300">
-                Priorize investigacao nas rotas com severidade alta.
-              </p>
-            </div>
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Rede em operação"
+          description="Panorama operacional agora"
+        />
+        {isLoading ? (
+          <KpiSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <AdminKPICard
+              label="Cooperativas Ativas"
+              value={stats!.operationKpis.activeCooperatives.value}
+              trend={stats!.operationKpis.activeCooperatives.trend}
+            />
+            <AdminKPICard
+              label="Rotas Ativas"
+              value={stats!.operationKpis.activeRoutes.value}
+              trend={stats!.operationKpis.activeRoutes.trend}
+            />
+            <AdminKPICard
+              label="Horários de Hoje"
+              value={stats!.operationKpis.todaySchedules.value}
+              trend={stats!.operationKpis.todaySchedules.trend}
+            />
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="bg-card border-amber-300 text-amber-700 hover:bg-amber-100 dark:border-amber-500/40 dark:text-amber-200 dark:hover:bg-amber-500/20"
-          >
-            Ver atrasos
-          </Button>
-        </div>
+        )}
       </section>
 
-      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {adminKpis.map((kpi) => {
-          const Icon = kpi.icon
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Qualidade e incidentes"
+          description="Métricas dos últimos indicadores"
+        />
+        {isLoading ? (
+          <KpiSkeleton />
+        ) : (
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+            <AdminKPICard
+              label="Atrasos (24h)"
+              value={stats!.qualityKpis.delays24h.value}
+              trend={stats!.qualityKpis.delays24h.trend}
+              severity={stats!.qualityKpis.delays24h.severity}
+            />
+            <AdminKPICard
+              label="Avaliação Média Geral"
+              value={stats!.qualityKpis.averageRating.value}
+              trend={stats!.qualityKpis.averageRating.trend}
+              severity={stats!.qualityKpis.averageRating.severity}
+            />
+            <AdminKPICard
+              label="Atrasos Críticos (24h)"
+              value={stats!.qualityKpis.criticalDelays24h.value}
+              trend={stats!.qualityKpis.criticalDelays24h.trend}
+              severity={stats!.qualityKpis.criticalDelays24h.severity}
+            />
+          </div>
+        )}
+      </section>
 
-          return (
-            <article
-              key={kpi.id}
-              className="bg-card rounded-xl border p-4 shadow-xs sm:p-5"
+      <Separator />
+
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Últimos atrasos reportados"
+          description="Registros das últimas 24 horas"
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin/delays')}
             >
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <div className="space-y-1">
-                  <p className="text-muted-foreground text-sm font-medium">
-                    {kpi.label}
-                  </p>
-                  <p className="text-foreground text-3xl leading-none font-semibold">
-                    {kpi.value}
-                  </p>
-                </div>
-                <div
-                  className={`ring-border/50 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg ring-1 ${kpi.iconClassName}`}
-                >
-                  <Icon className="h-5 w-5" />
-                </div>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <span className="bg-primary/10 text-primary inline-flex items-center gap-1 rounded-full px-2 py-1 font-semibold">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  {kpi.trend}
-                </span>
-                <span className="text-muted-foreground">{kpi.helper}</span>
-              </div>
-            </article>
-          )
-        })}
+              Ver todos →
+            </Button>
+          }
+        />
+        <AdminTable
+          columns={delayColumns}
+          data={stats?.recentDelays ?? []}
+          keyExtractor={(r) => r.id}
+          isLoading={isLoading}
+          emptyState={
+            <AdminEmptyState
+              icon={CheckCircle}
+              title="Nenhum atraso reportado nas últimas 24 horas"
+              description="As rotas estão operando conforme o previsto."
+            />
+          }
+        />
       </section>
 
-      <DataSection
-        title="Ultimos Atrasos Reportados"
-        actionLabel="Ver incidentes"
-      >
-        <table className="w-full min-w-[860px] text-sm">
-          <thead className="bg-muted/60 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Rota</th>
-              <th className="px-4 py-3 text-left font-medium">Cooperativa</th>
-              <th className="px-4 py-3 text-left font-medium">Atraso</th>
-              <th className="px-4 py-3 text-left font-medium">Motivo</th>
-              <th className="px-4 py-3 text-left font-medium">Severidade</th>
-              <th className="px-4 py-3 text-right font-medium">Acoes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {delayRows.map((row) => (
-              <tr key={`${row.route}-${row.delay}`} className="border-t">
-                <td className="text-foreground px-4 py-3 font-medium">
-                  {row.route}
-                </td>
-                <td className="text-muted-foreground px-4 py-3">
-                  {row.cooperative}
-                </td>
-                <td className="text-foreground px-4 py-3 font-semibold">
-                  {row.delay}
-                </td>
-                <td className="text-muted-foreground px-4 py-3">
-                  {row.reason}
-                </td>
-                <td className="px-4 py-3">
-                  <SeverityBadge tone={row.severityTone} label={row.severity} />
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Button
-                    variant="link"
-                    className="text-primary h-auto px-0 text-sm"
-                  >
-                    {row.action}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </DataSection>
+      <Separator />
 
-      <DataSection title="Proximas Partidas" actionLabel="Ver todos">
-        <table className="w-full min-w-[860px] text-sm">
-          <thead className="bg-muted/60 text-muted-foreground">
-            <tr>
-              <th className="px-4 py-3 text-left font-medium">Rota</th>
-              <th className="px-4 py-3 text-left font-medium">Cooperativa</th>
-              <th className="px-4 py-3 text-left font-medium">Partida</th>
-              <th className="px-4 py-3 text-left font-medium">Destino</th>
-              <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-right font-medium">Acoes</th>
-            </tr>
-          </thead>
-          <tbody>
-            {departureRows.map((row) => (
-              <tr key={`${row.route}-${row.departure}`} className="border-t">
-                <td className="text-foreground px-4 py-3 font-medium">
-                  {row.route}
-                </td>
-                <td className="text-muted-foreground px-4 py-3">
-                  {row.cooperative}
-                </td>
-                <td className="text-foreground px-4 py-3 font-semibold">
-                  {row.departure}
-                </td>
-                <td className="text-muted-foreground px-4 py-3">
-                  {row.destination}
-                </td>
-                <td className="px-4 py-3">
-                  <StatusBadge tone={row.statusTone} label={row.status} />
-                </td>
-                <td className="px-4 py-3 text-right">
-                  <Button
-                    variant="link"
-                    className="text-primary h-auto px-0 text-sm"
-                  >
-                    {row.action}
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </DataSection>
-    </section>
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Próximas partidas"
+          description="Saídas programadas nas próximas 2 horas"
+          actions={
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => navigate('/admin/schedules')}
+            >
+              Ver todas →
+            </Button>
+          }
+        />
+        <AdminTable
+          columns={departureColumns}
+          data={stats?.upcomingDepartures ?? []}
+          keyExtractor={(r) => r.id}
+          isLoading={isLoading}
+          emptyState={
+            <AdminEmptyState
+              icon={CalendarClock}
+              title="Nenhuma partida programada nas próximas 2 horas"
+            />
+          }
+        />
+      </section>
+    </div>
   )
 }

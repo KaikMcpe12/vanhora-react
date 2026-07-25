@@ -5,6 +5,7 @@ import { AuthLayout } from './pages/_layouts/auth'
 import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
 import { AdminCitiesPage } from './pages/app-portal/admin/cities'
+import { AdminComponentsPreviewPage } from './pages/app-portal/admin/components-preview'
 import { AdminCooperativesPage } from './pages/app-portal/admin/cooperatives'
 import { AdminDashboardPage } from './pages/app-portal/admin/dashboard'
 import { AdminDelaysPage } from './pages/app-portal/admin/delays'
@@ -127,6 +128,10 @@ export const router = createBrowserRouter([
       {
         path: 'delays',
         element: <AdminDelaysPage />,
+      },
+      {
+        path: 'components-preview',
+        element: <AdminComponentsPreviewPage />,
       },
     ],
   },

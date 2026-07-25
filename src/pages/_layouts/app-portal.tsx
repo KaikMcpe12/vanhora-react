@@ -9,7 +9,10 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { AppPortalAside } from '@/pages/app-portal/app-portal-aside'
-import { AppPortalHeader } from '@/pages/app-portal/app-portal-header'
+import {
+  AppPortalHeader,
+  type BreadcrumbItem,
+} from '@/pages/app-portal/app-portal-header'
 import {
   APP_PORTAL_MOCK_USERS,
   type AppPortalRole,
@@ -90,7 +93,11 @@ export function AppPortalLayout() {
     user.role,
     basePath,
   )
-  const breadcrumb = `Portal > ${pageTitle}`
+
+  const breadcrumb: BreadcrumbItem[] = [
+    { label: 'Início', href: basePath },
+    { label: pageTitle },
+  ]
 
   const handleSignOut = () => {
     navigate('/sign-in')
@@ -103,8 +110,8 @@ export function AppPortalLayout() {
   }
 
   return (
-    <div className="bg-muted/40 flex min-h-screen antialiased">
-      <aside className="border-border hidden w-64 border-r lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start">
+    <div className="flex min-h-screen antialiased">
+      <aside className="border-border hidden w-60 border-r lg:sticky lg:top-0 lg:block lg:h-screen lg:self-start">
         <AppPortalAside
           role={user.role}
           basePath={basePath}
@@ -115,11 +122,11 @@ export function AppPortalLayout() {
       </aside>
 
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-64 p-0 sm:max-w-64">
+        <SheetContent side="left" className="w-60 p-0 sm:max-w-60">
           <VisuallyHidden>
             <SheetTitle>Menu administrativo</SheetTitle>
             <SheetDescription>
-              Navegacao principal da area administrativa.
+              Navegação principal da área administrativa.
             </SheetDescription>
           </VisuallyHidden>
 
@@ -136,15 +143,10 @@ export function AppPortalLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col">
         <AppPortalHeader
-          role={user.role}
-          userName={user.name}
-          title={pageTitle}
           breadcrumb={breadcrumb}
-          basePath={basePath}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
-          onSignOut={handleSignOut}
         />
-        <main className="flex-1 p-4 md:p-6">
+        <main className="flex-1 p-8 md:px-10">
           <Outlet context={outletContext} />
         </main>
       </div>

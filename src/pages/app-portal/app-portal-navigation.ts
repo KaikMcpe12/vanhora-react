@@ -3,6 +3,7 @@ import {
   BarChart3,
   Building2,
   Clock3,
+  Layers,
   type LucideIcon,
   MapPinned,
   Route,
@@ -41,8 +42,8 @@ export const APP_PORTAL_ROLE_LABEL: Record<AppPortalRole, string> = {
 }
 
 export const APP_PORTAL_GROUP_LABEL: Record<AppPortalGroupId, string> = {
-  main: 'Menu Principal',
-  transport: 'Dados de Transporte',
+  main: 'Geral',
+  transport: 'Operação',
 }
 
 export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
@@ -72,7 +73,7 @@ export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
   },
   {
     id: 'users',
-    label: 'Usuarios',
+    label: 'Usuários',
     path: 'users',
     icon: Users,
     group: 'main',
@@ -112,7 +113,7 @@ export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
   },
   {
     id: 'schedules',
-    label: 'Horarios',
+    label: 'Horários',
     path: 'schedules',
     icon: Clock3,
     group: 'transport',
@@ -120,7 +121,7 @@ export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
   },
   {
     id: 'my-schedules',
-    label: 'Meus Horarios',
+    label: 'Meus Horários',
     path: 'my-schedules',
     icon: Clock3,
     group: 'transport',
@@ -141,6 +142,14 @@ export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
     icon: AlertTriangle,
     group: 'transport',
     roles: ['driver'],
+  },
+  {
+    id: 'components-preview',
+    label: 'Componentes',
+    path: 'components-preview',
+    icon: Layers,
+    group: 'main',
+    roles: ['admin'],
   },
 ]
 
@@ -218,5 +227,5 @@ export function getAppPortalPageLabel(
     return pathname.startsWith(path)
   })
 
-  return item?.label ?? 'Area Administrativa'
+  return item?.label ?? 'Área Administrativa'
 }

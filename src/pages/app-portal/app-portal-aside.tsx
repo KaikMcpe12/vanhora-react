@@ -38,26 +38,29 @@ export function AppPortalAside({
 
   return (
     <div className="bg-card flex h-full flex-col">
-      <div className="border-border bg-primary/5 flex items-center gap-3 border-b px-5 py-4">
+      <div className="border-border flex items-center gap-3 border-b px-5 py-4">
         <img src={Logo} alt="VanHora" className="h-9 w-9" />
         <div className="min-w-0">
           <p className="text-foreground truncate text-sm font-semibold tracking-tight">
             VanHora
           </p>
           <p className="text-muted-foreground truncate text-xs">
-            Painel de operacoes
+            Painel administrativo
           </p>
         </div>
       </div>
 
-      <div className="flex-1 space-y-6 overflow-y-auto px-3 py-4">
-        {navigationGroups.map((group) => (
-          <section key={group.id} className="space-y-1.5">
-            <p className="text-muted-foreground px-2 text-[11px] font-semibold tracking-wide uppercase">
+      <div className="flex-1 overflow-y-auto px-3 py-4">
+        {navigationGroups.map((group, groupIndex) => (
+          <section
+            key={group.id}
+            className={cn('space-y-0.5', groupIndex > 0 && 'mt-[18px]')}
+          >
+            <p className="text-muted-foreground mb-1.5 px-2 text-[10px] font-semibold tracking-[0.6px] uppercase">
               {group.label}
             </p>
 
-            <nav className="space-y-1">
+            <nav className="space-y-0.5">
               {group.items.map((item) => {
                 const itemPath = getNavigationPath(basePath, item.path)
                 const isActive =
@@ -72,13 +75,16 @@ export function AppPortalAside({
                     to={itemPath}
                     onClick={onNavigate}
                     className={cn(
-                      'flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors',
+                      'relative flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors',
                       isActive
-                        ? 'bg-primary/12 text-primary border-primary/40 border'
-                        : 'text-muted-foreground hover:bg-accent/80 hover:text-foreground',
+                        ? 'bg-accent/40 text-foreground'
+                        : 'text-muted-foreground hover:bg-accent/40 hover:text-foreground',
                     )}
                   >
-                    <Icon className="h-4 w-4" />
+                    {isActive && (
+                      <span className="bg-primary absolute top-1 bottom-1 left-0 w-0.5 rounded-r-full" />
+                    )}
+                    <Icon className="h-4 w-4 shrink-0" />
                     <span>{item.label}</span>
                   </Link>
                 )
@@ -88,16 +94,18 @@ export function AppPortalAside({
         ))}
       </div>
 
-      <div className="border-border bg-background border-t p-3">
-        <div className="mb-2 flex items-center gap-2.5 rounded-md border px-2.5 py-2">
-          <Avatar className="h-8 w-8">
-            <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+      <div className="border-border border-t p-3">
+        <div className="mb-1 flex items-center gap-2.5 px-1 py-1.5">
+          <Avatar className="h-7 w-7 shrink-0">
+            <AvatarFallback className="text-xs">
+              {getInitials(userName)}
+            </AvatarFallback>
           </Avatar>
           <div className="min-w-0 flex-1">
-            <p className="text-foreground truncate text-sm font-medium">
+            <p className="text-foreground truncate text-[13px] font-medium leading-tight">
               {userName}
             </p>
-            <p className="text-muted-foreground truncate text-xs">
+            <p className="text-muted-foreground truncate text-[11px] leading-tight">
               {userEmail}
             </p>
           </div>
@@ -106,12 +114,12 @@ export function AppPortalAside({
         <Button
           type="button"
           variant="ghost"
-          size="icon-sm"
+          size="sm"
           onClick={onSignOut}
-          className="flex w-full items-center justify-between rounded-md border px-2 py-2 text-red-500 hover:bg-red-500 hover:text-white"
+          className="text-muted-foreground hover:text-destructive w-full justify-start gap-2 px-1"
         >
-          <p className="text-sm">Sair</p>
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-3.5 w-3.5" />
+          Sair
         </Button>
       </div>
     </div>

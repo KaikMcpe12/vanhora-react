@@ -1,4 +1,4 @@
-import { CheckCircle2, RotateCcw, X } from 'lucide-react'
+import { CheckCircle2, Eye, RotateCcw, Route, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -244,6 +244,7 @@ export function AdminDelaysPage() {
       key: 'reportedAt',
       label: 'Data/Hora',
       width: '120px',
+      hideOnMobile: true,
       render: (d) => (
         <span className="text-[12px] text-muted-foreground">
           {formatDateTime(d.reportedAt)}
@@ -262,6 +263,7 @@ export function AdminDelaysPage() {
     {
       key: 'cooperative',
       label: 'Cooperativa',
+      hideOnMobile: true,
       render: (d) => (
         <span className="text-[13px] text-muted-foreground">{d.cooperativeName}</span>
       ),
@@ -278,6 +280,7 @@ export function AdminDelaysPage() {
     {
       key: 'reason',
       label: 'Motivo',
+      hideOnMobile: true,
       render: (d) => (
         <span
           className="text-[13px] text-muted-foreground"
@@ -314,12 +317,12 @@ export function AdminDelaysPage() {
           items={[
             {
               label: 'Ver detalhes',
-              icon: CheckCircle2,
+              icon: Eye,
               onClick: () => setSelectedDelay(d),
             },
             {
               label: 'Ver rota',
-              icon: X,
+              icon: Route,
               onClick: () => navigate('/admin/routes'),
             },
             { divider: true, label: '', onClick: () => {} },
@@ -391,24 +394,30 @@ export function AdminDelaysPage() {
               </SelectContent>
             </Select>
 
-            <Select value={severity} onValueChange={setSeverity}>
+            <Select
+              value={severity || 'all'}
+              onValueChange={(v) => setSeverity(v === 'all' ? '' : v)}
+            >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Severidade" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="low">Baixa</SelectItem>
                 <SelectItem value="medium">Média</SelectItem>
                 <SelectItem value="high">Alta</SelectItem>
               </SelectContent>
             </Select>
 
-            <Select value={cooperativeId} onValueChange={setCooperativeId}>
+            <Select
+              value={cooperativeId || 'all'}
+              onValueChange={(v) => setCooperativeId(v === 'all' ? '' : v)}
+            >
               <SelectTrigger className="h-8 w-44 text-xs">
                 <SelectValue placeholder="Cooperativa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {cooperativeOptions.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
                 ))}

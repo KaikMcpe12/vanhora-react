@@ -27,6 +27,7 @@ export interface AppPortalNavigationItem {
   icon: LucideIcon
   group: AppPortalGroupId
   roles: AppPortalRole[]
+  devOnly?: boolean
 }
 
 export interface AppPortalNavigationGroup {
@@ -150,6 +151,7 @@ export const APP_PORTAL_NAVIGATION_ITEMS: AppPortalNavigationItem[] = [
     icon: Layers,
     group: 'main',
     roles: ['admin'],
+    devOnly: true,
   },
 ]
 
@@ -180,7 +182,10 @@ export function getNavigationPath(basePath: string, itemPath: string) {
 }
 
 export function getAppPortalNavigationItems(role: AppPortalRole) {
-  return APP_PORTAL_NAVIGATION_ITEMS.filter((item) => item.roles.includes(role))
+  return APP_PORTAL_NAVIGATION_ITEMS.filter(
+    (item) =>
+      item.roles.includes(role) && (!item.devOnly || import.meta.env.DEV),
+  )
 }
 
 export function getAppPortalNavigationGroups(

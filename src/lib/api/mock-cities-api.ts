@@ -86,12 +86,32 @@ export const mockCitiesApi = {
     city.status = newStatus
     return city
   },
+
+  async getCityStats(): Promise<{
+    total: number
+    withRoutes: number
+    inactive: number
+  }> {
+    await delay(API_DELAY)
+    return {
+      total: MOCK_ADMIN_CITIES.length,
+      withRoutes: MOCK_ADMIN_CITIES.filter((c) => c.routeCount > 0).length,
+      inactive: MOCK_ADMIN_CITIES.filter((c) => c.status === 'inactive').length,
+    }
+  },
 }
 
 export function useAdminCities(filters: ListCitiesFilters = {}) {
   return useQuery({
     queryKey: ['admin', 'cities', filters],
     queryFn: () => mockCitiesApi.listCities(filters),
+  })
+}
+
+export function useCityStats() {
+  return useQuery({
+    queryKey: ['admin', 'cities', 'stats'],
+    queryFn: () => mockCitiesApi.getCityStats(),
   })
 }
 

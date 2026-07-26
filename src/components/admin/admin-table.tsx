@@ -21,6 +21,7 @@ export interface AdminTableColumn<T> {
   width?: string
   align?: 'left' | 'center' | 'right'
   sortable?: boolean
+  hideOnMobile?: boolean
 }
 
 interface AdminTableProps<T> {
@@ -81,6 +82,7 @@ export function AdminTable<T>({
                   'h-11 px-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
                   alignClass[col.align ?? 'left'],
                   col.sortable && onSort && 'cursor-pointer select-none',
+                  col.hideOnMobile && 'hidden sm:table-cell',
                 )}
                 onClick={
                   col.sortable && onSort ? () => onSort(col.key) : undefined
@@ -99,7 +101,13 @@ export function AdminTable<T>({
             Array.from({ length: LOADING_ROWS }).map((_, i) => (
               <TableRow key={`skeleton-${i}`} className="hover:bg-transparent">
                 {columns.map((col) => (
-                  <TableCell key={col.key} className="px-4 py-3">
+                  <TableCell
+                    key={col.key}
+                    className={cn(
+                      'px-4 py-3',
+                      col.hideOnMobile && 'hidden sm:table-cell',
+                    )}
+                  >
                     <Skeleton className="h-4 w-full" />
                   </TableCell>
                 ))}
@@ -129,6 +137,7 @@ export function AdminTable<T>({
                     className={cn(
                       'px-4 py-3',
                       alignClass[col.align ?? 'left'],
+                      col.hideOnMobile && 'hidden sm:table-cell',
                     )}
                   >
                     {col.render(item)}

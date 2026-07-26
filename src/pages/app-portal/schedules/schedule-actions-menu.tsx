@@ -38,7 +38,7 @@ export function ScheduleActionsMenu({
           variant="ghost"
           size="sm"
           className="h-8 w-8 rounded-full p-0"
-          aria-label="Acoes do horario"
+          aria-label="Ações do horário"
         >
           <MoreHorizontal className="h-4 w-4" />
         </Button>
@@ -81,7 +81,7 @@ export function ScheduleActionsMenu({
 
         <DropdownMenuItem className="gap-2" onClick={onAddException}>
           <Plus className="h-3.5 w-3.5" />
-          Adicionar excecao
+          Adicionar exceção
         </DropdownMenuItem>
 
         <DropdownMenuItem className="gap-2 text-slate-500">

@@ -603,20 +603,6 @@ export function SchedulesPage() {
 
   return (
     <section className="space-y-6">
-      {/* header */}
-      <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-foreground text-2xl font-semibold sm:text-3xl">Horários</h1>
-          <p className="text-muted-foreground text-sm">
-            Conteúdo operacional de horários por rota.
-          </p>
-        </div>
-        <Button size="sm" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Novo Horário
-        </Button>
-      </header>
-
       <div className="grid gap-4 sm:grid-cols-3">
         <AdminKPICard
           label="Horários ativos hoje"
@@ -646,14 +632,14 @@ export function SchedulesPage() {
         filters={
           <div className="flex flex-wrap items-center gap-2">
             <Select
-              value={cooperativeFilter}
-              onValueChange={setCooperativeFilter}
+              value={cooperativeFilter || 'all'}
+              onValueChange={(v) => setCooperativeFilter(v === 'all' ? '' : v)}
             >
               <SelectTrigger className="h-8 w-40 text-xs">
                 <SelectValue placeholder="Cooperativa" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {Array.from(new Set(MOCK_ADMIN_ROUTES.map((r) => r.cooperativeName))).map((name) => (
                   <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}

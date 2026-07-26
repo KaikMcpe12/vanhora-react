@@ -43,19 +43,19 @@ const MODES: {
     value: 'cancel',
     icon: XCircle,
     title: 'Cancelar nesta data',
-    description: 'Horario nao sai nesse dia',
+    description: 'Horário não sai nesse dia',
   },
   {
     value: 'rescheduled',
     icon: Clock,
     title: 'Reagendar nesta data',
-    description: 'Sai em outro horario nesse dia',
+    description: 'Sai em outro horário nesse dia',
   },
   {
     value: 'temporary',
     icon: Plus,
-    title: 'Criar servico extra',
-    description: 'Novo horario que nao existe na grade',
+    title: 'Criar serviço extra',
+    description: 'Novo horário que não existe na grade',
   },
 ]
 
@@ -103,14 +103,14 @@ export function ExceptionModal({
       ? `${schedule.routeCode} • ${schedule.origin} → ${schedule.destination} • ${schedule.departureTime}`
       : ''
 
-  const title = isRouteLevel ? 'Criar servico extra' : 'Adicionar excecao'
+  const title = isRouteLevel ? 'Criar serviço extra' : 'Adicionar exceção'
 
   const submitLabel =
     mode === 'cancel'
       ? 'Cancelar nesta data'
       : mode === 'rescheduled'
         ? 'Reagendar'
-        : 'Criar servico extra'
+        : 'Criar serviço extra'
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -177,7 +177,7 @@ export function ExceptionModal({
           {requiresTime && (
             <div className="space-y-1.5">
               <Label htmlFor="exception-time">
-                {mode === 'rescheduled' ? 'Novo horario' : 'Horario do servico'}
+                {mode === 'rescheduled' ? 'Novo horário' : 'Horário do serviço'}
               </Label>
               <input
                 id="exception-time"

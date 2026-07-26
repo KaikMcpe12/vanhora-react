@@ -1,5 +1,13 @@
-import { MapPin, Pencil, Plus, RotateCcw, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  MapPin,
+  Pencil,
+  Plus,
+  RotateCcw,
+  X,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -32,6 +40,7 @@ import {
 } from '@/components/ui/select'
 import {
   useAdminCities,
+  useCityStats,
   useCreateCity,
   useToggleCityStatus,
   useUpdateCity,
@@ -57,11 +66,16 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
   const createCity = useCreateCity()
   const updateCity = useUpdateCity()
 
-  function handleOpen(value: boolean) {
-    if (value) {
+  // Sync fields whenever the dialog opens (covers programmatic opens, which do
+  // not fire onOpenChange).
+  useEffect(() => {
+    if (open) {
       setName(city?.name ?? '')
       setState(city?.state ?? 'CE')
     }
+  }, [open, city])
+
+  function handleOpen(value: boolean) {
     onOpenChange(value)
   }
 
@@ -148,23 +162,26 @@ export function AdminCitiesPage() {
   const activeStatus =
     statusFilters.length === 2 ? '' : (statusFilters[0] as 'active' | 'inactive' | '')
 
+  const PAGE_SIZE = 20
+
   const { data, isLoading } = useAdminCities({
     search,
     status: activeStatus,
     page: currentPage,
-    pageSize: 20,
+    pageSize: PAGE_SIZE,
   })
+
+  const { data: stats } = useCityStats()
 
   const toggleStatus = useToggleCityStatus()
 
-  const kpiStats = useMemo(() => {
-    const all = data?.data ?? []
-    return {
-      total: data?.total ?? 0,
-      withRoutes: all.filter((c) => c.routeCount > 0).length,
-      inactive: all.filter((c) => c.status === 'inactive').length,
-    }
-  }, [data])
+  const kpiStats = {
+    total: stats?.total ?? 0,
+    withRoutes: stats?.withRoutes ?? 0,
+    inactive: stats?.inactive ?? 0,
+  }
+
+  const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE)
 
   const hasFilters = Boolean(search.trim()) || statusFilters.length !== 2
 
@@ -172,7 +189,6 @@ export function AdminCitiesPage() {
     {
       key: 'name',
       label: 'Nome',
-      sortable: true,
       render: (c) => <span className="font-medium text-foreground">{c.name}</span>,
     },
     {
@@ -248,6 +264,7 @@ export function AdminCitiesPage() {
         searchPlaceholder="Buscar cidade por nome"
         filters={
           <StatusFilterChips
+            minOne
             options={[
               { value: 'active', label: 'Ativa' },
               { value: 'inactive', label: 'Inativa' },
@@ -290,6 +307,44 @@ export function AdminCitiesPage() {
           />
         }
       />
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={currentPage === page ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 w-8 rounded-full p-0"
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </Button>
+          ))}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <CityFormDialog
         open={formOpen}

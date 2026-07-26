@@ -129,10 +129,14 @@ export const router = createBrowserRouter([
         path: 'delays',
         element: <AdminDelaysPage />,
       },
-      {
-        path: 'components-preview',
-        element: <AdminComponentsPreviewPage />,
-      },
+      ...(import.meta.env.DEV
+        ? [
+            {
+              path: 'components-preview',
+              element: <AdminComponentsPreviewPage />,
+            },
+          ]
+        : []),
     ],
   },
   {

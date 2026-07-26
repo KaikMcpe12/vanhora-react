@@ -1,14 +1,14 @@
 import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -72,16 +72,16 @@ export function AdminConfirmDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-[15px] font-medium">
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
+      <AlertDialogContent className="sm:max-w-md">
+        <AlertDialogHeader>
+          <AlertDialogTitle className="text-[15px] font-medium">
             {title}
-          </DialogTitle>
-          <DialogDescription className="text-[13px] leading-relaxed">
+          </AlertDialogTitle>
+          <AlertDialogDescription className="text-[13px] leading-relaxed">
             {description}
-          </DialogDescription>
-        </DialogHeader>
+          </AlertDialogDescription>
+        </AlertDialogHeader>
 
         {requireTypedConfirmation && (
           <div className="space-y-2 border-t border-border pt-4">
@@ -95,9 +95,7 @@ export function AdminConfirmDialog({
               disabled={isLoading}
               className="text-sm"
             />
-            {error && (
-              <p className="text-[12px] text-destructive">{error}</p>
-            )}
+            {error && <p className="text-[12px] text-destructive">{error}</p>}
           </div>
         )}
 
@@ -105,7 +103,7 @@ export function AdminConfirmDialog({
           <p className="text-[12px] text-destructive">{error}</p>
         )}
 
-        <DialogFooter>
+        <AlertDialogFooter>
           <Button
             variant="ghost"
             onClick={() => handleOpenChange(false)}
@@ -120,8 +118,8 @@ export function AdminConfirmDialog({
           >
             {isLoading ? 'Confirmando...' : confirmLabel}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }

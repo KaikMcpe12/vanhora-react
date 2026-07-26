@@ -11,7 +11,7 @@ import {
   UserX,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -134,14 +134,20 @@ export function UsersPage() {
     },
   })
 
-  const kpiStats = useMemo(() => {
-    if (!usersData?.data) return { total: 0, drivers: 0, inactive: 0 }
-    return {
-      total: usersData.total,
-      drivers: usersData.data.filter((u) => u.role === 'driver').length,
-      inactive: usersData.data.filter((u) => u.status === 'inactive').length,
-    }
-  }, [usersData])
+  const { data: userStats } = useQuery({
+    queryKey: ['users', 'stats', role, loggedInCooperativeId],
+    queryFn: () =>
+      mockUsersApi.getUserStats(
+        role as 'admin' | 'cooperative',
+        loggedInCooperativeId,
+      ),
+  })
+
+  const kpiStats = {
+    total: userStats?.total ?? 0,
+    drivers: userStats?.activeDrivers ?? 0,
+    inactive: userStats?.inactive ?? 0,
+  }
 
   const totalPages = usersData ? Math.ceil(usersData.total / PAGE_SIZE) : 1
 
@@ -183,6 +189,7 @@ export function UsersPage() {
     {
       key: 'cooperative',
       label: 'Cooperativa',
+      hideOnMobile: true,
       render: (u) => {
         const coop = MOCK_COOPERATIVES.find((c) => c.id === u.cooperativeId)
         return coop ? (
@@ -268,6 +275,7 @@ export function UsersPage() {
         filters={
           <div className="flex items-center gap-2">
             <StatusFilterChips
+              minOne
               options={[
                 { value: 'active', label: 'Ativo' },
                 { value: 'inactive', label: 'Inativo' },

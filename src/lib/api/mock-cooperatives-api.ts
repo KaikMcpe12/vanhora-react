@@ -104,12 +104,37 @@ export const mockCooperativesApi = {
     coop.status = newStatus
     return coop
   },
+
+  async getCooperativeStats(): Promise<{
+    activeCount: number
+    totalRoutes: number
+    avgRating: number
+  }> {
+    await delay(API_DELAY)
+    const active = MOCK_ADMIN_COOPERATIVES.filter((c) => c.status === 'active')
+    const avg =
+      active.length > 0
+        ? active.reduce((sum, c) => sum + c.rating, 0) / active.length
+        : 0
+    return {
+      activeCount: active.length,
+      totalRoutes: active.reduce((sum, c) => sum + c.routeCount, 0),
+      avgRating: Math.round(avg * 10) / 10,
+    }
+  },
 }
 
 export function useAdminCooperatives(filters: ListCooperativesFilters = {}) {
   return useQuery({
     queryKey: ['admin', 'cooperatives', filters],
     queryFn: () => mockCooperativesApi.listCooperatives(filters),
+  })
+}
+
+export function useCooperativeStats() {
+  return useQuery({
+    queryKey: ['admin', 'cooperatives', 'stats'],
+    queryFn: () => mockCooperativesApi.getCooperativeStats(),
   })
 }
 

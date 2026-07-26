@@ -1,5 +1,17 @@
-import { ExternalLink, Pencil, Plus, RotateCcw, Route, Star, Users, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  ExternalLink,
+  PauseCircle,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Route,
+  Star,
+  Users,
+  X,
+} from 'lucide-react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -28,6 +40,7 @@ import {
 import { Textarea } from '@/components/ui/textarea'
 import {
   useAdminCooperatives,
+  useCooperativeStats,
   useCreateCooperative,
   useToggleCooperativeStatus,
   useUpdateCooperative,
@@ -74,17 +87,22 @@ function CooperativeFormDrawer({
   const createCoop = useCreateCooperative()
   const updateCoop = useUpdateCooperative()
 
-  function handleOpen(value: boolean) {
-    if (value && cooperative) {
+  // Sync fields whenever the drawer opens (covers programmatic opens, which do
+  // not fire onOpenChange).
+  useEffect(() => {
+    if (open) {
       setForm({
-        name: cooperative.name,
-        phone: cooperative.phone,
-        site: cooperative.site ?? '',
-        logoUrl: cooperative.logoUrl ?? '',
-        brandColor: cooperative.brandColor,
-        description: cooperative.description ?? '',
+        name: cooperative?.name ?? '',
+        phone: cooperative?.phone ?? '',
+        site: cooperative?.site ?? '',
+        logoUrl: cooperative?.logoUrl ?? '',
+        brandColor: cooperative?.brandColor ?? '#1A5FA8',
+        description: cooperative?.description ?? '',
       })
     }
+  }, [open, cooperative])
+
+  function handleOpen(value: boolean) {
     onOpenChange(value)
   }
 
@@ -124,7 +142,11 @@ function CooperativeFormDrawer({
           </SheetTitle>
         </SheetHeader>
 
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-6 overflow-y-auto py-4">
+        <form
+          id="cooperative-form"
+          onSubmit={handleSubmit}
+          className="flex flex-1 flex-col gap-6 overflow-y-auto py-4"
+        >
           <div className="space-y-4">
             <AdminSectionTitle title="Identificação" />
             <div className="space-y-1.5">
@@ -203,6 +225,7 @@ function CooperativeFormDrawer({
 
         <SheetFooter className="border-t border-border pt-4">
           <Button
+            type="button"
             variant="ghost"
             onClick={() => handleOpen(false)}
             disabled={isPending}
@@ -210,7 +233,8 @@ function CooperativeFormDrawer({
             Cancelar
           </Button>
           <Button
-            onClick={handleSubmit as unknown as React.MouseEventHandler}
+            type="submit"
+            form="cooperative-form"
             disabled={isPending || !form.name.trim() || !form.phone.trim()}
           >
             {isPending ? 'Salvando...' : isEdit ? 'Salvar' : 'Criar'}
@@ -225,30 +249,34 @@ export function AdminCooperativesPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilters, setStatusFilters] = useState<string[]>(['active', 'suspended', 'inactive'])
+  const [currentPage, setCurrentPage] = useState(1)
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [editCoop, setEditCoop] = useState<AdminCooperative | null>(null)
   const [deactivateCoop, setDeactivateCoop] = useState<AdminCooperative | null>(null)
   const [suspendCoop, setSuspendCoop] = useState<AdminCooperative | null>(null)
+
+  const PAGE_SIZE = 20
 
   const activeStatus = statusFilters.length === 3 ? '' : statusFilters[0]
 
   const { data, isLoading } = useAdminCooperatives({
     search,
     status: activeStatus,
+    page: currentPage,
+    pageSize: PAGE_SIZE,
   })
+
+  const { data: stats } = useCooperativeStats()
 
   const toggleStatus = useToggleCooperativeStatus()
 
-  const kpiStats = useMemo(() => {
-    const all = data?.data ?? []
-    const active = all.filter((c) => c.status === 'active')
-    const totalRoutes = active.reduce((sum, c) => sum + c.routeCount, 0)
-    return {
-      activeCount: active.length,
-      totalRoutes,
-      avgRating: data?.avgRating ?? 0,
-    }
-  }, [data])
+  const kpiStats = {
+    activeCount: stats?.activeCount ?? 0,
+    totalRoutes: stats?.totalRoutes ?? 0,
+    avgRating: stats?.avgRating ?? 0,
+  }
+
+  const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE)
 
   const hasFilters = Boolean(search.trim()) || statusFilters.length !== 3
 
@@ -256,7 +284,6 @@ export function AdminCooperativesPage() {
     {
       key: 'name',
       label: 'Cooperativa',
-      sortable: true,
       render: (c) => (
         <div className="flex items-center gap-2.5">
           <span
@@ -272,6 +299,7 @@ export function AdminCooperativesPage() {
     {
       key: 'phone',
       label: 'Contato',
+      hideOnMobile: true,
       render: (c) => <span className="text-[13px] text-muted-foreground">{c.phone}</span>,
     },
     {
@@ -279,6 +307,7 @@ export function AdminCooperativesPage() {
       label: 'Rotas',
       width: '80px',
       align: 'right',
+      hideOnMobile: true,
       render: (c) => <span className="text-[13px]">{c.routeCount}</span>,
     },
     {
@@ -286,6 +315,7 @@ export function AdminCooperativesPage() {
       label: 'Motoristas',
       width: '100px',
       align: 'right',
+      hideOnMobile: true,
       render: (c) => <span className="text-[13px]">{c.driverCount}</span>,
     },
     {
@@ -341,25 +371,26 @@ export function AdminCooperativesPage() {
               },
             },
             { divider: true, label: '', onClick: () => {} },
-            c.status === 'active'
-              ? {
-                  label: 'Suspender',
-                  icon: X,
-                  onClick: () => setSuspendCoop(c),
-                  variant: 'danger' as const,
-                }
-              : {
-                  label: 'Reativar',
-                  icon: RotateCcw,
-                  onClick: async () => {
-                    await toggleStatus.mutateAsync({ id: c.id, newStatus: 'active' })
-                    toast.success(`Cooperativa "${c.name}" reativada`)
-                  },
-                },
-            ...(c.status !== 'inactive'
-              ? []
-              : []),
             ...(c.status === 'active'
+              ? [
+                  {
+                    label: 'Suspender',
+                    icon: PauseCircle,
+                    onClick: () => setSuspendCoop(c),
+                    variant: 'danger' as const,
+                  },
+                ]
+              : [
+                  {
+                    label: 'Reativar',
+                    icon: RotateCcw,
+                    onClick: async () => {
+                      await toggleStatus.mutateAsync({ id: c.id, newStatus: 'active' })
+                      toast.success(`Cooperativa "${c.name}" reativada`)
+                    },
+                  },
+                ]),
+            ...(c.status !== 'inactive'
               ? [
                   {
                     label: 'Desativar definitivamente',
@@ -397,17 +428,18 @@ export function AdminCooperativesPage() {
 
       <AdminFilterBar
         searchValue={search}
-        onSearchChange={(v) => setSearch(v)}
+        onSearchChange={(v) => { setSearch(v); setCurrentPage(1) }}
         searchPlaceholder="Buscar cooperativa por nome"
         filters={
           <StatusFilterChips
+            minOne
             options={[
               { value: 'active', label: 'Ativa' },
               { value: 'suspended', label: 'Suspensa' },
               { value: 'inactive', label: 'Inativa' },
             ]}
             value={statusFilters}
-            onChange={setStatusFilters}
+            onChange={(v) => { setStatusFilters(v); setCurrentPage(1) }}
           />
         }
         actions={
@@ -444,6 +476,44 @@ export function AdminCooperativesPage() {
           />
         }
       />
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1">
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((p) => p - 1)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+            <Button
+              key={page}
+              variant={currentPage === page ? 'default' : 'outline'}
+              size="sm"
+              className="h-8 w-8 rounded-full p-0"
+              onClick={() => setCurrentPage(page)}
+            >
+              {page}
+            </Button>
+          ))}
+
+          <Button
+            variant="outline"
+            size="sm"
+            className="rounded-full"
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((p) => p + 1)}
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
 
       <CooperativeFormDrawer
         open={drawerOpen}

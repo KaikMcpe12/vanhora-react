@@ -194,4 +194,28 @@ export const mockUsersApi = {
     await delay(API_DELAY)
     return MOCK_USERS.find((u) => u.id === userId) ?? null
   },
+
+  async getUserStats(
+    loggedInRole?: 'admin' | 'cooperative',
+    loggedInCooperativeId?: string,
+  ): Promise<{ total: number; activeDrivers: number; inactive: number }> {
+    await delay(API_DELAY)
+
+    let visible = [...MOCK_USERS]
+    if (loggedInRole === 'cooperative' && loggedInCooperativeId) {
+      visible = visible.filter(
+        (user) =>
+          user.cooperativeId === loggedInCooperativeId ||
+          user.role === 'cooperative',
+      )
+    }
+
+    return {
+      total: visible.length,
+      activeDrivers: visible.filter(
+        (u) => u.role === 'driver' && u.status === 'active',
+      ).length,
+      inactive: visible.filter((u) => u.status === 'inactive').length,
+    }
+  },
 }

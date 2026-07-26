@@ -11,6 +11,8 @@ interface StatusFilterChipsProps {
   value: string[]
   onChange: (value: string[]) => void
   className?: string
+  /** When true, prevents deselecting the last active chip (keeps at least one). */
+  minOne?: boolean
 }
 
 export function StatusFilterChips({
@@ -18,9 +20,11 @@ export function StatusFilterChips({
   value,
   onChange,
   className,
+  minOne = false,
 }: StatusFilterChipsProps) {
   function toggle(v: string) {
     if (value.includes(v)) {
+      if (minOne && value.length === 1) return
       onChange(value.filter((x) => x !== v))
     } else {
       onChange([...value, v])

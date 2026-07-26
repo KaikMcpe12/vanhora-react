@@ -146,7 +146,7 @@ export function AppPortalLayout() {
           breadcrumb={breadcrumb}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
         />
-        <main className="flex-1 p-8 md:px-10">
+        <main className="flex-1 px-4 py-6 md:px-10 md:py-8">
           <Outlet context={outletContext} />
         </main>
       </div>

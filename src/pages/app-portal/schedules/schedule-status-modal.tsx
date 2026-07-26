@@ -34,9 +34,9 @@ const VARIANT_META: Record<
   }
 > = {
   suspend: {
-    title: 'Suspender horario',
+    title: 'Suspender horário',
     description:
-      'Todas as ocorrencias futuras deste horario serao suspensas. O horario pode ser reativado posteriormente.',
+      'Todas as ocorrências futuras deste horário serão suspensas. O horário pode ser reativado posteriormente.',
     buttonLabel: 'Suspender',
     buttonClass:
       'border border-slate-300 bg-slate-100 text-slate-700 hover:bg-slate-200',
@@ -44,18 +44,18 @@ const VARIANT_META: Record<
     showReason: true,
   },
   cancel: {
-    title: 'Cancelar horario',
+    title: 'Cancelar horário',
     description:
-      'Este horario sera cancelado definitivamente. A rota continuara com os demais horarios ativos.',
-    buttonLabel: 'Cancelar horario',
+      'Este horário será cancelado definitivamente. A rota continuará com os demais horários ativos.',
+    buttonLabel: 'Cancelar horário',
     buttonClass:
       'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
     icon: XCircle,
     showReason: true,
   },
   reactivate: {
-    title: 'Reativar horario',
-    description: 'O horario voltara ao estado ativo e sera incluido na grade operacional.',
+    title: 'Reativar horário',
+    description: 'O horário voltará ao estado ativo e será incluído na grade operacional.',
     buttonLabel: 'Reativar',
     buttonClass:
       'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',

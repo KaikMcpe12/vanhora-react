@@ -3,12 +3,15 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  PlayCircle,
   Plus,
+  PowerOff,
   UserRound,
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useOutletContext } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   AdminActionMenu,
@@ -117,6 +120,9 @@ export function RoutesPage() {
   const [currentPage, setCurrentPage] = useState(1)
   const [confirmRoute, setConfirmRoute] = useState<RouteCardView | null>(null)
 
+  const confirmIsReactivate =
+    confirmRoute?.status === 'inactive' || confirmRoute?.status === 'suspended'
+
   const kpiStats = useMemo(() => {
     return {
       active: ROUTES.filter((r) => r.status === 'active').length,
@@ -185,6 +191,7 @@ export function RoutesPage() {
         searchPlaceholder="Buscar rota por nome, origem ou destino"
         filters={
           <StatusFilterChips
+            minOne
             options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
             value={statusFilters}
             onChange={(v) => {
@@ -194,7 +201,11 @@ export function RoutesPage() {
           />
         }
         actions={
-          <Button size="sm" className="gap-1.5" onClick={() => {}}>
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => toast.info('Cadastro de rota em breve')}
+          >
             <Plus className="h-3.5 w-3.5" />
             Nova rota
           </Button>
@@ -213,7 +224,7 @@ export function RoutesPage() {
           action={
             hasActiveFilters
               ? { label: 'Limpar filtros', onClick: clearFilters, icon: X }
-              : { label: 'Nova rota', onClick: () => {}, icon: Plus }
+              : { label: 'Nova rota', onClick: () => toast.info('Cadastro de rota em breve'), icon: Plus }
           }
         />
       ) : (
@@ -252,18 +263,9 @@ export function RoutesPage() {
                     <AdminActionMenu
                       items={[
                         {
-                          label: 'Editar',
-                          icon: CalendarDays,
-                          onClick: () => {},
-                        },
-                        { divider: true, label: '', onClick: () => {} },
-                        {
                           label: isInactive || isSuspended ? 'Reativar' : 'Desativar',
-                          onClick: () => {
-                            if (!isInactive && !isSuspended) {
-                              setConfirmRoute(route)
-                            }
-                          },
+                          icon: isInactive || isSuspended ? PlayCircle : PowerOff,
+                          onClick: () => setConfirmRoute(route),
                           variant: isInactive || isSuspended ? 'default' : 'danger',
                         },
                       ]}
@@ -303,7 +305,12 @@ export function RoutesPage() {
                         Horários
                       </Link>
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded-full" onClick={() => {}}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => toast.info('Edição de rota em breve')}
+                    >
                       Editar
                     </Button>
                   </div>
@@ -355,16 +362,28 @@ export function RoutesPage() {
       <AdminConfirmDialog
         open={confirmRoute !== null}
         onOpenChange={(open) => { if (!open) setConfirmRoute(null) }}
-        title="Desativar rota"
-        description={`Esta ação vai desativar "${confirmRoute?.name}" e todos os seus ${confirmRoute?.scheduleCount} horários. Passageiros não conseguirão mais ver essa rota.`}
-        confirmLabel="Desativar"
-        variant="danger"
-        requireTypedConfirmation={{
-          expectedText: confirmRoute?.name ?? '',
-          label: `Digite o nome da rota para confirmar`,
-        }}
+        title={confirmIsReactivate ? 'Reativar rota' : 'Desativar rota'}
+        description={
+          confirmIsReactivate
+            ? `A rota "${confirmRoute?.name}" voltará a operar e a aparecer para os passageiros.`
+            : `Esta ação vai desativar "${confirmRoute?.name}" e todos os seus ${confirmRoute?.scheduleCount} horários. Passageiros não conseguirão mais ver essa rota.`
+        }
+        confirmLabel={confirmIsReactivate ? 'Reativar' : 'Desativar'}
+        variant={confirmIsReactivate ? 'default' : 'danger'}
+        requireTypedConfirmation={
+          confirmIsReactivate
+            ? undefined
+            : {
+                expectedText: confirmRoute?.name ?? '',
+                label: `Digite o nome da rota para confirmar`,
+              }
+        }
         onConfirm={() => {
-          console.log('desativar rota', confirmRoute?.id)
+          toast.success(
+            confirmIsReactivate
+              ? `Rota "${confirmRoute?.name}" reativada`
+              : `Rota "${confirmRoute?.name}" desativada`,
+          )
           setConfirmRoute(null)
         }}
       />

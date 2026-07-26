@@ -29,68 +29,6 @@ const sampleData: SampleRow[] = [
   { id: '3', name: 'Swift Bus Co.', status: 'inactive', city: 'Maracanaú', routes: 0 },
 ]
 
-const sampleColumns: AdminTableColumn<SampleRow>[] = [
-  {
-    key: 'name',
-    label: 'Nome',
-    render: (row) => (
-      <span className="font-medium text-foreground">{row.name}</span>
-    ),
-    sortable: true,
-  },
-  {
-    key: 'city',
-    label: 'Cidade',
-    render: (row) => row.city,
-  },
-  {
-    key: 'routes',
-    label: 'Rotas',
-    align: 'right',
-    render: (row) => row.routes,
-    sortable: true,
-  },
-  {
-    key: 'status',
-    label: 'Status',
-    render: (row) => {
-      const variantMap = {
-        active: 'success',
-        suspended: 'attention',
-        inactive: 'neutral',
-      } as const
-      const labelMap = {
-        active: 'Ativo',
-        suspended: 'Suspenso',
-        inactive: 'Inativo',
-      }
-      return (
-        <AdminStatusBadge
-          variant={variantMap[row.status]}
-          label={labelMap[row.status]}
-        />
-      )
-    },
-  },
-  {
-    key: 'actions',
-    label: '',
-    align: 'right',
-    render: (row) => (
-      <AdminActionMenu
-        items={[
-          { label: 'Ver detalhes', icon: Eye, onClick: () => alert(`Ver ${row.name}`) },
-          { label: 'Editar', icon: Edit, onClick: () => alert(`Editar ${row.name}`) },
-          { divider: true, label: '', onClick: () => {} },
-          { label: 'Excluir', icon: Trash2, onClick: () => setConfirmOpen(true), variant: 'danger' },
-        ]}
-      />
-    ),
-  },
-]
-
-let setConfirmOpen: (v: boolean) => void = () => {}
-
 function PreviewSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="space-y-4">
@@ -108,7 +46,6 @@ export function AdminComponentsPreviewPage() {
   const [sortState, setSortState] = useState<{ key: string; direction: 'asc' | 'desc' } | undefined>()
   const [showEmpty, setShowEmpty] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
-  setConfirmOpen = setConfirmOpenState
 
   function handleSort(key: string) {
     setSortState((prev) => {
@@ -118,6 +55,66 @@ export function AdminComponentsPreviewPage() {
       return { key, direction: 'asc' }
     })
   }
+
+  const sampleColumns: AdminTableColumn<SampleRow>[] = [
+    {
+      key: 'name',
+      label: 'Nome',
+      render: (row) => (
+        <span className="font-medium text-foreground">{row.name}</span>
+      ),
+      sortable: true,
+    },
+    {
+      key: 'city',
+      label: 'Cidade',
+      render: (row) => row.city,
+    },
+    {
+      key: 'routes',
+      label: 'Rotas',
+      align: 'right',
+      render: (row) => row.routes,
+      sortable: true,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row) => {
+        const variantMap = {
+          active: 'success',
+          suspended: 'attention',
+          inactive: 'neutral',
+        } as const
+        const labelMap = {
+          active: 'Ativo',
+          suspended: 'Suspenso',
+          inactive: 'Inativo',
+        }
+        return (
+          <AdminStatusBadge
+            variant={variantMap[row.status]}
+            label={labelMap[row.status]}
+          />
+        )
+      },
+    },
+    {
+      key: 'actions',
+      label: '',
+      align: 'right',
+      render: (row) => (
+        <AdminActionMenu
+          items={[
+            { label: 'Ver detalhes', icon: Eye, onClick: () => alert(`Ver ${row.name}`) },
+            { label: 'Editar', icon: Edit, onClick: () => alert(`Editar ${row.name}`) },
+            { divider: true, label: '', onClick: () => {} },
+            { label: 'Excluir', icon: Trash2, onClick: () => setConfirmOpenState(true), variant: 'danger' },
+          ]}
+        />
+      ),
+    },
+  ]
 
   const tableData = showEmpty ? [] : sampleData
 

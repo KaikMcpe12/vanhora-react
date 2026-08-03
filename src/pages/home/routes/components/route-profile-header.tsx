@@ -4,8 +4,8 @@ import { CooperativeAvatar } from '@/components/cooperative-avatar'
 import { RatingDisplay } from '@/components/rating-display'
 import { RouteLine } from '@/components/route-line'
 import type { RouteDetail } from '@/lib/data/mock-route-detail'
-import { formatPrice } from '@/lib/utils/format'
 import { cn } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils/format'
 
 type RouteProfileHeaderProps = {
   route: RouteDetail

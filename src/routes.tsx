@@ -6,7 +6,7 @@ import { Home } from './pages/_layouts/home'
 import { NotFound } from './pages/404'
 import { AdminCitiesPage } from './pages/app-portal/admin/cities'
 import { AdminComponentsPreviewPage } from './pages/app-portal/admin/components-preview'
-import { AdminCooperativesPage } from './pages/app-portal/admin/cooperatives'
+import { AdminCooperativesPage } from './pages/app-portal/admin/cooperatives/cooperatives-page'
 import { AdminDashboardPage } from './pages/app-portal/admin/dashboard'
 import { AdminDelaysPage } from './pages/app-portal/admin/delays'
 import { AdminRoutesPage } from './pages/app-portal/admin/routes'
@@ -23,6 +23,8 @@ import { DriverProfilePage } from './pages/app-portal/driver/me'
 import { DriverMyRoutesPage } from './pages/app-portal/driver/my-routes'
 import { DriverMySchedulesPage } from './pages/app-portal/driver/my-schedules'
 import { DriverReportDelayPage } from './pages/app-portal/driver/report-delay'
+import { RouteCreatePage } from './pages/app-portal/routes/route-create-page'
+import { RouteEditPage } from './pages/app-portal/routes/route-edit-page'
 import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
@@ -115,7 +117,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'routes',
-        element: <AdminRoutesPage />,
+        children: [
+          { index: true, element: <AdminRoutesPage /> },
+          { path: 'nova', element: <RouteCreatePage /> },
+          { path: ':id/editar', element: <RouteEditPage /> },
+        ],
       },
       {
         path: 'users',
@@ -157,7 +163,11 @@ export const router = createBrowserRouter([
       },
       {
         path: 'routes',
-        element: <CooperativeRoutesPage />,
+        children: [
+          { index: true, element: <CooperativeRoutesPage /> },
+          { path: 'nova', element: <RouteCreatePage /> },
+          { path: ':id/editar', element: <RouteEditPage /> },
+        ],
       },
       {
         path: 'schedules',

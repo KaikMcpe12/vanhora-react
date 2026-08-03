@@ -1,8 +1,6 @@
-import { Edit, Plus, Trash2, Eye } from 'lucide-react'
+import { Edit, Eye,Plus, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 
-import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import {
   AdminActionMenu,
   AdminConfirmDialog,
@@ -14,6 +12,8 @@ import {
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
 interface SampleRow {
   id: string

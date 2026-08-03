@@ -2,9 +2,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  MapPinOff,
   Pencil,
   Plus,
   RotateCcw,
+  Route,
   X,
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -18,8 +20,8 @@ import {
   AdminKPICard,
   AdminStatusBadge,
   AdminTable,
-  StatusFilterChips,
   type AdminTableColumn,
+  StatusFilterChips,
 } from '@/components/admin'
 import { Button } from '@/components/ui/button'
 import {
@@ -253,9 +255,9 @@ export function AdminCitiesPage() {
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard label="Total de cidades" value={kpiStats.total} helper="cadastradas na plataforma" />
-        <AdminKPICard label="Com rotas ativas" value={kpiStats.withRoutes} helper="atualmente atendidas" />
-        <AdminKPICard label="Inativas" value={kpiStats.inactive} helper="sem operação" />
+        <AdminKPICard label="Total de cidades" value={kpiStats.total} helper="cadastradas na plataforma" icon={MapPin} />
+        <AdminKPICard label="Com rotas ativas" value={kpiStats.withRoutes} helper="atualmente atendidas" icon={Route} />
+        <AdminKPICard label="Inativas" value={kpiStats.inactive} helper="sem operação" icon={MapPinOff} />
       </div>
 
       <AdminFilterBar

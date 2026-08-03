@@ -6,22 +6,24 @@ import {
   MapPin,
   X,
 } from 'lucide-react'
+
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Dialog,
   DialogContent,
 } from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { mockUsersApi } from '@/lib/api/mock-users-api'
 import type { User } from '@/lib/data/mock-users'
-import { UserAvatar } from './user-avatar'
 import { cn } from '@/lib/utils'
+
+import { UserAvatar } from './user-avatar'
 
 interface DriverSchedulesModalProps {
   isOpen: boolean
   onClose: () => void
-  driver: User
+  driver: User | null
 }
 
 const STATUS_BADGE: Record<
@@ -53,21 +55,17 @@ export function DriverSchedulesModal({
   onClose,
   driver,
 }: DriverSchedulesModalProps) {
-  // Early return if driver is null or doesn't have an id
-  if (!driver || !driver.id || driver.role !== 'driver') {
-    return null
-  }
+  const isValidDriver = !!driver && !!driver.id && driver.role === 'driver'
 
-  const isValidDriver = true
-
+  // O hook precisa rodar em toda render (rules-of-hooks); a query só dispara
+  // quando o modal está aberto e o motorista é válido.
   const { data: schedulesData, isLoading } = useQuery({
-    queryKey: ['driver-schedules', driver.id],
-    queryFn: () => mockUsersApi.getDriverSchedules(driver.id),
-    enabled: isOpen,
+    queryKey: ['driver-schedules', driver?.id],
+    queryFn: () => mockUsersApi.getDriverSchedules(driver!.id),
+    enabled: isOpen && isValidDriver,
   })
 
-  // Guard: if no driver ID or driver is not actually a driver role, return null
-  if (!isValidDriver) {
+  if (!driver || !isValidDriver) {
     return null
   }
 

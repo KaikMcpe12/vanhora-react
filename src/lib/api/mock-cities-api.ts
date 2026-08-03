@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_CITIES,
   type AdminCity,
+  MOCK_ADMIN_CITIES,
 } from '@/lib/data/mock-admin-cities'
 
 const API_DELAY = 300

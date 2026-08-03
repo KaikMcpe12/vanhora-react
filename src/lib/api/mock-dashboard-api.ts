@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_DASHBOARD,
   type AdminDashboardStats,
+  MOCK_ADMIN_DASHBOARD,
 } from '@/lib/data/mock-dashboard'
 
 const API_DELAY = 300

@@ -1,11 +1,13 @@
-import { Building2, Mail, Shield, X } from 'lucide-react'
+import { Building2, CalendarDays, Mail, Shield } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
-  Dialog,
-  DialogContent,
-} from '@/components/ui/dialog'
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet'
 import type { User } from '@/lib/data/mock-users'
 import { MOCK_COOPERATIVES } from '@/lib/data/mock-users'
 import { cn } from '@/lib/utils'
@@ -18,6 +20,8 @@ interface ViewUserModalProps {
   user: User | null
   onEdit?: (user: User) => void
   onDeactivate?: (user: User) => void
+  /** Motoristas: abre o painel de horários do usuário. */
+  onViewSchedules?: (user: User) => void
 }
 
 const ROLE_LABEL: Record<'admin' | 'cooperative' | 'driver', string> = {
@@ -32,61 +36,53 @@ const ROLE_BADGE_CLASS: Record<'admin' | 'cooperative' | 'driver', string> = {
   driver: 'bg-sky-100 text-sky-700 border-sky-200',
 }
 
+/**
+ * Painel lateral "Sobre o usuário". Abre ao clicar na linha da tabela.
+ * Motoristas ganham um atalho "Ver Horários".
+ */
 export function ViewUserModal({
   isOpen,
   onClose,
   user,
   onEdit,
   onDeactivate,
+  onViewSchedules,
 }: ViewUserModalProps) {
   if (!user) return null
 
   const cooperative = MOCK_COOPERATIVES.find((c) => c.id === user.cooperativeId)
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent side="right" className="flex w-full flex-col p-0 sm:max-w-md">
         {/* Header */}
-        <div className="flex items-start justify-between pb-4 border-b">
+        <SheetHeader className="border-b p-6">
           <div className="flex items-start gap-4">
             <UserAvatar name={user.name} role={user.role} size="lg" />
             <div>
-              <h2 className="text-lg font-semibold text-foreground">{user.name}</h2>
+              <SheetTitle className="text-lg">{user.name}</SheetTitle>
               <Badge
                 variant="outline"
-                className={cn(
-                  'mt-1 border',
-                  ROLE_BADGE_CLASS[user.role],
-                )}
+                className={cn('mt-1 border', ROLE_BADGE_CLASS[user.role])}
               >
                 {ROLE_LABEL[user.role]}
               </Badge>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
+        </SheetHeader>
 
         {/* Content */}
-        <div className="space-y-6">
+        <div className="flex-1 space-y-6 overflow-y-auto px-6 py-2">
           {/* Informações de Contato */}
           <div className="space-y-3">
             <h3 className="text-xs font-semibold text-foreground uppercase tracking-wide">
               Informações de Contato
             </h3>
-            <div className="space-y-2">
-              <div className="flex items-center gap-3">
-                <Mail className="h-4 w-4 text-muted-foreground" />
-                <div className="flex-1">
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium text-foreground">
-                    {user.email}
-                  </p>
-                </div>
+            <div className="flex items-center gap-3">
+              <Mail className="h-4 w-4 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-xs text-muted-foreground">Email</p>
+                <p className="text-sm font-medium text-foreground">{user.email}</p>
               </div>
             </div>
           </div>
@@ -148,10 +144,25 @@ export function ViewUserModal({
               </div>
             </div>
           </div>
+
+          {/* Motorista: atalho para horários */}
+          {user.role === 'driver' && onViewSchedules && (
+            <Button
+              variant="outline"
+              className="w-full gap-2"
+              onClick={() => {
+                onViewSchedules(user)
+                onClose()
+              }}
+            >
+              <CalendarDays className="h-4 w-4" />
+              Ver Horários
+            </Button>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 pt-4 border-t">
+        <div className="flex gap-2 border-t p-6">
           {onDeactivate && (
             <Button
               variant="outline"
@@ -182,7 +193,7 @@ export function ViewUserModal({
             </Button>
           )}
         </div>
-      </DialogContent>
-    </Dialog>
+      </SheetContent>
+    </Sheet>
   )
 }

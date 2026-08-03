@@ -3,15 +3,15 @@ import { useMemo } from 'react'
 
 import { mockSchedulesAPI } from '@/lib/api/mock-schedules-api'
 import type { ScheduleFiltersSchema } from '@/lib/schemas/schedule-filters'
-import type { Schedule } from '@/lib/types/schedule'
 import type { DisplayFilters, ScheduleSort } from '@/lib/types/filters'
+import type { Schedule } from '@/lib/types/schedule'
 import {
   applyDisplayFilters,
   sortSchedules,
 } from '@/lib/utils/apply-display-filters'
 import {
-  groupSchedules,
   type GroupedSchedules,
+  groupSchedules,
 } from '@/lib/utils/group-schedules'
 
 export interface UseGroupedSchedulesReturn {

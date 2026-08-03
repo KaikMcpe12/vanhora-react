@@ -21,7 +21,9 @@ export function AdminEmptyState({
 }: AdminEmptyStateProps) {
   return (
     <div className="flex flex-col items-center py-16 text-center">
-      <Icon className="h-10 w-10 text-muted-foreground" />
+      <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+        <Icon className="h-7 w-7" />
+      </span>
       <p className="mt-4 text-[15px] font-medium text-foreground">{title}</p>
       {description && (
         <p className="mx-auto mt-2 max-w-sm text-[13px] leading-relaxed text-muted-foreground">

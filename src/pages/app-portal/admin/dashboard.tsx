@@ -1,11 +1,15 @@
 import {
   AlertTriangle,
+  Building2,
   CalendarClock,
   Check,
   CheckCircle,
   CircleAlert,
+  Clock,
   ExternalLink,
   RefreshCcw,
+  Route,
+  Star,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -185,20 +189,22 @@ export function AdminDashboardPage() {
       label: '',
       align: 'right',
       render: (_d) => (
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Abrir detalhes',
-              icon: ExternalLink,
-              onClick: () => navigate('/admin/delays'),
-            },
-            {
-              label: 'Marcar como resolvido',
-              icon: Check,
-              onClick: () => {},
-            },
-          ]}
-        />
+        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Abrir detalhes',
+                icon: ExternalLink,
+                onClick: () => navigate('/admin/delays'),
+              },
+              {
+                label: 'Marcar como resolvido',
+                icon: Check,
+                onClick: () => {},
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ]
@@ -245,15 +251,17 @@ export function AdminDashboardPage() {
       label: '',
       align: 'right',
       render: (_d) => (
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Ver detalhes',
-              icon: ExternalLink,
-              onClick: () => navigate('/admin/schedules'),
-            },
-          ]}
-        />
+        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Ver detalhes',
+                icon: ExternalLink,
+                onClick: () => navigate('/admin/schedules'),
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ]
@@ -285,16 +293,19 @@ export function AdminDashboardPage() {
               label="Cooperativas Ativas"
               value={stats!.operationKpis.activeCooperatives.value}
               trend={stats!.operationKpis.activeCooperatives.trend}
+              icon={Building2}
             />
             <AdminKPICard
               label="Rotas Ativas"
               value={stats!.operationKpis.activeRoutes.value}
               trend={stats!.operationKpis.activeRoutes.trend}
+              icon={Route}
             />
             <AdminKPICard
               label="Horários de Hoje"
               value={stats!.operationKpis.todaySchedules.value}
               trend={stats!.operationKpis.todaySchedules.trend}
+              icon={CalendarClock}
             />
           </div>
         )}
@@ -314,18 +325,21 @@ export function AdminDashboardPage() {
               value={stats!.qualityKpis.delays24h.value}
               trend={stats!.qualityKpis.delays24h.trend}
               severity={stats!.qualityKpis.delays24h.severity}
+              icon={Clock}
             />
             <AdminKPICard
               label="Avaliação Média Geral"
               value={stats!.qualityKpis.averageRating.value}
               trend={stats!.qualityKpis.averageRating.trend}
               severity={stats!.qualityKpis.averageRating.severity}
+              icon={Star}
             />
             <AdminKPICard
               label="Atrasos Críticos (24h)"
               value={stats!.qualityKpis.criticalDelays24h.value}
               trend={stats!.qualityKpis.criticalDelays24h.trend}
               severity={stats!.qualityKpis.criticalDelays24h.severity}
+              icon={CircleAlert}
             />
           </div>
         )}
@@ -352,6 +366,7 @@ export function AdminDashboardPage() {
           data={stats?.recentDelays ?? []}
           keyExtractor={(r) => r.id}
           isLoading={isLoading}
+          onRowClick={() => navigate('/admin/delays')}
           emptyState={
             <AdminEmptyState
               icon={CheckCircle}
@@ -383,6 +398,7 @@ export function AdminDashboardPage() {
           data={stats?.upcomingDepartures ?? []}
           keyExtractor={(r) => r.id}
           isLoading={isLoading}
+          onRowClick={() => navigate('/admin/schedules')}
           emptyState={
             <AdminEmptyState
               icon={CalendarClock}

@@ -1,8 +1,8 @@
 import { Ban, Clock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
-import { type ScheduleVisualStatus } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
+import { type ScheduleVisualStatus } from '@/lib/utils/schedule-status'
 
 interface RelativeTimeDisplayProps {
   departureTime: string // "HH:mm"

@@ -4,17 +4,17 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
-import {
-  MOCK_COOPERATIVE_DETAILS,
-  type CooperativeDetail,
-} from '@/lib/data/mock-cooperative-details'
-import { useCooperativesFilters, type CoopSort } from '@/hooks/use-cooperatives-filters'
+import { type CoopSort,useCooperativesFilters } from '@/hooks/use-cooperatives-filters'
 import { useMediaQuery } from '@/hooks/use-media-query'
+import {
+  type CooperativeDetail,
+  MOCK_COOPERATIVE_DETAILS,
+} from '@/lib/data/mock-cooperative-details'
 
-import { CooperativesHeader } from './components/cooperatives-header'
-import { CooperativesSearchBar } from './components/cooperatives-search-bar'
 import { CooperativesFilterPanel } from './components/cooperatives-filter-panel'
+import { CooperativesHeader } from './components/cooperatives-header'
 import { CooperativesList } from './components/cooperatives-list'
+import { CooperativesSearchBar } from './components/cooperatives-search-bar'
 
 function ratingValue(f: string): number {
   if (f === '3+') return 3

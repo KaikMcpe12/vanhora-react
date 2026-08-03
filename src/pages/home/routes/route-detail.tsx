@@ -1,8 +1,8 @@
 import { Route } from 'lucide-react'
 import { useParams } from 'react-router-dom'
 
-import { BackLink } from '@/pages/home/cooperatives/components/back-link'
 import { getMockRouteDetail } from '@/lib/data/mock-route-detail'
+import { BackLink } from '@/pages/home/cooperatives/components/back-link'
 
 import { AlternativeRoutesBlock } from './components/alternative-routes-block'
 import { RouteActionsRow } from './components/route-actions-row'

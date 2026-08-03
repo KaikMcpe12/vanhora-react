@@ -3,6 +3,7 @@ import {
   ChevronLeft,
   ChevronRight,
   MapPin,
+  Pencil,
   PlayCircle,
   Plus,
   PowerOff,
@@ -10,11 +11,10 @@ import {
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link, useOutletContext } from 'react-router-dom'
+import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
-  AdminActionMenu,
   AdminConfirmDialog,
   AdminEmptyState,
   AdminFilterBar,
@@ -23,13 +23,17 @@ import {
   StatusFilterChips,
 } from '@/components/admin'
 import { Button } from '@/components/ui/button'
+import {
+  type AdminRouteRow,
+  type RouteRowStatus,
+  useRoutesList,
+  useToggleRouteStatus,
+} from '@/lib/api/mock-routes-api'
 import { cn } from '@/lib/utils'
 import {
   type AppPortalRole,
   type AppPortalUser,
 } from '@/pages/app-portal/app-portal-navigation'
-
-type RouteStatus = 'active' | 'inactive' | 'suspended'
 
 interface AppPortalOutletContext {
   role: AppPortalRole
@@ -37,26 +41,14 @@ interface AppPortalOutletContext {
   basePath: string
 }
 
-interface RouteCardView {
-  id: string
-  name: string
-  code?: string
-  cooperativeName?: string
-  origin: string
-  destination: string
-  status: RouteStatus
-  scheduleCount: number
-  driverName?: string
-}
-
-const STATUS_LABEL: Record<RouteStatus, string> = {
+const STATUS_LABEL: Record<RouteRowStatus, string> = {
   active: 'Ativa',
   suspended: 'Suspensa',
   inactive: 'Inativa',
 }
 
 const STATUS_BADGE_VARIANT: Record<
-  RouteStatus,
+  RouteRowStatus,
   'success' | 'attention' | 'neutral'
 > = {
   active: 'success',
@@ -64,79 +56,55 @@ const STATUS_BADGE_VARIANT: Record<
   inactive: 'neutral',
 }
 
-const ALL_STATUSES: RouteStatus[] = ['active', 'suspended', 'inactive']
+const STATUS_BORDER: Record<RouteRowStatus, string> = {
+  active: 'border-l-emerald-500',
+  suspended: 'border-l-amber-500',
+  inactive: 'border-l-slate-400',
+}
 
-const ROUTES: RouteCardView[] = [
-  {
-    id: 'route-expresso-norte',
-    name: 'Expresso Norte',
-    code: 'R-204',
-    cooperativeName: 'Metro Transportes',
-    origin: 'Terminal Central',
-    destination: 'Zona Industrial',
-    status: 'active',
-    scheduleCount: 3,
-    driverName: 'João Silva',
-  },
-  {
-    id: 'route-linha-sul',
-    name: 'Linha Sul Express',
-    code: 'R-319',
-    cooperativeName: 'Expresso São Francisco',
-    origin: 'Praça da Sé',
-    destination: 'Aeroporto Int.',
-    status: 'suspended',
-    scheduleCount: 2,
-  },
-  {
-    id: 'route-trans-leste',
-    name: 'Trans Leste',
-    code: 'R-402',
-    cooperativeName: 'Metro Transportes',
-    origin: 'Vila Maria',
-    destination: 'Centro Empresarial',
-    status: 'active',
-    scheduleCount: 4,
-    driverName: 'Marcos Oliveira',
-  },
-  {
-    id: 'route-noturna-a',
-    name: 'Rota Noturna A',
-    code: 'N-07',
-    cooperativeName: 'Cooperativa Vale',
-    origin: 'Campus Univ.',
-    destination: 'Estação Metro',
-    status: 'inactive',
-    scheduleCount: 1,
-  },
-]
+const ALL_STATUSES: RouteRowStatus[] = ['active', 'suspended', 'inactive']
 
 const PAGE_SIZE = 6
 
 export function RoutesPage() {
   const { basePath } = useOutletContext<AppPortalOutletContext>()
+  const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const cooperativeParam = searchParams.get('cooperative') ?? ''
+
   const [search, setSearch] = useState('')
   const [statusFilters, setStatusFilters] = useState<string[]>(ALL_STATUSES)
   const [currentPage, setCurrentPage] = useState(1)
-  const [confirmRoute, setConfirmRoute] = useState<RouteCardView | null>(null)
+  const [confirmRoute, setConfirmRoute] = useState<AdminRouteRow | null>(null)
+
+  const { data: routes = [], isLoading } = useRoutesList()
+  const toggleStatus = useToggleRouteStatus()
 
   const confirmIsReactivate =
     confirmRoute?.status === 'inactive' || confirmRoute?.status === 'suspended'
 
-  const kpiStats = useMemo(() => {
-    return {
-      active: ROUTES.filter((r) => r.status === 'active').length,
-      suspended: ROUTES.filter((r) => r.status === 'suspended').length,
-      inactive: ROUTES.filter((r) => r.status === 'inactive').length,
-    }
-  }, [])
+  const clearCooperativeFilter = () => {
+    searchParams.delete('cooperative')
+    setSearchParams(searchParams)
+    setCurrentPage(1)
+  }
+
+  const kpiStats = useMemo(
+    () => ({
+      active: routes.filter((r) => r.status === 'active').length,
+      suspended: routes.filter((r) => r.status === 'suspended').length,
+      inactive: routes.filter((r) => r.status === 'inactive').length,
+    }),
+    [routes],
+  )
 
   const filteredRoutes = useMemo(() => {
     const q = search.trim().toLowerCase()
-    const activeFilters = statusFilters as RouteStatus[]
+    const activeFilters = statusFilters as RouteRowStatus[]
 
-    return ROUTES.filter((route) => {
+    return routes.filter((route) => {
       if (activeFilters.length > 0 && !activeFilters.includes(route.status)) return false
+      if (cooperativeParam && route.cooperativeName !== cooperativeParam) return false
       if (!q) return true
       return [route.name, route.code, route.origin, route.destination, route.cooperativeName]
         .filter(Boolean)
@@ -144,7 +112,7 @@ export function RoutesPage() {
         .toLowerCase()
         .includes(q)
     })
-  }, [search, statusFilters])
+  }, [routes, search, statusFilters, cooperativeParam])
 
   const totalPages = Math.ceil(filteredRoutes.length / PAGE_SIZE)
 
@@ -153,7 +121,8 @@ export function RoutesPage() {
     return filteredRoutes.slice(start, start + PAGE_SIZE)
   }, [filteredRoutes, currentPage])
 
-  const hasActiveFilters = Boolean(search.trim()) || statusFilters.length !== ALL_STATUSES.length
+  const hasActiveFilters =
+    Boolean(search.trim()) || statusFilters.length !== ALL_STATUSES.length
 
   const clearFilters = () => {
     setSearch('')
@@ -161,25 +130,22 @@ export function RoutesPage() {
     setCurrentPage(1)
   }
 
+  const goToEdit = (route: AdminRouteRow) =>
+    navigate(`${basePath}/routes/${route.id}/editar`)
+
+  const goToCreate = () =>
+    navigate(
+      cooperativeParam
+        ? `${basePath}/routes/nova?cooperative=${encodeURIComponent(cooperativeParam)}`
+        : `${basePath}/routes/nova`,
+    )
+
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard
-          label="Rotas ativas"
-          value={kpiStats.active}
-          helper="em operação regular"
-        />
-        <AdminKPICard
-          label="Rotas suspensas"
-          value={kpiStats.suspended}
-          helper="com revisão operacional"
-          severity="attention"
-        />
-        <AdminKPICard
-          label="Rotas inativas"
-          value={kpiStats.inactive}
-          helper="sem operação hoje"
-        />
+        <AdminKPICard label="Rotas ativas" value={kpiStats.active} helper="em operação regular" icon={PlayCircle} />
+        <AdminKPICard label="Rotas suspensas" value={kpiStats.suspended} helper="com revisão operacional" severity="attention" icon={PowerOff} />
+        <AdminKPICard label="Rotas inativas" value={kpiStats.inactive} helper="sem operação hoje" icon={MapPin} />
       </div>
 
       <AdminFilterBar
@@ -201,45 +167,65 @@ export function RoutesPage() {
           />
         }
         actions={
-          <Button
-            size="sm"
-            className="gap-1.5"
-            onClick={() => toast.info('Cadastro de rota em breve')}
-          >
+          <Button size="sm" className="gap-1.5" onClick={goToCreate}>
             <Plus className="h-3.5 w-3.5" />
             Nova rota
           </Button>
         }
       />
 
-      {paginatedRoutes.length === 0 ? (
+      {cooperativeParam && (
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] text-muted-foreground">Filtrando por:</span>
+          <button
+            onClick={clearCooperativeFilter}
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            {cooperativeParam}
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
+
+      {!isLoading && paginatedRoutes.length === 0 ? (
         <AdminEmptyState
           icon={MapPin}
-          title={hasActiveFilters ? 'Nenhuma rota corresponde aos filtros' : 'Nenhuma rota cadastrada'}
+          title={hasActiveFilters || cooperativeParam ? 'Nenhuma rota corresponde aos filtros' : 'Nenhuma rota cadastrada'}
           description={
-            hasActiveFilters
+            hasActiveFilters || cooperativeParam
               ? 'Ajuste os filtros ou limpe-os para ver todas as rotas.'
               : 'Comece cadastrando a primeira rota da plataforma.'
           }
           action={
             hasActiveFilters
               ? { label: 'Limpar filtros', onClick: clearFilters, icon: X }
-              : { label: 'Nova rota', onClick: () => toast.info('Cadastro de rota em breve'), icon: Plus }
+              : { label: 'Nova rota', onClick: goToCreate, icon: Plus }
           }
         />
       ) : (
         <>
           <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             {paginatedRoutes.map((route) => {
-              const schedulePath = `${basePath}/schedules?routeId=${route.id}`
+              const schedulePath = `${basePath}/schedules?route=${route.code}`
               const isInactive = route.status === 'inactive'
-              const isSuspended = route.status === 'suspended'
+              const isReactivate = route.status !== 'active'
 
               return (
                 <article
                   key={route.id}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => goToEdit(route)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault()
+                      goToEdit(route)
+                    }
+                  }}
                   className={cn(
-                    'bg-card flex h-full flex-col gap-4 rounded-xl border border-border p-5',
+                    'bg-card flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-l-4 border-border p-5 transition-colors',
+                    'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none',
+                    STATUS_BORDER[route.status],
                     isInactive && 'opacity-70',
                   )}
                 >
@@ -250,26 +236,13 @@ export function RoutesPage() {
                         label={STATUS_LABEL[route.status]}
                       />
                       <div>
-                        <h3 className="text-foreground text-base font-semibold">
-                          {route.name}
-                        </h3>
-                        {route.code && (
-                          <p className="font-mono text-[11px] text-muted-foreground">
-                            {route.code}
-                          </p>
-                        )}
+                        <h3 className="text-foreground text-base font-semibold">{route.name}</h3>
+                        <p className="font-mono text-[11px] text-muted-foreground">{route.code}</p>
                       </div>
                     </div>
-                    <AdminActionMenu
-                      items={[
-                        {
-                          label: isInactive || isSuspended ? 'Reativar' : 'Desativar',
-                          icon: isInactive || isSuspended ? PlayCircle : PowerOff,
-                          onClick: () => setConfirmRoute(route),
-                          variant: isInactive || isSuspended ? 'default' : 'danger',
-                        },
-                      ]}
-                    />
+                    <span className="text-[13px] font-semibold text-foreground">
+                      R$ {route.price.toFixed(2)}
+                    </span>
                   </div>
 
                   <div className="space-y-2 text-sm">
@@ -277,7 +250,7 @@ export function RoutesPage() {
                       <div className="flex flex-col items-center">
                         <span className="mt-[5px] h-2 w-2 rounded-full bg-emerald-500" />
                         <span className="my-0.5 h-4 w-px bg-border" />
-                        <span className="mb-[5px] h-2 w-2 rounded-full bg-muted-foreground/40" />
+                        <span className="mb-[5px] h-2 w-2 rounded-full bg-red-500" />
                       </div>
                       <div className="space-y-0.5">
                         <p className="text-foreground leading-6">{route.origin}</p>
@@ -287,31 +260,37 @@ export function RoutesPage() {
 
                     <div className="flex items-center gap-2">
                       <UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span
-                        className={cn(
-                          'text-sm',
-                          route.driverName ? 'text-foreground' : 'text-muted-foreground italic',
-                        )}
-                      >
+                      <span className={cn('text-sm', route.driverName ? 'text-foreground' : 'text-muted-foreground italic')}>
                         {route.driverName ?? 'Sem motorista'}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-auto flex items-center gap-2">
-                    <Button size="sm" className="rounded-full" asChild>
-                      <Link to={schedulePath}>
-                        <CalendarDays className="h-3.5 w-3.5" />
-                        Horários
-                      </Link>
+                  {/* Action buttons (replaces three-dots) — stop card click */}
+                  <div
+                    className="mt-auto flex flex-wrap items-center gap-2"
+                    onClick={(e) => e.stopPropagation()}
+                    onKeyDown={(e) => e.stopPropagation()}
+                  >
+                    <Button size="sm" className="rounded-full" onClick={() => navigate(schedulePath)}>
+                      <CalendarDays className="h-3.5 w-3.5" />
+                      Horários
+                    </Button>
+                    <Button variant="outline" size="sm" className="rounded-full" onClick={() => goToEdit(route)}>
+                      <Pencil className="h-3.5 w-3.5" />
+                      Editar
                     </Button>
                     <Button
                       variant="outline"
                       size="sm"
-                      className="rounded-full"
-                      onClick={() => toast.info('Edição de rota em breve')}
+                      className={cn(
+                        'rounded-full',
+                        !isReactivate && 'text-destructive hover:text-destructive',
+                      )}
+                      onClick={() => setConfirmRoute(route)}
                     >
-                      Editar
+                      {isReactivate ? <PlayCircle className="h-3.5 w-3.5" /> : <PowerOff className="h-3.5 w-3.5" />}
+                      {isReactivate ? 'Reativar' : 'Suspender'}
                     </Button>
                   </div>
                 </article>
@@ -321,36 +300,16 @@ export function RoutesPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-1">
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full"
-                disabled={currentPage === 1}
-                onClick={() => setCurrentPage((p) => p - 1)}
-              >
+              <Button variant="outline" size="sm" className="rounded-full" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
                 <ChevronLeft className="h-4 w-4" />
                 Anterior
               </Button>
-
               {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button
-                  key={page}
-                  variant={currentPage === page ? 'default' : 'outline'}
-                  size="sm"
-                  className="h-8 w-8 rounded-full p-0"
-                  onClick={() => setCurrentPage(page)}
-                >
+                <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" className="h-8 w-8 rounded-full p-0" onClick={() => setCurrentPage(page)}>
                   {page}
                 </Button>
               ))}
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full"
-                disabled={currentPage === totalPages}
-                onClick={() => setCurrentPage((p) => p + 1)}
-              >
+              <Button variant="outline" size="sm" className="rounded-full" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
                 Próximo
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -362,27 +321,25 @@ export function RoutesPage() {
       <AdminConfirmDialog
         open={confirmRoute !== null}
         onOpenChange={(open) => { if (!open) setConfirmRoute(null) }}
-        title={confirmIsReactivate ? 'Reativar rota' : 'Desativar rota'}
+        title={confirmIsReactivate ? 'Reativar rota' : 'Suspender rota'}
         description={
           confirmIsReactivate
             ? `A rota "${confirmRoute?.name}" voltará a operar e a aparecer para os passageiros.`
-            : `Esta ação vai desativar "${confirmRoute?.name}" e todos os seus ${confirmRoute?.scheduleCount} horários. Passageiros não conseguirão mais ver essa rota.`
+            : `A rota "${confirmRoute?.name}" e seus ${confirmRoute?.scheduleCount} horários ficarão indisponíveis para os passageiros.`
         }
-        confirmLabel={confirmIsReactivate ? 'Reativar' : 'Desativar'}
+        confirmLabel={confirmIsReactivate ? 'Reativar' : 'Suspender'}
         variant={confirmIsReactivate ? 'default' : 'danger'}
-        requireTypedConfirmation={
-          confirmIsReactivate
-            ? undefined
-            : {
-                expectedText: confirmRoute?.name ?? '',
-                label: `Digite o nome da rota para confirmar`,
-              }
-        }
-        onConfirm={() => {
+        tone={confirmIsReactivate ? 'neutral' : 'warning'}
+        onConfirm={async () => {
+          if (!confirmRoute) return
+          await toggleStatus.mutateAsync({
+            id: confirmRoute.id,
+            newStatus: confirmIsReactivate ? 'active' : 'suspended',
+          })
           toast.success(
             confirmIsReactivate
-              ? `Rota "${confirmRoute?.name}" reativada`
-              : `Rota "${confirmRoute?.name}" desativada`,
+              ? `Rota "${confirmRoute.name}" reativada`
+              : `Rota "${confirmRoute.name}" suspensa`,
           )
           setConfirmRoute(null)
         }}

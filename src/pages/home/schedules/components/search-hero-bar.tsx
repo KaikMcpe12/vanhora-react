@@ -4,8 +4,6 @@ import { ArrowLeftRight, Calendar, Check, MapPin, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useUserCity } from '@/hooks/use-user-city'
-
 import {
   Command,
   CommandEmpty,
@@ -19,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useUserCity } from '@/hooks/use-user-city'
 import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 

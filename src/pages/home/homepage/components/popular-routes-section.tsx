@@ -3,8 +3,8 @@ import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Section } from '@/components/section'
-import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
 import { getDestinationSummaries } from '@/lib/api/mock-destinations-api'
+import { CITIES_WITH_IDS } from '@/lib/data/mock-cities'
 import { COOPERATIVE_COLORS } from '@/lib/utils/schedule-status'
 
 import { DestinationCard } from './destination-card'

@@ -2,13 +2,14 @@ import { ArrowUpDown, Heart, SlidersHorizontal } from 'lucide-react'
 import { useState } from 'react'
 
 import { AdvanceFilter } from '@/components/advance-filter'
-import { FavoriteCard } from './favorite-card'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useFavorites } from '@/hooks/use-favorites'
 import { useSchedules } from '@/hooks/use-schedules'
-import type { SortMode } from '@/lib/utils/group-schedules'
-import { cn } from '@/lib/utils'
 import type { Schedule } from '@/lib/types/schedule'
+import { cn } from '@/lib/utils'
+import type { SortMode } from '@/lib/utils/group-schedules'
+
+import { FavoriteCard } from './favorite-card'
 
 function scheduleToFavorite(s: Schedule) {
   return {

@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_DELAYS,
-  MOCK_DELAY_STATS,
   type AdminDelay,
   type AdminDelayStats,
+  MOCK_ADMIN_DELAYS,
+  MOCK_DELAY_STATS,
 } from '@/lib/data/mock-admin-delays'
 
 const API_DELAY = 300

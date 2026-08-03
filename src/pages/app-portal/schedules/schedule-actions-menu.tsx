@@ -12,6 +12,8 @@ import type { AdminSchedule } from '@/lib/types/admin-schedule'
 
 interface ScheduleActionsMenuProps {
   schedule: AdminSchedule
+  onEdit: () => void
+  onDuplicate: () => void
   onRegisterDelay: () => void
   onSuspend: () => void
   onCancel: () => void
@@ -21,6 +23,8 @@ interface ScheduleActionsMenuProps {
 
 export function ScheduleActionsMenu({
   schedule,
+  onEdit,
+  onDuplicate,
   onRegisterDelay,
   onSuspend,
   onCancel,
@@ -44,35 +48,35 @@ export function ScheduleActionsMenu({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuItem className="gap-2">
+        <DropdownMenuItem className="gap-2" onClick={onEdit}>
           <Pencil className="h-3.5 w-3.5" />
           Editar
         </DropdownMenuItem>
 
         {isActive && operationalStatus === 'in_operation' && (
           <DropdownMenuItem className="gap-2 text-amber-700" onClick={onRegisterDelay}>
-            <CalendarX className="h-3.5 w-3.5" />
+            <CalendarX className="h-3.5 w-3.5 text-current" />
             Registrar atraso
           </DropdownMenuItem>
         )}
 
         {isActive && operationalStatus === 'delayed' && (
           <DropdownMenuItem className="gap-2 text-red-600" onClick={onCancel}>
-            <XCircle className="h-3.5 w-3.5" />
+            <XCircle className="h-3.5 w-3.5 text-current" />
             Cancelar
           </DropdownMenuItem>
         )}
 
         {isActive && (
           <DropdownMenuItem className="gap-2 text-slate-600" onClick={onSuspend}>
-            <PauseCircle className="h-3.5 w-3.5" />
+            <PauseCircle className="h-3.5 w-3.5 text-current" />
             Suspender
           </DropdownMenuItem>
         )}
 
         {isInactive && (
           <DropdownMenuItem className="gap-2 text-emerald-700" onClick={onReactivate}>
-            <PlayCircle className="h-3.5 w-3.5" />
+            <PlayCircle className="h-3.5 w-3.5 text-current" />
             Reativar
           </DropdownMenuItem>
         )}
@@ -84,7 +88,7 @@ export function ScheduleActionsMenu({
           Adicionar exceção
         </DropdownMenuItem>
 
-        <DropdownMenuItem className="gap-2 text-slate-500">
+        <DropdownMenuItem className="gap-2" onClick={onDuplicate}>
           <Copy className="h-3.5 w-3.5" />
           Duplicar
         </DropdownMenuItem>

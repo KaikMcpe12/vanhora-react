@@ -11,13 +11,13 @@ import { getCooperativeColor } from '@/lib/utils/schedule-status'
 
 import { FavoritesEmptyState } from './components/favorites-empty-state'
 import { FavoritesFeed } from './components/favorites-feed'
-import { FavoritesHeader } from './components/favorites-header'
 import {
-  FavoritesFilterPanel,
   type AvailableCoop,
   type AvailableRoute,
+  FavoritesFilterPanel,
   type FavoritesFilters,
 } from './components/favorites-filter-panel'
+import { FavoritesHeader } from './components/favorites-header'
 
 function deriveAvailableRoutes(schedules: Schedule[]): AvailableRoute[] {
   const map = new Map<string, { label: string; count: number }>()

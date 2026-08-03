@@ -1,4 +1,13 @@
-import { CheckCircle2, Eye, RotateCcw, Route, X } from 'lucide-react'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock,
+  Eye,
+  RotateCcw,
+  Route,
+  Timer,
+  X,
+} from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -10,17 +19,9 @@ import {
   AdminKPICard,
   AdminStatusBadge,
   AdminTable,
-  StatusFilterChips,
   type AdminTableColumn,
+  StatusFilterChips,
 } from '@/components/admin'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -30,13 +31,15 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
-  useAdminDelayStats,
   useAdminDelays,
-  useResolveDelay,
+  useAdminDelayStats,
   useReopenDelay,
+  useResolveDelay,
 } from '@/lib/api/mock-delays-api'
 import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
+
+import { DelayDetailDialog } from './delay-detail-dialog'
 
 type DelayPeriod = '24h' | '7d' | '30d'
 
@@ -58,132 +61,6 @@ function formatDateTime(iso: string) {
 
 function truncateText(text: string, max: number) {
   return text.length > max ? text.slice(0, max) + '…' : text
-}
-
-interface DelayDetailDialogProps {
-  delay: AdminDelay | null
-  onClose: () => void
-  onResolve: (id: string) => void
-  onReopen: (id: string) => void
-  isResolving: boolean
-}
-
-function DelayDetailDialog({
-  delay,
-  onClose,
-  onResolve,
-  onReopen,
-  isResolving,
-}: DelayDetailDialogProps) {
-  if (!delay) return null
-  const severityBadge = getSeverityBadge(delay.severity)
-
-  return (
-    <Dialog open={!!delay} onOpenChange={(open) => { if (!open) onClose() }}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-[15px] font-medium">Detalhes do atraso</DialogTitle>
-        </DialogHeader>
-
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Rota
-              </p>
-              <p className="mt-0.5 text-[13px] font-medium text-foreground">
-                {delay.routeCode} — {delay.routeName}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Cooperativa
-              </p>
-              <p className="mt-0.5 text-[13px] text-foreground">{delay.cooperativeName}</p>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Data e hora
-              </p>
-              <p className="mt-0.5 text-[13px] text-foreground">
-                {new Date(delay.reportedAt).toLocaleString('pt-BR')}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Atraso
-              </p>
-              <div className="mt-0.5 flex items-center gap-2">
-                <span className="text-[13px] font-semibold text-foreground">
-                  {delay.delayMinutes} min
-                </span>
-                <AdminStatusBadge variant={severityBadge.variant} label={severityBadge.label} />
-              </div>
-            </div>
-            <div className="col-span-2">
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Motivo
-              </p>
-              <p className="mt-0.5 text-[13px] leading-relaxed text-foreground">
-                {delay.reason}
-              </p>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Reportado por
-              </p>
-              <p className="mt-0.5 text-[13px] text-foreground">{delay.reportedBy}</p>
-            </div>
-            <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                Status
-              </p>
-              <div className="mt-0.5">
-                <AdminStatusBadge
-                  variant={delay.status === 'resolved' ? 'success' : 'attention'}
-                  label={delay.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-                  size="md"
-                />
-              </div>
-            </div>
-            {delay.resolvedAt && (
-              <div className="col-span-2">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
-                  Resolvido em
-                </p>
-                <p className="mt-0.5 text-[13px] text-foreground">
-                  {new Date(delay.resolvedAt).toLocaleString('pt-BR')}
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-          {delay.status === 'pending' ? (
-            <Button
-              onClick={() => onResolve(delay.id)}
-              disabled={isResolving}
-            >
-              {isResolving ? 'Resolvendo...' : 'Marcar como resolvido'}
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              onClick={() => onReopen(delay.id)}
-              disabled={isResolving}
-            >
-              <RotateCcw className="h-3.5 w-3.5" />
-              Reabrir
-            </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  )
 }
 
 export function AdminDelaysPage() {
@@ -357,22 +234,26 @@ export function AdminDelaysPage() {
             label="Atrasos (24h)"
             value={stats?.delays24h ?? 0}
             helper="registrados hoje"
+            icon={Clock}
           />
           <AdminKPICard
             label="Média de atraso"
             value={`${stats?.avgDelayMinutes ?? 0} min`}
             helper="nas últimas 24h"
+            icon={Timer}
           />
           <AdminKPICard
             label="Críticos (24h)"
             value={stats?.criticalDelays24h ?? 0}
             severity="critical"
             helper="severidade alta"
+            icon={AlertTriangle}
           />
           <AdminKPICard
             label="Taxa de resolução"
             value={`${stats?.resolutionRate ?? 0}%`}
             helper="atrasos investigados"
+            icon={CheckCircle2}
           />
         </div>
       )}

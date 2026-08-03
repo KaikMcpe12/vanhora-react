@@ -1,4 +1,4 @@
-import { ChevronsUpDown, ChevronUp, ChevronDown } from 'lucide-react'
+import { ChevronDown,ChevronsUpDown, ChevronUp } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -126,9 +126,22 @@ export function AdminTable<T>({
               <TableRow
                 key={keyExtractor(item)}
                 onClick={onRowClick ? () => onRowClick(item) : undefined}
+                role={onRowClick ? 'button' : undefined}
+                tabIndex={onRowClick ? 0 : undefined}
+                onKeyDown={
+                  onRowClick
+                    ? (e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          onRowClick(item)
+                        }
+                      }
+                    : undefined
+                }
                 className={cn(
                   'text-[13px]',
-                  onRowClick && 'cursor-pointer hover:bg-accent/30',
+                  onRowClick &&
+                    'cursor-pointer hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:outline-none',
                 )}
               >
                 {columns.map((col) => (

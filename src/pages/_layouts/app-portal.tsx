@@ -2,6 +2,7 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { useMemo, useState } from 'react'
 import { Navigate, Outlet, useLocation, useNavigate } from 'react-router-dom'
 
+import { ThemeToggle } from '@/components/theme/theme-toggle'
 import {
   Sheet,
   SheetContent,
@@ -145,6 +146,7 @@ export function AppPortalLayout() {
         <AppPortalHeader
           breadcrumb={breadcrumb}
           onOpenMobileMenu={() => setMobileMenuOpen(true)}
+          actions={<ThemeToggle />}
         />
         <main className="flex-1 px-4 py-6 md:px-10 md:py-8">
           <Outlet context={outletContext} />

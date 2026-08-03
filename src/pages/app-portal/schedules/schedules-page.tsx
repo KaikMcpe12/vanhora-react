@@ -6,11 +6,13 @@ import {
   Clock,
   Pencil,
   Plus,
+  Route,
   Star,
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   AdminEmptyState,
@@ -49,6 +51,11 @@ import { DelayModal } from './delay-modal'
 import type { RouteExceptionContext } from './exception-modal'
 import { ExceptionModal } from './exception-modal'
 import { ScheduleActionsMenu } from './schedule-actions-menu'
+import {
+  ScheduleFormDialog,
+  type ScheduleFormMode,
+  type ScheduleFormValues,
+} from './schedule-form-dialog'
 import type { StatusVariant } from './schedule-status-modal'
 import { ScheduleStatusModal } from './schedule-status-modal'
 
@@ -298,9 +305,13 @@ function ScheduleExpandedPanel({
 function ScheduleRowItem({
   schedule,
   routeStops,
+  onEdit,
+  onDuplicate,
 }: {
   schedule: AdminSchedule
   routeStops: RouteStop[]
+  onEdit: () => void
+  onDuplicate: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [delayOpen, setDelayOpen] = useState(false)
@@ -358,6 +369,8 @@ function ScheduleRowItem({
           >
             <ScheduleActionsMenu
               schedule={schedule}
+              onEdit={onEdit}
+              onDuplicate={onDuplicate}
               onRegisterDelay={() => setDelayOpen(true)}
               onSuspend={() => openStatus('suspend')}
               onCancel={() => openStatus('cancel')}
@@ -429,7 +442,15 @@ function TemporaryScheduleRow({ tmp }: { tmp: ScheduleTemporary }) {
   )
 }
 
-function ScheduleRouteSection({ route }: { route: AdminRoute }) {
+function ScheduleRouteSection({
+  route,
+  onEditSchedule,
+  onDuplicateSchedule,
+}: {
+  route: AdminRoute
+  onEditSchedule: (schedule: AdminSchedule) => void
+  onDuplicateSchedule: (schedule: AdminSchedule) => void
+}) {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768,
   )
@@ -510,7 +531,13 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
       >
         <div className="overflow-hidden">
           {route.schedules.map((schedule) => (
-            <ScheduleRowItem key={schedule.id} schedule={schedule} routeStops={route.stops} />
+            <ScheduleRowItem
+              key={schedule.id}
+              schedule={schedule}
+              routeStops={route.stops}
+              onEdit={() => onEditSchedule(schedule)}
+              onDuplicate={() => onDuplicateSchedule(schedule)}
+            />
           ))}
         </div>
       </div>
@@ -555,20 +582,116 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
 export function SchedulesPage() {
   useOutletContext<AppPortalOutletContext>()
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const routeParam = searchParams.get('route') ?? ''
+
   const [pendingQuery, setPendingQuery] = useState('')
   const [committedQuery, setCommittedQuery] = useState('')
   const [statusFilters, setStatusFilters] = useState<OperationalStatus[]>(ALL_OP_STATUSES)
   const [onlyExceptions, setOnlyExceptions] = useState(false)
-  const [cooperativeFilter, setCooperativeFilter] = useState('')
+  const [cooperativeFilter, setCooperativeFilter] = useState(
+    () => searchParams.get('cooperative') ?? '',
+  )
   const [dateFilter, setDateFilter] = useState('')
   const [datePopoverOpen, setDatePopoverOpen] = useState(false)
 
+  const clearRouteFilter = () => {
+    searchParams.delete('route')
+    setSearchParams(searchParams)
+  }
+
+  const [routes, setRoutes] = useState<AdminRoute[]>(MOCK_ADMIN_ROUTES)
+
+  // Schedule create/edit/duplicate form state.
+  const [scheduleForm, setScheduleForm] = useState<{
+    mode: ScheduleFormMode
+    routeId?: string
+    editingScheduleId?: string
+    initialValues?: ScheduleFormValues
+  } | null>(null)
+
+  const openNewSchedule = () => setScheduleForm({ mode: 'create' })
+
+  const openEditSchedule = (route: AdminRoute, schedule: AdminSchedule) =>
+    setScheduleForm({
+      mode: 'edit',
+      routeId: route.id,
+      editingScheduleId: schedule.id,
+      initialValues: {
+        departureTime: schedule.departureTime,
+        activeDays: schedule.activeDays,
+        notes: schedule.notes ?? '',
+      },
+    })
+
+  const openDuplicateSchedule = (route: AdminRoute, schedule: AdminSchedule) =>
+    setScheduleForm({
+      mode: 'duplicate',
+      routeId: route.id,
+      initialValues: {
+        departureTime: '',
+        activeDays: schedule.activeDays,
+        notes: schedule.notes ?? '',
+      },
+    })
+
+  const handleScheduleSubmit = (
+    routeId: string,
+    values: ScheduleFormValues,
+    mode: ScheduleFormMode,
+  ) => {
+    const editingId = scheduleForm?.editingScheduleId
+    setRoutes((prev) =>
+      prev.map((r) => {
+        if (r.id !== routeId) return r
+        if (mode === 'edit' && editingId) {
+          return {
+            ...r,
+            schedules: r.schedules.map((s) =>
+              s.id === editingId
+                ? {
+                    ...s,
+                    departureTime: values.departureTime,
+                    dayOfWeek: values.activeDays[0] ?? s.dayOfWeek,
+                    activeDays: values.activeDays,
+                    notes: values.notes || undefined,
+                  }
+                : s,
+            ),
+          }
+        }
+        const newSchedule: AdminSchedule = {
+          id: `sch-${Date.now()}`,
+          departureTime: values.departureTime,
+          dayOfWeek: values.activeDays[0] ?? 'seg',
+          activeDays: values.activeDays,
+          cooperativeName: r.cooperativeName,
+          origin: r.origin,
+          destination: r.destination,
+          routeCode: r.code,
+          recordStatus: 'active',
+          operationalStatus: 'in_operation',
+          notes: values.notes || undefined,
+        }
+        return {
+          ...r,
+          schedules: [...r.schedules, newSchedule].sort((a, b) =>
+            a.departureTime.localeCompare(b.departureTime),
+          ),
+        }
+      }),
+    )
+    toast.success(
+      mode === 'edit' ? 'Horário atualizado' : 'Horário criado com sucesso',
+    )
+  }
 
   const filteredRoutes = useMemo(() => {
     const q = committedQuery.trim().toLowerCase()
 
-    return MOCK_ADMIN_ROUTES.filter((route) => {
+    return routes.filter((route) => {
       if (cooperativeFilter && route.cooperativeName !== cooperativeFilter) return false
+      if (routeParam && route.code !== routeParam) return false
       return true
     }).map((route) => {
       const filteredSchedules = route.schedules.filter((s) => {
@@ -584,7 +707,7 @@ export function SchedulesPage() {
       })
       return { ...route, schedules: filteredSchedules }
     }).filter((r) => r.schedules.length > 0)
-  }, [committedQuery, cooperativeFilter, statusFilters, onlyExceptions])
+  }, [routes, committedQuery, cooperativeFilter, statusFilters, onlyExceptions, routeParam])
 
   const totalSchedules = filteredRoutes.reduce((acc, r) => acc + r.schedules.length, 0)
 
@@ -595,7 +718,22 @@ export function SchedulesPage() {
     setOnlyExceptions(false)
     setCooperativeFilter('')
     setDateFilter('')
+    // Também limpa os filtros vindos da URL (rota/cooperativa), que são lidos
+    // ao vivo de searchParams e persistiriam após o reset de estado.
+    if (searchParams.has('route') || searchParams.has('cooperative')) {
+      searchParams.delete('route')
+      searchParams.delete('cooperative')
+      setSearchParams(searchParams)
+    }
   }
+
+  const hasActiveFilters =
+    committedQuery.trim() !== '' ||
+    cooperativeFilter !== '' ||
+    dateFilter !== '' ||
+    onlyExceptions ||
+    routeParam !== '' ||
+    statusFilters.length !== ALL_OP_STATUSES.length
 
   const dateTriggerLabel = dateFilter
     ? new Date(dateFilter + 'T00:00:00').toLocaleDateString('pt-BR')
@@ -608,17 +746,20 @@ export function SchedulesPage() {
           label="Horários ativos hoje"
           value={ADMIN_SCHEDULE_SUMMARY.activeSchedulesToday.toLocaleString('pt-BR')}
           helper="grade consolidada por rotas e cooperativas"
+          icon={Clock}
         />
         <AdminKPICard
           label="Exceções abertas"
           value={ADMIN_SCHEDULE_SUMMARY.openExceptions}
           helper="atrasos e cancelamentos pendentes"
           severity="attention"
+          icon={AlertCircle}
         />
         <AdminKPICard
           label="Rotas monitoradas"
           value={ADMIN_SCHEDULE_SUMMARY.monitoredRoutes}
           helper="com agrupamento por rota"
+          icon={Route}
         />
       </div>
 
@@ -640,7 +781,7 @@ export function SchedulesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                {Array.from(new Set(MOCK_ADMIN_ROUTES.map((r) => r.cooperativeName))).map((name) => (
+                {Array.from(new Set(routes.map((r) => r.cooperativeName))).map((name) => (
                   <SelectItem key={name} value={name}>{name}</SelectItem>
                 ))}
               </SelectContent>
@@ -687,15 +828,40 @@ export function SchedulesPage() {
               value={statusFilters}
               onChange={(v) => setStatusFilters(v as OperationalStatus[])}
             />
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 gap-1.5 text-xs text-muted-foreground"
+                onClick={clearFilters}
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar filtros
+              </Button>
+            )}
           </div>
         }
         actions={
-          <Button size="sm" className="gap-1.5" onClick={() => {}}>
+          <Button size="sm" className="gap-1.5" onClick={openNewSchedule}>
             <Plus className="h-3.5 w-3.5" />
             Novo Horário
           </Button>
         }
       />
+
+      {routeParam && (
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-[12px]">Filtrando pela rota:</span>
+          <button
+            onClick={clearRouteFilter}
+            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary transition-colors hover:bg-primary/20"
+          >
+            {routeParam}
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
       {filteredRoutes.length === 0 ? (
         <AdminEmptyState
@@ -707,7 +873,12 @@ export function SchedulesPage() {
       ) : (
         <section className="space-y-4">
           {filteredRoutes.map((route) => (
-            <ScheduleRouteSection key={route.id} route={route} />
+            <ScheduleRouteSection
+              key={route.id}
+              route={route}
+              onEditSchedule={(schedule) => openEditSchedule(route, schedule)}
+              onDuplicateSchedule={(schedule) => openDuplicateSchedule(route, schedule)}
+            />
           ))}
         </section>
       )}
@@ -716,7 +887,7 @@ export function SchedulesPage() {
       {filteredRoutes.length > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">
-            Mostrando {filteredRoutes.length} de {MOCK_ADMIN_ROUTES.length} rotas &bull;{' '}
+            Mostrando {filteredRoutes.length} de {routes.length} rotas &bull;{' '}
             {totalSchedules} horario{totalSchedules !== 1 ? 's' : ''}
           </p>
           <Button variant="outline" size="sm" className="gap-2 rounded-full">
@@ -724,6 +895,20 @@ export function SchedulesPage() {
             <ChevronDown className="h-3.5 w-3.5" />
           </Button>
         </div>
+      )}
+
+      {scheduleForm && (
+        <ScheduleFormDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setScheduleForm(null)
+          }}
+          mode={scheduleForm.mode}
+          routes={routes}
+          routeId={scheduleForm.routeId}
+          initialValues={scheduleForm.initialValues}
+          onSubmit={handleScheduleSubmit}
+        />
       )}
     </section>
   )

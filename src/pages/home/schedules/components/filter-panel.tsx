@@ -1,11 +1,9 @@
+import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, ChevronUp, Filter, Moon, MoonStar, Star, Sun, Sunrise, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Slider } from '@/components/ui/slider'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
-import type { Schedule } from '@/lib/types/schedule'
-import type { LucideIcon } from 'lucide-react'
-
 import {
   type Period,
   PERIOD_LABELS,
@@ -13,6 +11,7 @@ import {
   PERIOD_RANGES,
   type RatingFilter,
 } from '@/lib/types/filters'
+import type { Schedule } from '@/lib/types/schedule'
 
 const PERIOD_ICONS: Record<Period, LucideIcon> = {
   dawn: Moon,
@@ -20,11 +19,11 @@ const PERIOD_ICONS: Record<Period, LucideIcon> = {
   afternoon: Sun,
   evening: MoonStar,
 }
+import { cn } from '@/lib/utils'
 import {
   applyDisplayFilters,
   parseDurationToMinutes,
 } from '@/lib/utils/apply-display-filters'
-import { cn } from '@/lib/utils'
 
 function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60)

@@ -1,8 +1,9 @@
 // TODO: replace with GET /api/cooperatives and GET /api/cooperatives/:id
 // see api-spec.md sections 2.4 and 3.5
-import { MOCK_COOPERATIVES } from './mock-cooperatives'
-import { CITIES_WITH_IDS } from './mock-cities'
 import { COOPERATIVE_COLORS } from '@/lib/utils/schedule-status'
+
+import { CITIES_WITH_IDS } from './mock-cities'
+import { MOCK_COOPERATIVES } from './mock-cooperatives'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

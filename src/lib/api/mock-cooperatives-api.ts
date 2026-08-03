@@ -1,8 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_COOPERATIVES,
   type AdminCooperative,
+  MOCK_ADMIN_COOPERATIVES,
 } from '@/lib/data/mock-admin-cooperatives'
 
 const API_DELAY = 300

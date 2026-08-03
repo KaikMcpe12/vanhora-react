@@ -1,8 +1,8 @@
 import { Building2 } from 'lucide-react'
 
-import { CooperativeCard } from '@/pages/home/homepage/components/cooperative-card'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { CooperativeDetail } from '@/lib/data/mock-cooperative-details'
+import { CooperativeCard } from '@/pages/home/homepage/components/cooperative-card'
 
 type CooperativesListProps = {
   cooperatives: CooperativeDetail[]

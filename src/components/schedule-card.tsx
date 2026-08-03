@@ -6,15 +6,15 @@ import { CooperativeAvatar } from '@/components/cooperative-avatar'
 import { InlineRating } from '@/components/inline-rating'
 import { RelativeTimeDisplay } from '@/components/relative-time-display'
 import { RouteLine } from '@/components/route-line'
-import { RouteTimeline, type RouteStop } from '@/components/route-timeline'
+import { type RouteStop,RouteTimeline } from '@/components/route-timeline'
 import { Dialog } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/use-favorites'
 import type { Schedule } from '@/lib/types/schedule'
+import { cn } from '@/lib/utils'
 import {
   getCooperativeColor,
   getVisualStatus,
 } from '@/lib/utils/schedule-status'
-import { cn } from '@/lib/utils'
 
 import { ScheduleDialog } from './schedule-dialog'
 

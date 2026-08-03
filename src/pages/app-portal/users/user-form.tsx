@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  CheckCircle2,
   Eye,
   EyeOff,
   Lock,
@@ -63,6 +64,8 @@ export function UserForm({
 
   const role = watch('role')
   const cooperativeId = watch('cooperativeId')
+  const emailValue = watch('email')
+  const isEmailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue ?? '')
   const showCooperativeField = role === 'driver' || role === 'cooperative'
   const isCooperativeReadonly = loggedInRole === 'cooperative'
 
@@ -109,6 +112,9 @@ export function UserForm({
                 mode === 'edit' && 'cursor-not-allowed opacity-60',
               )}
             />
+            {mode === 'create' && isEmailValid && (
+              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+            )}
           </div>
           {mode === 'edit' && (
             <p className="text-xs text-muted-foreground">Email não pode ser alterado</p>

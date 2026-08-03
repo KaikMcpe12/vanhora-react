@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Calendar,
+  Car,
   ChevronLeft,
   ChevronRight,
   Eye,
@@ -12,9 +13,20 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
+import {
+  AdminActionMenu,
+  AdminConfirmDialog,
+  AdminEmptyState,
+  AdminFilterBar,
+  AdminKPICard,
+  AdminStatusBadge,
+  AdminTable,
+  type AdminTableColumn,
+  StatusFilterChips,
+} from '@/components/admin'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -30,18 +42,6 @@ import {
   type AppPortalRole,
   type AppPortalUser,
 } from '@/pages/app-portal/app-portal-navigation'
-
-import {
-  AdminActionMenu,
-  AdminConfirmDialog,
-  AdminEmptyState,
-  AdminFilterBar,
-  AdminKPICard,
-  AdminStatusBadge,
-  AdminTable,
-  StatusFilterChips,
-  type AdminTableColumn,
-} from '@/components/admin'
 
 import { AddUserModal } from './add-user-modal'
 import { DriverSchedulesModal } from './driver-schedules-modal'
@@ -70,12 +70,24 @@ function roleToBadge(role: UserRole) {
 export function UsersPage() {
   const { role, user: loggedInUser } = useOutletContext<AppPortalOutletContext>()
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   const [search, setSearch] = useState('')
   const [statusFilters, setStatusFilters] = useState<string[]>(ALL_STATUSES)
   const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [selectedCooperative] = useState<string>('')
+  const [selectedCooperative, setSelectedCooperative] = useState<string>(
+    () => searchParams.get('cooperative') ?? '',
+  )
   const [currentPage, setCurrentPage] = useState(1)
+
+  const setCooperativeFilter = (value: string) => {
+    setSelectedCooperative(value)
+    setCurrentPage(1)
+    if (!value) {
+      searchParams.delete('cooperative')
+      setSearchParams(searchParams)
+    }
+  }
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [selectedUserForView, setSelectedUserForView] = useState<User | null>(null)
   const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(null)
@@ -161,6 +173,7 @@ export function UsersPage() {
     setSearch('')
     setStatusFilters(ALL_STATUSES)
     setRoleFilter('all')
+    setCooperativeFilter('')
     setCurrentPage(1)
   }
 
@@ -216,6 +229,7 @@ export function UsersPage() {
       align: 'right',
       width: '48px',
       render: (u) => (
+        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
         <AdminActionMenu
           items={[
             {
@@ -253,6 +267,7 @@ export function UsersPage() {
             },
           ]}
         />
+        </div>
       ),
     },
   ]
@@ -260,9 +275,9 @@ export function UsersPage() {
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard label="Total de usuários" value={kpiStats.total} helper="em toda a plataforma" />
-        <AdminKPICard label="Motoristas" value={kpiStats.drivers} helper="ativos no sistema" />
-        <AdminKPICard label="Inativos" value={kpiStats.inactive} helper="sem atividade" />
+        <AdminKPICard label="Total de usuários" value={kpiStats.total} helper="em toda a plataforma" icon={Users} />
+        <AdminKPICard label="Motoristas" value={kpiStats.drivers} helper="ativos no sistema" icon={Car} />
+        <AdminKPICard label="Inativos" value={kpiStats.inactive} helper="sem atividade" icon={UserX} />
       </div>
 
       <AdminFilterBar
@@ -303,6 +318,24 @@ export function UsersPage() {
                 <SelectItem value="driver">Motorista</SelectItem>
               </SelectContent>
             </Select>
+            {role === 'admin' && (
+              <Select
+                value={selectedCooperative || 'all'}
+                onValueChange={(v) => setCooperativeFilter(v === 'all' ? '' : v)}
+              >
+                <SelectTrigger className="h-8 w-44 text-xs">
+                  <SelectValue placeholder="Cooperativa" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as cooperativas</SelectItem>
+                  {MOCK_COOPERATIVES.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
         }
         actions={
@@ -318,6 +351,7 @@ export function UsersPage() {
         data={usersData?.data ?? []}
         keyExtractor={(u) => u.id}
         isLoading={isLoading}
+        onRowClick={(u) => setSelectedUserForView(u)}
         emptyState={
           <AdminEmptyState
             icon={Users}
@@ -415,6 +449,10 @@ export function UsersPage() {
           setUserToDeactivate(user)
           setConfirmDeactivateOpen(true)
         }}
+        onViewSchedules={(user) => {
+          setSelectedUserForView(null)
+          setSelectedUserForSchedules(user)
+        }}
       />
 
       <EditUserModal
@@ -430,7 +468,7 @@ export function UsersPage() {
           !!selectedUserForSchedules && selectedUserForSchedules.role === 'driver'
         }
         onClose={() => setSelectedUserForSchedules(null)}
-        driver={selectedUserForSchedules!}
+        driver={selectedUserForSchedules}
       />
     </section>
   )

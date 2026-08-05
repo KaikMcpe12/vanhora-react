@@ -28,7 +28,7 @@ export function CooperativesSearchBar({
     <div
       className={cn(
         'mb-4 flex h-12 items-center gap-3 rounded-[12px] border border-border/60 bg-card px-4',
-        'transition-colors focus-within:border-[#0F6E56]',
+        'transition-colors focus-within:border-primary',
         className,
       )}
     >

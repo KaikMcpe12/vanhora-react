@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import type { User } from '@/lib/data/mock-users'
+import { queryKeys } from '@/lib/query-keys'
 import type { CreateUserInput } from '@/lib/schemas/user-schema'
 
 import { UserForm } from './user-form'
@@ -41,7 +42,7 @@ export function EditUserModal({
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
       onClose()
     },
     onError: (error) => {

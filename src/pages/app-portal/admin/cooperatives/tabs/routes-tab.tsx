@@ -20,7 +20,7 @@ export function RoutesTab({ cooperative }: { cooperative: AdminCooperative }) {
   const activeCount = routes.filter((r) => r.status === 'active').length
   const routesHref = `/admin/routes?cooperative=${encodeURIComponent(cooperative.name)}`
   // Criar rota já com a cooperativa atual pré-selecionada (redirecionamento inteligente).
-  const createHref = `/admin/routes/nova?cooperative=${encodeURIComponent(cooperative.name)}`
+  const createHref = `/admin/routes/new?cooperative=${encodeURIComponent(cooperative.name)}`
 
   if (routes.length === 0) {
     return (
@@ -64,7 +64,7 @@ export function RoutesTab({ cooperative }: { cooperative: AdminCooperative }) {
             }}
             className={cn(
               'group flex cursor-pointer flex-col gap-3 rounded-xl border border-l-4 border-border bg-card p-4 transition-colors',
-              'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none',
+              'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
               statusBorder[r.status],
             )}
           >

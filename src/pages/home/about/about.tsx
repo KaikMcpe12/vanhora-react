@@ -179,7 +179,7 @@ export function About() {
               <button
                 type="button"
                 onClick={handleContact}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-[var(--radius)] bg-[#0F6E56] px-4 py-2.5 text-[13px] font-medium text-white transition-colors hover:bg-[#0a5a45]"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-[var(--radius)] bg-primary px-4 py-2.5 text-[13px] font-medium text-primary-foreground transition-colors hover:bg-primary/80"
               >
                 <Mail size={15} strokeWidth={1.75} />
                 contato@vanhora.com.br

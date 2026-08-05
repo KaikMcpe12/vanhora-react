@@ -26,6 +26,7 @@ import {
   getMockScheduleById,
   getRouteIdFromScheduleId,
 } from '@/lib/data/mock-schedules'
+import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 
 import { RatingDisplay } from './rating-display'
@@ -98,7 +99,7 @@ export function ScheduleDialog({
   const [isFav, setIsFav] = useState(false)
 
   const { data: schedule, isLoading } = useQuery({
-    queryKey: ['schedule', scheduleId],
+    queryKey: queryKeys.schedules.detail(scheduleId),
     queryFn: async (): Promise<ScheduleDetails> => {
       await new Promise((resolve) => setTimeout(resolve, 1500))
 

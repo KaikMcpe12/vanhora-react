@@ -55,7 +55,7 @@ export function CooperativeProfileHeader({ cooperative }: CooperativeProfileHead
               {phoneNumber && (
                 <a
                   href={`tel:${phoneNumber}`}
-                  className="flex items-center gap-2 text-[14px] text-[#0F6E56] hover:underline"
+                  className="flex items-center gap-2 text-[14px] text-primary hover:underline"
                 >
                   <Phone size={14} strokeWidth={1.75} className="shrink-0" />
                   {phoneNumber}
@@ -66,7 +66,7 @@ export function CooperativeProfileHeader({ cooperative }: CooperativeProfileHead
                   href={`https://${website}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-2 text-[14px] text-[#0F6E56] hover:underline"
+                  className="flex items-center gap-2 text-[14px] text-primary hover:underline"
                 >
                   <Globe size={14} strokeWidth={1.75} className="shrink-0" />
                   {website}

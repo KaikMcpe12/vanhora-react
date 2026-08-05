@@ -141,7 +141,7 @@ export function AdminTable<T>({
                 className={cn(
                   'text-[13px]',
                   onRowClick &&
-                    'cursor-pointer hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:outline-none',
+                    'cursor-pointer hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset',
                 )}
               >
                 {columns.map((col) => (

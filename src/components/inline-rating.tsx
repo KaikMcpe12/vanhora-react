@@ -32,8 +32,8 @@ export function InlineRating({ scheduleId, className }: InlineRatingProps) {
   if (hasRated || submitted) {
     return (
       <div className={cn('flex items-center gap-1.5 pointer-events-none', className)}>
-        <CheckCircle2 size={14} className="text-[#0F6E56]" strokeWidth={2} />
-        <span className="text-[13px] font-medium" style={{ color: '#0F6E56' }}>
+        <CheckCircle2 size={14} className="text-primary" strokeWidth={2} />
+        <span className="text-[13px] font-medium text-primary">
           Enviado
         </span>
       </div>

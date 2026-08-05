@@ -65,7 +65,7 @@ export function RelativeTimeDisplay({
       {isCancelled ? (
         <span
           className="flex items-center gap-1.5 text-base font-medium"
-          style={{ color: '#A32D2D' }}
+          style={{ color: 'var(--color-danger)' }}
         >
           <Ban size={16} strokeWidth={2} aria-hidden />
           Cancelado hoje
@@ -77,7 +77,7 @@ export function RelativeTimeDisplay({
             style={{
               fontSize: size === 'featured' ? 42 : 27,
               letterSpacing: size === 'featured' ? '-0.8px' : '-0.4px',
-              color: isUrgent ? '#0F6E56' : mins < 0 ? 'var(--color-muted-foreground)' : 'inherit',
+              color: isUrgent ? 'var(--color-primary)' : mins < 0 ? 'var(--color-muted-foreground)' : 'inherit',
             }}
           >
             {formatRelativeTime(mins)}

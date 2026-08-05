@@ -125,8 +125,11 @@ export function Favorites() {
 
       {isMobile && (
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="left" className="w-72 overflow-y-auto">
-            <SheetHeader className="mb-6">
+          <SheetContent
+            side="bottom"
+            className="max-h-[80vh] overflow-y-auto rounded-t-2xl px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-5"
+          >
+            <SheetHeader className="mb-5">
               <SheetTitle>Filtros</SheetTitle>
             </SheetHeader>
             {filterPanel}

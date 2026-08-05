@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useMemo } from 'react'
 
 import { mockSchedulesAPI } from '@/lib/api/mock-schedules-api'
+import { queryKeys } from '@/lib/query-keys'
 import type { ScheduleFiltersSchema } from '@/lib/schemas/schedule-filters'
 import type { DisplayFilters, ScheduleSort } from '@/lib/types/filters'
 import type { Schedule } from '@/lib/types/schedule'
@@ -28,7 +29,7 @@ export function useGroupedSchedules(
   sort: ScheduleSort,
 ): UseGroupedSchedulesReturn {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ['schedules-grouped', searchFilters],
+    queryKey: queryKeys.schedules.grouped(searchFilters),
     queryFn: () =>
       mockSchedulesAPI({
         origin: searchFilters.origin,

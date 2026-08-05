@@ -113,7 +113,6 @@ export function CooperativePicker({
               'h-10 w-full justify-start text-left font-normal',
               'bg-muted/50 border-border rounded-xl',
               'hover:bg-muted/70 transition-colors',
-              'focus:ring-primary focus:border-primary focus:ring-2',
               'focus-visible:ring-primary focus-visible:ring-2',
               'pr-10 pl-3',
               !value && 'text-muted-foreground',

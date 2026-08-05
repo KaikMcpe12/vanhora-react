@@ -6,6 +6,7 @@ import {
   MOCK_ADMIN_DELAYS,
   MOCK_DELAY_STATS,
 } from '@/lib/data/mock-admin-delays'
+import { queryKeys } from '@/lib/query-keys'
 
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -91,22 +92,35 @@ export const mockDelaysApi = {
     return delay_
   },
 
+  async getDelay(id: string): Promise<AdminDelay | null> {
+    await delay(API_DELAY)
+    return MOCK_ADMIN_DELAYS.find((d) => d.id === id) ?? null
+  },
+
   async getDelayStats(): Promise<AdminDelayStats> {
     await delay(API_DELAY)
     return MOCK_DELAY_STATS
   },
 }
 
+export function useAdminDelay(id: string | null) {
+  return useQuery({
+    queryKey: queryKeys.admin.delays.detail(id ?? ''),
+    queryFn: () => mockDelaysApi.getDelay(id!),
+    enabled: !!id,
+  })
+}
+
 export function useAdminDelays(filters: ListDelaysFilters = {}) {
   return useQuery({
-    queryKey: ['admin', 'delays', filters],
+    queryKey: queryKeys.admin.delays.list(filters),
     queryFn: () => mockDelaysApi.listDelays(filters),
   })
 }
 
 export function useAdminDelayStats() {
   return useQuery({
-    queryKey: ['admin', 'delays', 'stats'],
+    queryKey: queryKeys.admin.delays.stats(),
     queryFn: () => mockDelaysApi.getDelayStats(),
   })
 }
@@ -115,8 +129,9 @@ export function useResolveDelay() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => mockDelaysApi.resolveDelay(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'delays'] })
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.delays.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.delays.detail(id) })
     },
   })
 }
@@ -125,8 +140,9 @@ export function useReopenDelay() {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => mockDelaysApi.reopenDelay(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['admin', 'delays'] })
+    onSuccess: (_data, id) => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.delays.all() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.delays.detail(id) })
     },
   })
 }

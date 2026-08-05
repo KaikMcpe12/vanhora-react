@@ -5,6 +5,7 @@ import {
   type FetchSchedulesParams,
   mockSchedulesAPI,
 } from '@/lib/api/mock-schedules-api'
+import { queryKeys } from '@/lib/query-keys'
 import type { Schedule } from '@/lib/types/schedule'
 
 /**
@@ -55,7 +56,7 @@ export function useSchedules(
     hasNextPage,
     fetchNextPage,
   } = useInfiniteQuery({
-    queryKey: ['schedules', params],
+    queryKey: queryKeys.schedules.list(params),
     queryFn: ({ pageParam = 0 }) =>
       mockSchedulesAPI({ ...params, page: pageParam, limit }),
     getNextPageParam: (lastPage) => {

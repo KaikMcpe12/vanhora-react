@@ -131,13 +131,13 @@ export function RoutesPage() {
   }
 
   const goToEdit = (route: AdminRouteRow) =>
-    navigate(`${basePath}/routes/${route.id}/editar`)
+    navigate(`${basePath}/routes/${route.id}/edit`)
 
   const goToCreate = () =>
     navigate(
       cooperativeParam
-        ? `${basePath}/routes/nova?cooperative=${encodeURIComponent(cooperativeParam)}`
-        : `${basePath}/routes/nova`,
+        ? `${basePath}/routes/new?cooperative=${encodeURIComponent(cooperativeParam)}`
+        : `${basePath}/routes/new`,
     )
 
   return (
@@ -224,7 +224,7 @@ export function RoutesPage() {
                   }}
                   className={cn(
                     'bg-card flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-l-4 border-border p-5 transition-colors',
-                    'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none',
+                    'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
                     STATUS_BORDER[route.status],
                     isInactive && 'opacity-70',
                   )}

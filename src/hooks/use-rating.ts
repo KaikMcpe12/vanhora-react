@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
 import { mockCheckUserRating, mockSubmitRating } from '@/lib/data/mock-ratings'
+import { queryKeys } from '@/lib/query-keys'
 
 interface UseRatingOptions {
   scheduleId: string
@@ -24,7 +25,7 @@ export function useRating({ scheduleId, onSuccess }: UseRatingOptions) {
     isLoading,
     error: checkError,
   } = useQuery({
-    queryKey: ['rating-check', scheduleId],
+    queryKey: queryKeys.schedules.ratingCheck(scheduleId),
     queryFn: () => mockCheckUserRating(scheduleId),
     staleTime: 5 * 60 * 1000, // Cache 5min (mesmo padrão do projeto)
     gcTime: 10 * 60 * 1000, // 10 minutos
@@ -40,8 +41,8 @@ export function useRating({ scheduleId, onSuccess }: UseRatingOptions) {
     mutationFn: (stars: number) => mockSubmitRating(scheduleId, stars),
     onSuccess: (response) => {
       // Invalida cache para forçar re-fetch
-      queryClient.invalidateQueries({ queryKey: ['rating-check', scheduleId] })
-      queryClient.invalidateQueries({ queryKey: ['schedule', scheduleId] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.schedules.ratingCheck(scheduleId) })
+      queryClient.invalidateQueries({ queryKey: queryKeys.schedules.detail(scheduleId) })
 
       // Toast de sucesso (biblioteca Sonner configurada)
       const message =

@@ -2,9 +2,9 @@ import type { RouteDetail } from '@/lib/data/mock-route-detail'
 import { formatDatePt } from '@/lib/utils/format'
 
 function onTimeColor(rate: number): string {
-  if (rate >= 0.85) return '#0F6E56'
-  if (rate >= 0.70) return 'var(--vh-amber-text)'
-  return '#A32D2D'
+  if (rate >= 0.85) return 'var(--color-success)'
+  if (rate >= 0.70) return 'var(--color-warning)'
+  return 'var(--color-danger)'
 }
 
 type RouteStatisticsBlockProps = {
@@ -53,7 +53,7 @@ export function RouteStatisticsBlock({ route }: RouteStatisticsBlockProps) {
                 <p className="mt-2 flex gap-4 text-[12px]">
                   <span className="text-muted-foreground">● {dist.low} leves</span>
                   <span style={{ color: 'var(--vh-amber-text)' }}>● {dist.medium} médios</span>
-                  <span style={{ color: '#A32D2D' }}>● {dist.high} graves</span>
+                  <span style={{ color: 'var(--color-danger)' }}>● {dist.high} graves</span>
                 </p>
               </>
             ) : (

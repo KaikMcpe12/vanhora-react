@@ -188,14 +188,15 @@ export function AdminDashboardPage() {
       key: 'actions',
       label: '',
       align: 'right',
-      render: (_d) => (
+      render: (d) => (
         <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
           <AdminActionMenu
             items={[
               {
                 label: 'Abrir detalhes',
                 icon: ExternalLink,
-                onClick: () => navigate('/admin/delays'),
+                // deep-link direto para o dialog do atraso na página de atrasos
+                onClick: () => navigate(`/admin/delays?delayId=${d.id}`),
               },
               {
                 label: 'Marcar como resolvido',
@@ -366,7 +367,7 @@ export function AdminDashboardPage() {
           data={stats?.recentDelays ?? []}
           keyExtractor={(r) => r.id}
           isLoading={isLoading}
-          onRowClick={() => navigate('/admin/delays')}
+          onRowClick={(d) => navigate(`/admin/delays?delayId=${d.id}`)}
           emptyState={
             <AdminEmptyState
               icon={CheckCircle}

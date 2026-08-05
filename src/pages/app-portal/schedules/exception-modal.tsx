@@ -135,19 +135,19 @@ export function ExceptionModal({
                     onClick={() => setMode(value)}
                     className={cn(
                       'flex flex-col items-start gap-1 rounded-lg border p-2.5 text-left transition-colors',
-                      active ? 'border-[#0873df] bg-blue-50' : 'border-border hover:bg-slate-50',
+                      active ? 'border-info bg-blue-50' : 'border-border hover:bg-slate-50',
                     )}
                   >
                     <Icon
                       className={cn(
                         'h-3.5 w-3.5',
-                        active ? 'text-[#0873df]' : 'text-muted-foreground',
+                        active ? 'text-info' : 'text-muted-foreground',
                       )}
                     />
                     <span
                       className={cn(
                         'text-[11px] font-semibold leading-tight',
-                        active ? 'text-[#0873df]' : 'text-foreground',
+                        active ? 'text-info' : 'text-foreground',
                       )}
                     >
                       {modeTitle}

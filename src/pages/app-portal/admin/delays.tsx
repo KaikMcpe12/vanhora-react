@@ -8,7 +8,14 @@ import {
   Timer,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import {
+  parseAsArrayOf,
+  parseAsString,
+  parseAsStringLiteral,
+  useQueryState,
+  useQueryStates,
+} from 'nuqs'
+import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 
@@ -31,6 +38,7 @@ import {
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
+  useAdminDelay,
   useAdminDelays,
   useAdminDelayStats,
   useReopenDelay,
@@ -41,7 +49,17 @@ import type { AdminDelay } from '@/lib/data/mock-admin-delays'
 
 import { DelayDetailDialog } from './delay-detail-dialog'
 
-type DelayPeriod = '24h' | '7d' | '30d'
+const DELAY_PERIODS = ['24h', '7d', '30d'] as const
+type DelayPeriod = (typeof DELAY_PERIODS)[number]
+
+// parsers para os filtros persistidos na url
+const delayFilterParsers = {
+  search: parseAsString.withDefault(''),
+  period: parseAsStringLiteral(DELAY_PERIODS).withDefault('30d'),
+  severity: parseAsString.withDefault(''),
+  cooperativeId: parseAsString.withDefault(''),
+  statusFilter: parseAsArrayOf(parseAsString).withDefault([]),
+}
 
 function getSeverityBadge(severity: AdminDelay['severity']) {
   if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
@@ -65,12 +83,11 @@ function truncateText(text: string, max: number) {
 
 export function AdminDelaysPage() {
   const navigate = useNavigate()
-  const [search, setSearch] = useState('')
-  const [period, setPeriod] = useState<DelayPeriod>('30d')
-  const [severity, setSeverity] = useState('')
-  const [cooperativeId, setCooperativeId] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string[]>([])
-  const [selectedDelay, setSelectedDelay] = useState<AdminDelay | null>(null)
+
+  const [{ search, period, severity, cooperativeId, statusFilter }, setFilters] =
+    useQueryStates(delayFilterParsers)
+  // delayId controla qual dialog está aberto — fechar remove só ele, filtros permanecem
+  const [delayId, setDelayId] = useQueryState('delayId')
 
   const resolveDelay = useResolveDelay()
   const reopenDelay = useReopenDelay()
@@ -90,6 +107,8 @@ export function AdminDelaysPage() {
 
   const { data, isLoading } = useAdminDelays(filters)
   const { data: stats, isLoading: statsLoading } = useAdminDelayStats()
+  // fetch dedicado por id — independente da paginação/filtros da lista
+  const { data: selectedDelay = null, isLoading: delayDetailLoading } = useAdminDelay(delayId)
 
   const hasFilters =
     Boolean(search.trim()) ||
@@ -103,17 +122,15 @@ export function AdminDelaysPage() {
   async function handleResolve(id: string) {
     await resolveDelay.mutateAsync(id)
     toast.success('Atraso marcado como resolvido')
-    if (selectedDelay?.id === id) {
-      setSelectedDelay((prev) => prev ? { ...prev, status: 'resolved', resolvedAt: new Date().toISOString() } : null)
-    }
   }
 
   async function handleReopen(id: string) {
     await reopenDelay.mutateAsync(id)
     toast.success('Atraso reaberto')
-    if (selectedDelay?.id === id) {
-      setSelectedDelay((prev) => prev ? { ...prev, status: 'pending', resolvedAt: undefined } : null)
-    }
+  }
+
+  function clearFilters() {
+    setFilters({ search: '', severity: '', cooperativeId: '', statusFilter: [], period: '30d' })
   }
 
   const columns: AdminTableColumn<AdminDelay>[] = [
@@ -123,7 +140,7 @@ export function AdminDelaysPage() {
       width: '120px',
       hideOnMobile: true,
       render: (d) => (
-        <span className="text-[12px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {formatDateTime(d.reportedAt)}
         </span>
       ),
@@ -195,7 +212,7 @@ export function AdminDelaysPage() {
             {
               label: 'Ver detalhes',
               icon: Eye,
-              onClick: () => setSelectedDelay(d),
+              onClick: () => setDelayId(d.id),
             },
             {
               label: 'Ver rota',
@@ -260,11 +277,14 @@ export function AdminDelaysPage() {
 
       <AdminFilterBar
         searchValue={search}
-        onSearchChange={setSearch}
+        onSearchChange={(v) => setFilters({ search: v })}
         searchPlaceholder="Buscar por rota ou cooperativa"
         filters={
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={period} onValueChange={(v) => setPeriod(v as DelayPeriod)}>
+            <Select
+              value={period}
+              onValueChange={(v) => setFilters({ period: v as DelayPeriod })}
+            >
               <SelectTrigger className="h-8 w-40 text-xs">
                 <SelectValue />
               </SelectTrigger>
@@ -277,7 +297,7 @@ export function AdminDelaysPage() {
 
             <Select
               value={severity || 'all'}
-              onValueChange={(v) => setSeverity(v === 'all' ? '' : v)}
+              onValueChange={(v) => setFilters({ severity: v === 'all' ? '' : v })}
             >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Severidade" />
@@ -292,7 +312,7 @@ export function AdminDelaysPage() {
 
             <Select
               value={cooperativeId || 'all'}
-              onValueChange={(v) => setCooperativeId(v === 'all' ? '' : v)}
+              onValueChange={(v) => setFilters({ cooperativeId: v === 'all' ? '' : v })}
             >
               <SelectTrigger className="h-8 w-44 text-xs">
                 <SelectValue placeholder="Cooperativa" />
@@ -308,7 +328,7 @@ export function AdminDelaysPage() {
             <StatusFilterChips
               options={[{ value: 'pending', label: 'Não resolvido' }]}
               value={statusFilter}
-              onChange={setStatusFilter}
+              onChange={(v) => setFilters({ statusFilter: v })}
             />
           </div>
         }
@@ -319,7 +339,7 @@ export function AdminDelaysPage() {
         data={data?.data ?? []}
         keyExtractor={(d) => d.id}
         isLoading={isLoading}
-        onRowClick={(d) => setSelectedDelay(d)}
+        onRowClick={(d) => setDelayId(d.id)}
         emptyState={
           <AdminEmptyState
             icon={hasFilters ? X : CheckCircle2}
@@ -331,7 +351,7 @@ export function AdminDelaysPage() {
             }
             action={
               hasFilters
-                ? { label: 'Limpar filtros', onClick: () => { setSearch(''); setSeverity(''); setCooperativeId(''); setStatusFilter([]); setPeriod('30d') }, icon: X }
+                ? { label: 'Limpar filtros', onClick: clearFilters, icon: X }
                 : undefined
             }
           />
@@ -340,7 +360,9 @@ export function AdminDelaysPage() {
 
       <DelayDetailDialog
         delay={selectedDelay}
-        onClose={() => setSelectedDelay(null)}
+        isOpen={!!delayId}
+        isLoadingDelay={delayDetailLoading}
+        onClose={() => setDelayId(null)}
         onResolve={handleResolve}
         onReopen={handleReopen}
         isResolving={resolveDelay.isPending || reopenDelay.isPending}

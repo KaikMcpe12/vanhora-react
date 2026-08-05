@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { queryKeys } from '@/lib/query-keys'
 import type { RouteFormValues } from '@/lib/schemas/route-schema'
 
 const API_DELAY = 250
@@ -197,14 +198,14 @@ export const mockRoutesApi = {
 
 export function useRoutesList(filters: ListRoutesFilters = {}) {
   return useQuery({
-    queryKey: ['admin', 'routes', filters],
+    queryKey: queryKeys.admin.routes.list(filters),
     queryFn: () => mockRoutesApi.listRoutes(filters),
   })
 }
 
 export function useRoute(id: string | undefined) {
   return useQuery({
-    queryKey: ['admin', 'routes', 'detail', id],
+    queryKey: queryKeys.admin.routes.detail(id as string),
     queryFn: () => mockRoutesApi.getRoute(id as string),
     enabled: !!id,
   })
@@ -215,7 +216,7 @@ export function useCreateRoute() {
   return useMutation({
     mutationFn: (payload: RouteFormPayload) => mockRoutesApi.createRoute(payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'routes'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.routes.all() }),
   })
 }
 
@@ -225,7 +226,7 @@ export function useUpdateRoute() {
     mutationFn: ({ id, payload }: { id: string; payload: RouteFormPayload }) =>
       mockRoutesApi.updateRoute(id, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'routes'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.routes.all() }),
   })
 }
 
@@ -235,6 +236,6 @@ export function useToggleRouteStatus() {
     mutationFn: ({ id, newStatus }: { id: string; newStatus: RouteRowStatus }) =>
       mockRoutesApi.toggleRouteStatus(id, newStatus),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'routes'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.routes.all() }),
   })
 }

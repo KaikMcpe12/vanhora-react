@@ -4,6 +4,7 @@ import {
   type AdminDashboardStats,
   MOCK_ADMIN_DASHBOARD,
 } from '@/lib/data/mock-dashboard'
+import { queryKeys } from '@/lib/query-keys'
 
 const API_DELAY = 300
 
@@ -18,7 +19,7 @@ export const mockDashboardApi = {
 
 export function useAdminDashboardStats() {
   return useQuery({
-    queryKey: ['admin', 'dashboard', 'stats'],
+    queryKey: queryKeys.admin.dashboard.stats(),
     queryFn: () => mockDashboardApi.getAdminStats(),
   })
 }

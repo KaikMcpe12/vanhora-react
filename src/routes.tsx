@@ -1,5 +1,34 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { NuqsAdapter } from 'nuqs/adapters/react-router/v7'
+import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom'
 
+import { RouteErrorElement } from './components/error-boundary'
+
+// wrapper raiz que provê o adaptador de nuqs para todas as rotas
+function NuqsRouteWrapper() {
+  return (
+    <NuqsAdapter>
+      <Outlet />
+    </NuqsAdapter>
+  )
+}
+
+// ─── Route handle type ────────────────────────────────────────────────────────
+
+export interface RouteHandle {
+  crumb?: string | ((params: Record<string, string>) => string)
+}
+
+/**
+ * Redireciona URLs legadas em PT-BR para os equivalentes em inglês.
+ * Remover após sunset (6 meses sem hits ou quando analytics confirmar desuso).
+ * /routes/nova     → /routes/new
+ * /routes/:id/editar → /routes/:id/edit
+ */
+function LegacyRedirect() {
+  const { pathname, search } = useLocation()
+  const newPath = pathname.replace('/nova', '/new').replace('/editar', '/edit')
+  return <Navigate to={newPath + search} replace />
+}
 import { AppPortalLayout } from './pages/_layouts/app-portal'
 import { AuthLayout } from './pages/_layouts/auth'
 import { Home } from './pages/_layouts/home'
@@ -37,8 +66,12 @@ import { Schedules } from './pages/home/schedules/schedules'
 
 export const router = createBrowserRouter([
   {
+    element: <NuqsRouteWrapper />,
+    children: [
+  {
     path: '/',
     element: <Home />,
+    errorElement: <RouteErrorElement />,
     children: [
       {
         index: true,
@@ -92,6 +125,7 @@ export const router = createBrowserRouter([
   {
     path: '/',
     element: <AuthLayout />,
+    errorElement: <RouteErrorElement />,
     children: [
       {
         path: 'sign-in',
@@ -102,44 +136,65 @@ export const router = createBrowserRouter([
   {
     path: '/admin',
     element: <AppPortalLayout />,
+    errorElement: <RouteErrorElement />,
+    handle: { crumb: 'Início' } satisfies RouteHandle,
     children: [
       {
         index: true,
         element: <AdminDashboardPage />,
+        handle: { crumb: 'Dashboard' } satisfies RouteHandle,
       },
       {
         path: 'cities',
         element: <AdminCitiesPage />,
+        handle: { crumb: 'Cidades' } satisfies RouteHandle,
       },
       {
         path: 'schedules',
         element: <AdminSchedulesPage />,
+        handle: { crumb: 'Horários' } satisfies RouteHandle,
       },
       {
         path: 'routes',
+        handle: { crumb: 'Rotas' } satisfies RouteHandle,
         children: [
           { index: true, element: <AdminRoutesPage /> },
-          { path: 'nova', element: <RouteCreatePage /> },
-          { path: ':id/editar', element: <RouteEditPage /> },
+          {
+            path: 'new',
+            element: <RouteCreatePage />,
+            handle: { crumb: 'Nova Rota' } satisfies RouteHandle,
+          },
+          {
+            path: ':id/edit',
+            element: <RouteEditPage />,
+            handle: { crumb: 'Editar Rota' } satisfies RouteHandle,
+          },
+          // Redirects legados — remover após sunset
+          { path: 'nova', element: <LegacyRedirect /> },
+          { path: ':id/editar', element: <LegacyRedirect /> },
         ],
       },
       {
         path: 'users',
         element: <AdminUsersPage />,
+        handle: { crumb: 'Usuários' } satisfies RouteHandle,
       },
       {
         path: 'cooperatives',
         element: <AdminCooperativesPage />,
+        handle: { crumb: 'Cooperativas' } satisfies RouteHandle,
       },
       {
         path: 'delays',
         element: <AdminDelaysPage />,
+        handle: { crumb: 'Atrasos' } satisfies RouteHandle,
       },
       ...(import.meta.env.DEV
         ? [
             {
               path: 'components-preview',
               element: <AdminComponentsPreviewPage />,
+              handle: { crumb: 'Componentes' } satisfies RouteHandle,
             },
           ]
         : []),
@@ -148,65 +203,93 @@ export const router = createBrowserRouter([
   {
     path: '/cooperative',
     element: <AppPortalLayout />,
+    errorElement: <RouteErrorElement />,
+    handle: { crumb: 'Início' } satisfies RouteHandle,
     children: [
       {
         index: true,
         element: <CooperativeDashboardPage />,
+        handle: { crumb: 'Dashboard' } satisfies RouteHandle,
       },
       {
         path: 'my-cooperative',
         element: <CooperativeMyCooperativePage />,
+        handle: { crumb: 'Minha Cooperativa' } satisfies RouteHandle,
       },
       {
         path: 'users',
         element: <CooperativeUsersPage />,
+        handle: { crumb: 'Usuários' } satisfies RouteHandle,
       },
       {
         path: 'routes',
+        handle: { crumb: 'Rotas' } satisfies RouteHandle,
         children: [
           { index: true, element: <CooperativeRoutesPage /> },
-          { path: 'nova', element: <RouteCreatePage /> },
-          { path: ':id/editar', element: <RouteEditPage /> },
+          {
+            path: 'new',
+            element: <RouteCreatePage />,
+            handle: { crumb: 'Nova Rota' } satisfies RouteHandle,
+          },
+          {
+            path: ':id/edit',
+            element: <RouteEditPage />,
+            handle: { crumb: 'Editar Rota' } satisfies RouteHandle,
+          },
+          // Redirects legados — remover após sunset
+          { path: 'nova', element: <LegacyRedirect /> },
+          { path: ':id/editar', element: <LegacyRedirect /> },
         ],
       },
       {
         path: 'schedules',
         element: <CooperativeSchedulesPage />,
+        handle: { crumb: 'Horários' } satisfies RouteHandle,
       },
       {
         path: 'delays',
         element: <CooperativeDelaysPage />,
+        handle: { crumb: 'Atrasos' } satisfies RouteHandle,
       },
     ],
   },
   {
     path: '/driver',
     element: <AppPortalLayout />,
+    errorElement: <RouteErrorElement />,
+    handle: { crumb: 'Início' } satisfies RouteHandle,
     children: [
       {
         index: true,
         element: <DriverDashboardPage />,
+        handle: { crumb: 'Dashboard' } satisfies RouteHandle,
       },
       {
         path: 'me',
         element: <DriverProfilePage />,
+        handle: { crumb: 'Meu Perfil' } satisfies RouteHandle,
       },
       {
         path: 'my-routes',
         element: <DriverMyRoutesPage />,
+        handle: { crumb: 'Minhas Rotas' } satisfies RouteHandle,
       },
       {
         path: 'my-schedules',
         element: <DriverMySchedulesPage />,
+        handle: { crumb: 'Meus Horários' } satisfies RouteHandle,
       },
       {
         path: 'report-delay',
         element: <DriverReportDelayPage />,
+        handle: { crumb: 'Reportar Atraso' } satisfies RouteHandle,
       },
     ],
   },
   {
     path: '*',
     element: <NotFound />,
+  },
+  ], // fim do children do NuqsRouteWrapper
   },
 ])

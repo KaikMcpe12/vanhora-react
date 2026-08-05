@@ -4,15 +4,23 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   LIGHT MODE
+   #0F6E56 ≈ oklch(0.44 0.095 167) — verde de marca VanHora
+───────────────────────────────────────────────────────────────────────────── */
 :root {
+  /* Base */
   --background: oklch(0.9751 0.0127 244.2507);
   --foreground: oklch(0.3729 0.0306 259.7328);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.3729 0.0306 259.7328);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.3729 0.0306 259.7328);
-  --primary: oklch(0.7227 0.192 149.5793);
+
+  /* Primary — verde de marca (#0F6E56) */
+  --primary: oklch(0.44 0.095 167);
   --primary-foreground: oklch(1 0 0);
+
   --secondary: oklch(0.9514 0.025 236.8242);
   --secondary-foreground: oklch(0.4461 0.0263 256.8018);
   --muted: oklch(0.967 0.0029 264.5419);
@@ -22,41 +30,76 @@
   --destructive: oklch(0.6368 0.2078 25.3313);
   --border: oklch(0.9276 0.0058 264.5313);
   --input: oklch(0.9276 0.0058 264.5313);
-  --ring: oklch(0.7227 0.192 149.5793);
-  --chart-1: oklch(0.7227 0.192 149.5793);
-  --chart-2: oklch(0.6959 0.1491 162.4796);
-  --chart-3: oklch(0.596 0.1274 163.2254);
-  --chart-4: oklch(0.5081 0.1049 165.6121);
-  --chart-5: oklch(0.4318 0.0865 166.9128);
-  --sidebar: oklch(0.9514 0.025 236.8242);
-  --sidebar-foreground: oklch(0.3729 0.0306 259.7328);
-  --sidebar-primary: oklch(0.7227 0.192 149.5793);
-  --sidebar-primary-foreground: oklch(1 0 0);
-  --sidebar-accent: oklch(0.9505 0.0507 163.0508);
-  --sidebar-accent-foreground: oklch(0.3729 0.0306 259.7328);
-  --sidebar-border: oklch(0.9276 0.0058 264.5313);
-  --sidebar-ring: oklch(0.7227 0.192 149.5793);
-  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
-  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  --radius: 0.625rem;
+  --ring: oklch(0.44 0.095 167);
+
+  /* ── Tokens semânticos de status ────────────────────────────────────────── */
+
+  /* success — verde (alias do primary) */
+  --success: oklch(0.44 0.095 167);
+  --success-foreground: oklch(1 0 0);
+
+  /* warning — âmbar */
+  --warning: oklch(0.62 0.14 62);
+  --warning-foreground: oklch(0.32 0.08 60);
+
+  /* danger — vermelho */
+  --danger: oklch(0.58 0.20 25);
+  --danger-foreground: oklch(1 0 0);
+
+  /* info — azul */
+  --info: oklch(0.54 0.19 250);
+  --info-foreground: oklch(1 0 0);
+
+  /* ── Tokens específicos VanHora (âmbar contextual) ───────────────────────── */
   --vh-surface-warm: #F7F2E7;
   --vh-amber: #BA7517;
   --vh-amber-bg: #FAEEDA;
   --vh-amber-text: #854F0B;
   --vh-amber-border: #EF9F27;
   --vh-amber-card-bg: #FDF8ED;
+  --vh-heart: #D4537E;
+
+  /* ── Charts ─────────────────────────────────────────────────────────────── */
+  --chart-1: oklch(0.7227 0.192 149.5793);
+  --chart-2: oklch(0.6959 0.1491 162.4796);
+  --chart-3: oklch(0.596 0.1274 163.2254);
+  --chart-4: oklch(0.5081 0.1049 165.6121);
+  --chart-5: oklch(0.4318 0.0865 166.9128);
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────────── */
+  --sidebar: oklch(0.9514 0.025 236.8242);
+  --sidebar-foreground: oklch(0.3729 0.0306 259.7328);
+  --sidebar-primary: oklch(0.44 0.095 167);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.9505 0.0507 163.0508);
+  --sidebar-accent-foreground: oklch(0.3729 0.0306 259.7328);
+  --sidebar-border: oklch(0.9276 0.0058 264.5313);
+  --sidebar-ring: oklch(0.44 0.095 167);
+
+  /* ── Tipografia ──────────────────────────────────────────────────────────── */
+  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
+  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
+  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
+  --radius: 0.625rem;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   DARK MODE
+───────────────────────────────────────────────────────────────────────────── */
 .dark {
+  /* Base */
   --background: oklch(0.18 0.04 265);
   --foreground: oklch(0.8717 0.0093 258.3382);
   --card: oklch(0.26 0.035 260);
   --card-foreground: oklch(0.8717 0.0093 258.3382);
   --popover: oklch(0.2795 0.0368 260.031);
   --popover-foreground: oklch(0.8717 0.0093 258.3382);
+
+  /* Primary — verde claro (acessível em fundo escuro) */
   --primary: oklch(0.7729 0.1535 163.2231);
   --primary-foreground: oklch(0.2077 0.0398 265.7549);
+
   --secondary: oklch(0.3351 0.0331 260.912);
   --secondary-foreground: oklch(0.7118 0.0129 286.0665);
   --muted: oklch(0.22 0.028 260);
@@ -67,11 +110,42 @@
   --border: oklch(0.38 0.025 257);
   --input: oklch(0.4461 0.0263 256.8018);
   --ring: oklch(0.7729 0.1535 163.2231);
+
+  /* ── Tokens semânticos de status (dark) ──────────────────────────────────── */
+
+  /* success */
+  --success: oklch(0.7729 0.1535 163.2231);
+  --success-foreground: oklch(0.18 0.04 165);
+
+  /* warning */
+  --warning: oklch(0.78 0.16 68);
+  --warning-foreground: oklch(0.18 0.04 65);
+
+  /* danger */
+  --danger: oklch(0.68 0.21 25);
+  --danger-foreground: oklch(0.18 0.04 25);
+
+  /* info */
+  --info: oklch(0.72 0.17 245);
+  --info-foreground: oklch(0.18 0.04 245);
+
+  /* ── Tokens específicos VanHora (âmbar dark) ─────────────────────────────── */
+  --vh-surface-warm: #1A1815;
+  --vh-amber: #EF9F27;
+  --vh-amber-bg: #3D2A0B;
+  --vh-amber-text: #FAC775;
+  --vh-amber-border: #BA7517;
+  --vh-amber-card-bg: #241A0A;
+  --vh-heart: #D4537E;
+
+  /* ── Charts (dark) ───────────────────────────────────────────────────────── */
   --chart-1: oklch(0.7729 0.1535 163.2231);
   --chart-2: oklch(0.7845 0.1325 181.912);
   --chart-3: oklch(0.7227 0.192 149.5793);
   --chart-4: oklch(0.6959 0.1491 162.4796);
   --chart-5: oklch(0.596 0.1274 163.2254);
+
+  /* ── Sidebar (dark) ──────────────────────────────────────────────────────── */
   --sidebar: oklch(0.2795 0.0368 260.031);
   --sidebar-foreground: oklch(0.8717 0.0093 258.3382);
   --sidebar-primary: oklch(0.7729 0.1535 163.2231);
@@ -80,27 +154,30 @@
   --sidebar-accent-foreground: oklch(0.7118 0.0129 286.0665);
   --sidebar-border: oklch(0.4461 0.0263 256.8018);
   --sidebar-ring: oklch(0.7729 0.1535 163.2231);
+
   --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
   --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
   --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+
   --radius: 0.625rem;
-  --vh-surface-warm: #1A1815;
-  --vh-amber: #EF9F27;
-  --vh-amber-bg: #3D2A0B;
-  --vh-amber-text: #FAC775;
-  --vh-amber-border: #BA7517;
-  --vh-amber-card-bg: #241A0A;
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   @theme inline — expõe CSS vars ao Tailwind v4
+───────────────────────────────────────────────────────────────────────────── */
 @theme inline {
+  /* Base */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
+
+  /* Primary */
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
   --color-muted: var(--muted);
@@ -111,11 +188,34 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+
+  /* ── Semânticos ─────────────────────────────────────────────────────────── */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+
+  /* ── VanHora específicos ────────────────────────────────────────────────── */
+  --color-vh-surface-warm: var(--vh-surface-warm);
+  --color-vh-amber: var(--vh-amber);
+  --color-heart: var(--vh-heart);
+  --color-vh-amber-bg: var(--vh-amber-bg);
+  --color-vh-amber-text: var(--vh-amber-text);
+  --color-vh-amber-border: var(--vh-amber-border);
+  --color-vh-amber-card-bg: var(--vh-amber-card-bg);
+
+  /* ── Charts ─────────────────────────────────────────────────────────────── */
   --color-chart-1: var(--chart-1);
   --color-chart-2: var(--chart-2);
   --color-chart-3: var(--chart-3);
   --color-chart-4: var(--chart-4);
   --color-chart-5: var(--chart-5);
+
+  /* ── Sidebar ─────────────────────────────────────────────────────────────── */
   --color-sidebar: var(--sidebar);
   --color-sidebar-foreground: var(--sidebar-foreground);
   --color-sidebar-primary: var(--sidebar-primary);
@@ -124,27 +224,25 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-vh-surface-warm: var(--vh-surface-warm);
-  --color-vh-amber: var(--vh-amber);
-  --color-vh-amber-bg: var(--vh-amber-bg);
-  --color-vh-amber-text: var(--vh-amber-text);
-  --color-vh-amber-border: var(--vh-amber-border);
-  --color-vh-amber-card-bg: var(--vh-amber-card-bg);
 
-  --font-sans: 'Fira Sans', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
-  --font-serif: ui-serif, Georgia, Cambria, 'Times New Roman', Times, serif;
-
+  /* ── Tipografia ──────────────────────────────────────────────────────────── */
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
   --font-serif: var(--font-serif);
 
+  /* Tamanho extra-pequeno (11px) — complementa a escala padrão do Tailwind */
+  --text-2xs: 0.6875rem;
+
+  /* ── Border radius ───────────────────────────────────────────────────────── */
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base
+───────────────────────────────────────────────────────────────────────────── */
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -154,54 +252,37 @@
   }
 }
 
+/* ─────────────────────────────────────────────────────────────────────────────
+   Utilities
+───────────────────────────────────────────────────────────────────────────── */
 @layer utilities {
+  /* Rótulo de seção estilo eyebrow (usado em tabelas e grupos de navegação) */
+  .section-eyebrow {
+    @apply text-2xs font-semibold uppercase tracking-[0.6px] text-muted-foreground;
+  }
+
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: scale(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
+    from { opacity: 0; transform: scale(0.8); }
+    to   { opacity: 1; transform: scale(1); }
   }
 
   @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes collapsible-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-collapsible-content-height);
-    }
+    from { height: 0; }
+    to   { height: var(--radix-collapsible-content-height); }
   }
 
   @keyframes collapsible-up {
-    from {
-      height: var(--radix-collapsible-content-height);
-    }
-    to {
-      height: 0;
-    }
+    from { height: var(--radix-collapsible-content-height); }
+    to   { height: 0; }
   }
 
-  .animate-fade-in {
-    animation: fadeIn 0.8s ease-out;
-  }
-
-  .animate-slide-in {
-    animation: slideIn 1s ease-out forwards;
-  }
+  .animate-fade-in   { animation: fadeIn 0.8s ease-out; }
+  .animate-slide-in  { animation: slideIn 1s ease-out forwards; }
 
   .animate-collapsible-down {
     animation: collapsible-down 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -221,13 +302,8 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .animate-vh-heart-pulse {
-    animation: vh-heart-pulse 400ms ease;
-  }
-
-  .animate-vh-banner-appear {
-    animation: vh-banner-appear 200ms ease-out;
-  }
+  .animate-vh-heart-pulse  { animation: vh-heart-pulse 400ms ease; }
+  .animate-vh-banner-appear { animation: vh-banner-appear 200ms ease-out; }
 
   @keyframes bottom-nav-appear {
     from { transform: translateY(100%); }

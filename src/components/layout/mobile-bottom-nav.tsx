@@ -93,14 +93,14 @@ export function MobileBottomNav() {
                   className={cn(
                     'transition-colors',
                     active
-                      ? 'fill-current text-[#0F6E56]'
+                      ? 'fill-current text-primary'
                       : 'fill-none text-muted-foreground',
                   )}
                 />
                 <span
                   className={cn(
                     'text-[10px] font-medium',
-                    active ? 'text-[#0F6E56]' : 'text-muted-foreground',
+                    active ? 'text-primary' : 'text-muted-foreground',
                   )}
                 >
                   {label}
@@ -160,7 +160,7 @@ export function MobileBottomNav() {
               <span
                 className={cn(
                   'flex h-5 w-9 items-center rounded-full transition-colors duration-200',
-                  isDark ? 'bg-[#0F6E56]' : 'bg-muted',
+                  isDark ? 'bg-primary' : 'bg-muted',
                 )}
               >
                 <span

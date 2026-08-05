@@ -61,7 +61,8 @@ export const MOCK_ADMIN_DASHBOARD: AdminDashboardStats = {
       title: 'Atenção: 6 atrasos críticos nas últimas 24h',
       description:
         'Priorize investigação nas rotas com severidade alta.',
-      actionPath: '/admin/delays',
+      // filtra automaticamente por alta severidade nas últimas 24h ao chegar na página
+      actionPath: '/admin/delays?severity=high&period=24h',
     },
   ],
 

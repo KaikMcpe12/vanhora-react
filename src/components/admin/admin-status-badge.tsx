@@ -34,7 +34,7 @@ export function AdminStatusBadge({
     <span
       className={cn(
         'inline-flex items-center rounded-sm border font-medium',
-        size === 'sm' ? 'px-2 py-0.5 text-[10px]' : 'px-2.5 py-1 text-[12px]',
+        size === 'sm' ? 'px-2 py-0.5 text-2xs' : 'px-2.5 py-1 text-xs',
         variantClasses[variant],
       )}
     >

@@ -4,6 +4,7 @@ import {
   type AdminCooperative,
   MOCK_ADMIN_COOPERATIVES,
 } from '@/lib/data/mock-admin-cooperatives'
+import { queryKeys } from '@/lib/query-keys'
 
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -126,14 +127,14 @@ export const mockCooperativesApi = {
 
 export function useAdminCooperatives(filters: ListCooperativesFilters = {}) {
   return useQuery({
-    queryKey: ['admin', 'cooperatives', filters],
+    queryKey: queryKeys.admin.cooperatives.list(filters),
     queryFn: () => mockCooperativesApi.listCooperatives(filters),
   })
 }
 
 export function useCooperativeStats() {
   return useQuery({
-    queryKey: ['admin', 'cooperatives', 'stats'],
+    queryKey: queryKeys.admin.cooperatives.stats(),
     queryFn: () => mockCooperativesApi.getCooperativeStats(),
   })
 }
@@ -144,7 +145,7 @@ export function useCreateCooperative() {
     mutationFn: (payload: CreateCooperativePayload) =>
       mockCooperativesApi.createCooperative(payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
   })
 }
 
@@ -159,7 +160,7 @@ export function useUpdateCooperative() {
       payload: Partial<CreateCooperativePayload>
     }) => mockCooperativesApi.updateCooperative(id, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
   })
 }
 
@@ -174,6 +175,6 @@ export function useToggleCooperativeStatus() {
       newStatus: AdminCooperative['status']
     }) => mockCooperativesApi.toggleCooperativeStatus(id, newStatus),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
   })
 }

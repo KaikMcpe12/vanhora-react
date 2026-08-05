@@ -44,7 +44,7 @@ export function AppPortalHeader({
           {breadcrumb.length > 1 && (
             <nav
               aria-label="breadcrumb"
-              className="mt-0.5 flex items-center gap-1 text-[11px]"
+              className="mt-0.5 flex items-center gap-1 text-2xs"
             >
               {breadcrumb.map((item, index) => {
                 const isLast = index === breadcrumb.length - 1

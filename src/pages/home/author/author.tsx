@@ -1,6 +1,5 @@
-import { Code2, Heart, Wrench } from 'lucide-react'
+import { Code2, Github, Heart, Linkedin, Wrench } from 'lucide-react'
 import { useState } from 'react'
-import { FaGithub, FaLinkedin } from 'react-icons/fa'
 
 import { StubLink } from '@/components/ui/stub-link'
 
@@ -31,7 +30,7 @@ const iconWrap =
   'flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px] bg-vh-amber-bg text-vh-amber-text'
 
 const socialPill =
-  'inline-flex items-center gap-1.5 rounded-full border border-border/70 px-[10px] py-[5px] text-[12px] text-foreground transition-colors hover:border-[#0F6E56] hover:text-[#0F6E56]'
+  'inline-flex items-center gap-1.5 rounded-full border border-border/70 px-[10px] py-[5px] text-[12px] text-foreground transition-colors hover:border-primary hover:text-primary'
 
 export function Author() {
   const [imgError, setImgError] = useState(false)
@@ -73,7 +72,7 @@ export function Author() {
                     rel="noopener noreferrer"
                     className={socialPill}
                   >
-                    <FaGithub size={14} />
+                    <Github size={14} />
                     GitHub
                   </a>
                   <a
@@ -82,7 +81,7 @@ export function Author() {
                     rel="noopener noreferrer"
                     className={socialPill}
                   >
-                    <FaLinkedin size={14} />
+                    <Linkedin size={14} />
                     LinkedIn
                   </a>
                 </div>
@@ -164,9 +163,9 @@ export function Author() {
                   href="https://github.com/KaikMcpe12"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:border-[#0F6E56] hover:text-[#0F6E56]"
+                  className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-border px-4 py-2 text-[13px] font-medium text-foreground transition-colors hover:border-primary hover:text-primary"
                 >
-                  <FaGithub size={14} />
+                  <Github size={14} />
                   Ver no GitHub →
                 </a>
                 <StubLink className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-border px-4 py-2 text-[13px] font-medium text-foreground">

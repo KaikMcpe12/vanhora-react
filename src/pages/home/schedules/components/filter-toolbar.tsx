@@ -51,7 +51,7 @@ function FilterChip({ label, icon, active, badge, onClick, className }: FilterCh
         'flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-[5px]',
         'text-[12px] font-medium transition-all duration-150',
         active
-          ? 'border-[#0F6E56] text-[#0F6E56] bg-[rgba(15,110,86,0.06)] dark:bg-[rgba(15,110,86,0.12)]'
+          ? 'border-primary text-primary bg-primary/6 dark:bg-primary/12'
           : 'border-border/70 text-muted-foreground hover:border-border hover:text-foreground',
         className,
       )}
@@ -63,7 +63,7 @@ function FilterChip({ label, icon, active, badge, onClick, className }: FilterCh
           className={cn(
             'flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-semibold',
             active
-              ? 'bg-[#0F6E56] text-white'
+              ? 'bg-primary text-primary-foreground'
               : 'bg-muted text-muted-foreground',
           )}
         >
@@ -162,13 +162,13 @@ export function FilterToolbar({
                 className={cn(
                   'flex w-full cursor-pointer items-center justify-between rounded-lg px-4 py-3 text-[14px] transition-colors',
                   sortMode === mode
-                    ? 'bg-[rgba(15,110,86,0.08)] font-medium text-[#0F6E56]'
+                    ? 'bg-primary/8 font-medium text-primary'
                     : 'text-foreground hover:bg-muted/60',
                 )}
               >
                 {SORT_LABELS[mode]}
                 {sortMode === mode && (
-                  <span className="text-[#0F6E56] text-xs">✓</span>
+                  <span className="text-primary text-xs">✓</span>
                 )}
               </button>
             ))}

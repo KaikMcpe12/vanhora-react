@@ -347,7 +347,7 @@ function ScheduleRowItem({
           <span
             className={cn(
               'w-16 shrink-0 text-3xl font-bold leading-none',
-              isDimmed ? 'text-muted-foreground' : 'text-[#005ab4]',
+              isDimmed ? 'text-muted-foreground' : 'text-info',
             )}
           >
             {schedule.departureTime}

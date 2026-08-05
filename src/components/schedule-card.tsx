@@ -1,4 +1,4 @@
-import { ChevronDown, Heart } from 'lucide-react'
+import { ChevronDown, Heart, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 
@@ -13,6 +13,7 @@ import type { Schedule } from '@/lib/types/schedule'
 import { cn } from '@/lib/utils'
 import {
   getCooperativeColor,
+  getMinutesUntilDeparture,
   getVisualStatus,
 } from '@/lib/utils/schedule-status'
 
@@ -34,6 +35,19 @@ export function ScheduleCard({
   const cooperativeColor = getCooperativeColor(schedule.cooperativeName)
   const visualStatus = getVisualStatus(schedule.departureTime, schedule.badge)
   const isCancelled = visualStatus === 'cancelled'
+  const isPast = !isCancelled && getMinutesUntilDeparture(schedule.departureTime) < 0
+
+  // borda esquerda colorida por status (convenção de design flat do projeto)
+  const statusBorderClass =
+    isCancelled || isPast
+      ? 'border-l-4 border-l-slate-300 dark:border-l-slate-600'
+      : visualStatus === 'urgent'
+        ? 'border-l-4 border-l-emerald-500'
+        : visualStatus === 'delayed'
+          ? 'border-l-4 border-l-amber-500'
+          : ''
+
+  const mapUrl = `https://www.google.com/maps/dir/${encodeURIComponent(schedule.origin + ', Ceará, Brasil')}/${encodeURIComponent(schedule.destination + ', Ceará, Brasil')}`
 
   const stops: RouteStop[] = [
     { city: schedule.origin, time: schedule.departureTime, isEndpoint: true },
@@ -72,6 +86,7 @@ export function ScheduleCard({
       className={cn(
         'cursor-pointer bg-card rounded-[14px] border border-border/80 overflow-hidden',
         'transition-[opacity,transform] duration-150 hover:-translate-y-px',
+        statusBorderClass,
         isCancelled && 'opacity-80',
       )}
     >
@@ -97,8 +112,8 @@ export function ScheduleCard({
               className={cn(
                 'transition-colors duration-150',
                 heartPulsing && 'animate-vh-heart-pulse',
-                isFavorite
-                  ? 'fill-[#D4537E] text-[#D4537E]'
+                  isFavorite
+                  ? 'fill-heart text-heart'
                   : 'fill-none text-muted-foreground hover:text-foreground',
               )}
             />
@@ -204,17 +219,29 @@ export function ScheduleCard({
             {/* divider */}
             <div className="border-t border-border/40" />
 
-            {/* ver detalhes */}
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                setDialogOpen(true)
-              }}
-              className="flex w-full cursor-pointer items-center justify-end gap-1 text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
-            >
-              Ver detalhes da rota →
-            </button>
+            {/* ações da rota */}
+            <div className="flex items-center justify-between gap-3">
+              <a
+                href={mapUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex cursor-pointer items-center gap-1.5 text-[13px] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                <MapPin size={13} strokeWidth={1.75} />
+                Ver no mapa
+              </a>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setDialogOpen(true)
+                }}
+                className="flex cursor-pointer items-center gap-1 text-[13px] font-medium text-primary transition-opacity hover:opacity-75"
+              >
+                Ver detalhes →
+              </button>
+            </div>
           </div>
         </div>
       </div>

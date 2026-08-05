@@ -72,7 +72,7 @@ export function FeaturedScheduleCard({
         }
       }}
       className={cn(
-        'cursor-pointer bg-card rounded-[16px] border-[1.5px] border-[#0F6E56] overflow-hidden transition-opacity duration-200',
+        'cursor-pointer bg-card rounded-[16px] border-[1.5px] border-primary overflow-hidden transition-opacity duration-200',
         isCancelled && 'opacity-75',
         className,
       )}
@@ -104,8 +104,8 @@ export function FeaturedScheduleCard({
               strokeWidth={1.75}
               className={cn(
                 'transition-colors duration-150',
-                isFavorite
-                  ? 'fill-[#D4537E] text-[#D4537E]'
+                  isFavorite
+                  ? 'fill-heart text-heart'
                   : 'fill-none text-muted-foreground hover:text-foreground',
               )}
             />

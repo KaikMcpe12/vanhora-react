@@ -38,6 +38,7 @@ import {
 import { mockUsersApi } from '@/lib/api/mock-users-api'
 import type { User } from '@/lib/data/mock-users'
 import { MOCK_COOPERATIVES } from '@/lib/data/mock-users'
+import { queryKeys } from '@/lib/query-keys'
 import {
   type AppPortalRole,
   type AppPortalUser,
@@ -105,8 +106,7 @@ export function UsersPage() {
   const activeRoleFilter = roleFilter === 'all' ? undefined : roleFilter as UserRole
 
   const { data: usersData, isLoading } = useQuery({
-    queryKey: [
-      'users',
+    queryKey: queryKeys.users.list({
       search,
       statusFilters,
       roleFilter,
@@ -114,7 +114,7 @@ export function UsersPage() {
       currentPage,
       role,
       loggedInUserId,
-    ],
+    }),
     queryFn: () =>
       mockUsersApi.listUsers(
         {
@@ -135,7 +135,7 @@ export function UsersPage() {
     mutationFn: (payload: { userId: string; newStatus: UserStatus }) =>
       mockUsersApi.toggleUserStatus(payload),
     onSuccess: (user) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
       if (user) {
         const action = user.status === 'active' ? 'reativado' : 'desativado'
         toast.success(`Usuário "${user.name}" ${action} com sucesso`)
@@ -147,7 +147,7 @@ export function UsersPage() {
   })
 
   const { data: userStats } = useQuery({
-    queryKey: ['users', 'stats', role, loggedInCooperativeId],
+    queryKey: queryKeys.users.stats(role, loggedInCooperativeId),
     queryFn: () =>
       mockUsersApi.getUserStats(
         role as 'admin' | 'cooperative',

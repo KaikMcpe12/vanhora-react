@@ -16,6 +16,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton'
 import { mockUsersApi } from '@/lib/api/mock-users-api'
 import type { User } from '@/lib/data/mock-users'
+import { queryKeys } from '@/lib/query-keys'
 import { cn } from '@/lib/utils'
 
 import { UserAvatar } from './user-avatar'
@@ -60,7 +61,7 @@ export function DriverSchedulesModal({
   // O hook precisa rodar em toda render (rules-of-hooks); a query só dispara
   // quando o modal está aberto e o motorista é válido.
   const { data: schedulesData, isLoading } = useQuery({
-    queryKey: ['driver-schedules', driver?.id],
+    queryKey: queryKeys.users.driverSchedules(driver?.id),
     queryFn: () => mockUsersApi.getDriverSchedules(driver!.id),
     enabled: isOpen && isValidDriver,
   })

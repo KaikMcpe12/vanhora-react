@@ -1,9 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 
-import {
-  MOCK_ADMIN_DELAYS,
-} from '@/lib/data/mock-admin-delays'
+import { MOCK_ADMIN_DELAYS } from '@/lib/data/mock-admin-delays'
 import {
   type DriverProfile,
   type DriverRoute,
@@ -13,6 +11,18 @@ import {
   MOCK_DRIVER_SCHEDULES_TODAY,
 } from '@/lib/data/mock-driver-portal'
 import { queryKeys } from '@/lib/query-keys'
+import type { DelayCause } from '@/lib/schemas/report-delay'
+
+export interface ReportDelayPayload {
+  routeId: string
+  routeCode: string
+  routeName: string
+  scheduleId?: string
+  cause: DelayCause
+  delayMinutes: number
+  severity: 'low' | 'medium' | 'high'
+  reason?: string
+}
 
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -43,14 +53,7 @@ export const mockDriverPortalApi = {
     return MOCK_DRIVER_SCHEDULES_TODAY
   },
 
-  async reportDelay(payload: {
-    routeId: string
-    routeCode: string
-    routeName: string
-    delayMinutes: number
-    severity: 'low' | 'medium' | 'high'
-    reason: string
-  }): Promise<void> {
+  async reportDelay(payload: ReportDelayPayload): Promise<void> {
     await delay(API_DELAY)
     const newEntry = {
       id: `delay-driver-${Date.now()}`,
@@ -59,8 +62,9 @@ export const mockDriverPortalApi = {
       cooperativeId: driverProfileState.cooperativeId,
       cooperativeName: driverProfileState.cooperativeName,
       delayMinutes: payload.delayMinutes,
-      reason: payload.reason,
+      reason: payload.reason?.trim() ?? '',
       severity: payload.severity,
+      cause: payload.cause,
       reportedBy: driverProfileState.name,
       reportedAt: new Date().toISOString(),
       status: 'pending' as const,
@@ -82,7 +86,9 @@ export function useUpdateDriverProfile() {
     mutationFn: (data: Partial<Pick<DriverProfile, 'name' | 'phone'>>) =>
       mockDriverPortalApi.updateProfile(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.driver.portal.profile() })
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.driver.portal.profile(),
+      })
     },
   })
 }
@@ -104,14 +110,8 @@ export function useDriverSchedulesToday() {
 export function useReportDelay() {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (payload: {
-      routeId: string
-      routeCode: string
-      routeName: string
-      delayMinutes: number
-      severity: 'low' | 'medium' | 'high'
-      reason: string
-    }) => mockDriverPortalApi.reportDelay(payload),
+    mutationFn: (payload: ReportDelayPayload) =>
+      mockDriverPortalApi.reportDelay(payload),
     onSuccess: () => {
       // invalida a lista de atrasos no admin para refletir o novo registro
       queryClient.invalidateQueries({ queryKey: queryKeys.admin.delays.all() })

@@ -1,3 +1,5 @@
+import type { DelayCause } from '@/lib/schemas/report-delay'
+
 export interface AdminDelay {
   id: string
   routeCode: string
@@ -7,6 +9,8 @@ export interface AdminDelay {
   delayMinutes: number
   reason: string
   severity: 'low' | 'medium' | 'high'
+  // causa estruturada (enum) — opcional: registros antigos não a possuem
+  cause?: DelayCause
   reportedBy: string
   reportedAt: string
   status: 'pending' | 'resolved'

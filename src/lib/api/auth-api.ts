@@ -46,7 +46,6 @@ export interface RefreshResponse {
  */
 export function mapAuthUser(payload: AuthUserPayload): AppPortalUser {
   return {
-    id: payload.id,
     name: payload.name,
     email: payload.email,
     role: payload.role,

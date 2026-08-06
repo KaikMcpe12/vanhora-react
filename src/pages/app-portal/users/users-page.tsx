@@ -147,7 +147,7 @@ export function UsersPage() {
   })
 
   const { data: userStats } = useQuery({
-    queryKey: queryKeys.users.stats(role, loggedInCooperativeId),
+    queryKey: queryKeys.users.stats(role, loggedInCooperativeId ?? null),
     queryFn: () =>
       mockUsersApi.getUserStats(
         role as 'admin' | 'cooperative',

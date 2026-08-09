@@ -17,8 +17,6 @@ import type { AxiosInstance } from 'axios'
 
 import type { AppPortalRole, AppPortalUser } from '@/pages/app-portal/app-portal-navigation'
 
-// ─── Response shapes (mirror api-spec.md) ────────────────────────────────────
-
 export interface AuthUserPayload {
   id: string
   name: string
@@ -38,8 +36,6 @@ export interface RefreshResponse {
   refresh_token: string
 }
 
-// ─── Mapper ──────────────────────────────────────────────────────────────────
-
 /**
  * Converts the API user payload to the frontend AppPortalUser shape.
  * Centralise here so session.tsx stays clean.
@@ -52,8 +48,6 @@ export function mapAuthUser(payload: AuthUserPayload): AppPortalUser {
     ...(payload.cooperative_id ? { cooperativeId: payload.cooperative_id } : {}),
   }
 }
-
-// ─── API functions ────────────────────────────────────────────────────────────
 
 export async function signInRequest(
   client: AxiosInstance,

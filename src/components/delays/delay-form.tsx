@@ -10,6 +10,10 @@ import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
+import { ChoiceChips } from '@/components/forms/choice-chips'
+import { MinuteStepper } from '@/components/forms/minute-stepper'
+import { SelectableCard } from '@/components/forms/selectable-card'
+import { StepIndicator } from '@/components/forms/step-indicator'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -21,44 +25,15 @@ import {
   useReportDelay,
 } from '@/lib/api/mock-driver-portal-api'
 import type { DriverScheduleEntry } from '@/lib/data/mock-driver-portal'
+import { severityFromMinutes } from '@/lib/delays/severity'
 import {
   type ReportDelaySchema,
   reportDelaySchema,
 } from '@/lib/schemas/report-delay'
 import { cn } from '@/lib/utils'
 
-import { ChoiceChips } from './choice-chips'
 import { DELAY_CAUSE_OPTIONS } from './delay-causes'
-import { MinuteStepper } from './minute-stepper'
-import { SelectableCard } from './selectable-card'
-import { StepIndicator } from './step-indicator'
-
-// Débito local do PR1: a fonte única `src/lib/delays/severity.ts` nasce no PR2.
-type Severity = 'low' | 'medium' | 'high'
-
-function severityFromMinutes(min: number): Severity {
-  if (min < 15) return 'low'
-  if (min <= 30) return 'medium'
-  return 'high'
-}
-
-const SEVERITY_META: Record<Severity, { label: string; className: string }> = {
-  low: {
-    label: 'Baixo · < 15 min',
-    className:
-      'border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/10 dark:text-emerald-300',
-  },
-  medium: {
-    label: 'Médio · 15–30 min',
-    className:
-      'border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-300',
-  },
-  high: {
-    label: 'Alto · > 30 min',
-    className:
-      'border-red-200 bg-red-50 text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300',
-  },
-}
+import { SeverityBadge } from './severity-badge'
 
 const SCHEDULE_STATUS_LABEL: Record<DriverScheduleEntry['status'], string> = {
   scheduled: 'Programada',
@@ -121,7 +96,6 @@ export function DelayForm({
 
   const values = form.watch()
   const minutes = values.delayMinutes ?? DEFAULT_MINUTES
-  const severity = severityFromMinutes(minutes)
 
   const selectedRoute = routes.find((r) => r.id === values.routeId)
   const routeSchedules = selectedRoute
@@ -177,7 +151,7 @@ export function DelayForm({
         <Label>Causa do atraso</Label>
         <ChoiceChips
           options={DELAY_CAUSE_OPTIONS}
-          value={values.cause}
+          value={values.cause ?? null}
           onChange={(v) => form.setValue('cause', v, { shouldValidate: true })}
           ariaLabel="Causa do atraso"
         />
@@ -192,6 +166,7 @@ export function DelayForm({
         <Label>Minutos de atraso</Label>
         <MinuteStepper
           value={minutes}
+          step={5}
           onChange={(v) =>
             form.setValue('delayMinutes', v, { shouldValidate: true })
           }
@@ -200,15 +175,7 @@ export function DelayForm({
           <span className="text-muted-foreground text-xs">
             Severidade automática:
           </span>
-          <Badge
-            variant="outline"
-            className={cn(
-              'gap-1.5 px-3 py-1 font-semibold',
-              SEVERITY_META[severity].className,
-            )}
-          >
-            {SEVERITY_META[severity].label}
-          </Badge>
+          <SeverityBadge minutes={minutes} showRange />
         </div>
       </div>
 
@@ -326,14 +293,19 @@ export function DelayForm({
                           })
                           form.setValue('scheduleId', undefined)
                         }}
-                        title={`${r.code} · ${r.name}`}
-                        subtitle={`${r.origin} → ${r.destination}`}
-                        meta={
-                          <span className="text-muted-foreground text-xs">
-                            {r.schedulesTodayCount} hoje
-                          </span>
-                        }
-                      />
+                      >
+                        <div className="flex-1 space-y-0.5">
+                          <div className="font-medium">
+                            {r.code} · {r.name}
+                          </div>
+                          <div className="text-muted-foreground text-sm">
+                            {r.origin} → {r.destination}
+                          </div>
+                        </div>
+                        <span className="text-muted-foreground text-xs">
+                          {r.schedulesTodayCount} hoje
+                        </span>
+                      </SelectableCard>
                     ))
                   )}
                 </div>
@@ -363,14 +335,19 @@ export function DelayForm({
                             shouldValidate: true,
                           })
                         }
-                        title={`${s.departureTime} → ${s.arrivalEstimate}`}
-                        subtitle={`${s.origin} → ${s.destination}`}
-                        meta={
-                          <Badge variant="outline" className="text-xs">
-                            {SCHEDULE_STATUS_LABEL[s.status]}
-                          </Badge>
-                        }
-                      />
+                      >
+                        <div className="flex-1 space-y-0.5">
+                          <div className="font-medium">
+                            {s.departureTime} → {s.arrivalEstimate}
+                          </div>
+                          <div className="text-muted-foreground text-sm">
+                            {s.origin} → {s.destination}
+                          </div>
+                        </div>
+                        <Badge variant="outline" className="text-xs">
+                          {SCHEDULE_STATUS_LABEL[s.status]}
+                        </Badge>
+                      </SelectableCard>
                     ))
                   )}
                 </div>

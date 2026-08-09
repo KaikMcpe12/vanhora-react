@@ -4,12 +4,13 @@ import { useState } from 'react'
 import {
   AdminEmptyState,
   AdminStat,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
 import type { User } from '@/lib/data/mock-users'
+import { USER_STATUS_META } from '@/lib/status/status-meta'
 import { ViewUserModal } from '@/pages/app-portal/users/view-user-modal'
 
 import { getCooperativeDrivers } from '../cooperative-data'
@@ -26,10 +27,10 @@ export function DriversTab({ cooperative }: { cooperative: AdminCooperative }) {
       label: 'Motorista',
       render: (u) => (
         <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-bold text-primary">
+          <span className="bg-primary/10 text-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold">
             {getInitials(u.name)}
           </span>
-          <span className="font-medium text-foreground">{u.name}</span>
+          <span className="text-foreground font-medium">{u.name}</span>
         </div>
       ),
     },
@@ -38,19 +39,14 @@ export function DriversTab({ cooperative }: { cooperative: AdminCooperative }) {
       label: 'Email',
       hideOnMobile: true,
       render: (u) => (
-        <span className="text-[13px] text-muted-foreground">{u.email}</span>
+        <span className="text-muted-foreground text-[13px]">{u.email}</span>
       ),
     },
     {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (u) => (
-        <AdminStatusBadge
-          variant={u.status === 'active' ? 'success' : 'neutral'}
-          label={u.status === 'active' ? 'Ativo' : 'Inativo'}
-        />
-      ),
+      render: (u) => <StatusChip {...USER_STATUS_META[u.status]} />,
     },
   ]
 

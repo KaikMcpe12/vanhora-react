@@ -9,11 +9,7 @@
  * setTokens() on sign-in and clearTokens() on sign-out.
  */
 
-// ─── Keys ────────────────────────────────────────────────────────────────────
-
 const REFRESH_TOKEN_KEY = 'vanhora-refresh-token'
-
-// ─── In-memory access token ───────────────────────────────────────────────────
 
 let _accessToken: string | null = null
 
@@ -28,8 +24,6 @@ export function setAccessToken(token: string): void {
 export function clearAccessToken(): void {
   _accessToken = null
 }
-
-// ─── Persisted refresh token ─────────────────────────────────────────────────
 
 export function getRefreshToken(): string | null {
   try {
@@ -54,8 +48,6 @@ export function clearRefreshToken(): void {
     // ignore
   }
 }
-
-// ─── Convenience helpers ──────────────────────────────────────────────────────
 
 export function setTokens(accessToken: string, refreshToken: string): void {
   setAccessToken(accessToken)

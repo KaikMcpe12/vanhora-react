@@ -1,6 +1,7 @@
 import { RotateCcw } from 'lucide-react'
 
-import { AdminStatusBadge } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,13 +12,8 @@ import {
 } from '@/components/ui/dialog'
 import { Skeleton } from '@/components/ui/skeleton'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
-
-function getSeverityBadge(severity: AdminDelay['severity']) {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium')
-    return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
-}
+import { DELAY_STATUS_META } from '@/lib/status/status-meta'
+import { formatDelayDateTime } from '@/lib/utils/format'
 
 interface DelayDetailDialogProps {
   delay: AdminDelay | null
@@ -61,10 +57,17 @@ export function DelayDetailDialog({
   const canAct = Boolean(onResolve && onReopen)
 
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) onClose() }}>
+    <Dialog
+      open={open}
+      onOpenChange={(o) => {
+        if (!o) onClose()
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-[15px] font-medium">Detalhes do atraso</DialogTitle>
+          <DialogTitle className="text-[15px] font-medium">
+            Detalhes do atraso
+          </DialogTitle>
         </DialogHeader>
 
         {isLoadingDelay || !delay ? (
@@ -73,71 +76,71 @@ export function DelayDetailDialog({
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Rota
                 </p>
-                <p className="mt-0.5 text-[13px] font-medium text-foreground">
+                <p className="text-foreground mt-0.5 text-[13px] font-medium">
                   {delay.routeCode} — {delay.routeName}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Cooperativa
                 </p>
-                <p className="mt-0.5 text-[13px] text-foreground">{delay.cooperativeName}</p>
+                <p className="text-foreground mt-0.5 text-[13px]">
+                  {delay.cooperativeName}
+                </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Data e hora
                 </p>
-                <p className="mt-0.5 text-[13px] text-foreground">
-                  {new Date(delay.reportedAt).toLocaleString('pt-BR')}
+                <p className="text-foreground mt-0.5 text-[13px]">
+                  {formatDelayDateTime(delay.reportedAt)}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Atraso
                 </p>
                 <div className="mt-0.5 flex items-center gap-2">
-                  <span className="text-[13px] font-semibold text-foreground">
+                  <span className="text-foreground text-[13px] font-semibold">
                     {delay.delayMinutes} min
                   </span>
-                  <AdminStatusBadge {...getSeverityBadge(delay.severity)} />
+                  <SeverityBadge severity={delay.severity} />
                 </div>
               </div>
               <div className="col-span-2">
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Motivo
                 </p>
-                <p className="mt-0.5 text-[13px] leading-relaxed text-foreground">
+                <p className="text-foreground mt-0.5 text-[13px] leading-relaxed">
                   {delay.reason}
                 </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Reportado por
                 </p>
-                <p className="mt-0.5 text-[13px] text-foreground">{delay.reportedBy}</p>
+                <p className="text-foreground mt-0.5 text-[13px]">
+                  {delay.reportedBy}
+                </p>
               </div>
               <div>
-                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                   Status
                 </p>
                 <div className="mt-0.5">
-                  <AdminStatusBadge
-                    variant={delay.status === 'resolved' ? 'success' : 'attention'}
-                    label={delay.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-                    size="md"
-                  />
+                  <StatusChip {...DELAY_STATUS_META[delay.status]} />
                 </div>
               </div>
               {delay.resolvedAt && (
                 <div className="col-span-2">
-                  <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+                  <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
                     Resolvido em
                   </p>
-                  <p className="mt-0.5 text-[13px] text-foreground">
-                    {new Date(delay.resolvedAt).toLocaleString('pt-BR')}
+                  <p className="text-foreground mt-0.5 text-[13px]">
+                    {formatDelayDateTime(delay.resolvedAt)}
                   </p>
                 </div>
               )}
@@ -149,9 +152,14 @@ export function DelayDetailDialog({
           <Button variant="outline" onClick={onClose}>
             Fechar
           </Button>
-          {canAct && delay && !isLoadingDelay &&
+          {canAct &&
+            delay &&
+            !isLoadingDelay &&
             (delay.status === 'pending' ? (
-              <Button onClick={() => onResolve!(delay.id)} disabled={isResolving}>
+              <Button
+                onClick={() => onResolve!(delay.id)}
+                disabled={isResolving}
+              >
                 {isResolving ? 'Resolvendo...' : 'Marcar como resolvido'}
               </Button>
             ) : (

@@ -1,6 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Globe, ImageIcon } from 'lucide-react'
-import { useEffect } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
@@ -17,6 +16,7 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import { useFormDialogState } from '@/hooks/use-form-dialog-state'
 import {
   type CreateCooperativePayload,
   useCreateCooperative,
@@ -34,7 +34,9 @@ interface CooperativeFormDrawerProps {
   cooperative?: AdminCooperative | null
 }
 
-function toDefaults(cooperative?: AdminCooperative | null): CooperativeFormValues {
+function toDefaults(
+  cooperative?: AdminCooperative | null,
+): CooperativeFormValues {
   return {
     name: cooperative?.name ?? '',
     phone: cooperative?.phone ?? '',
@@ -66,11 +68,8 @@ export function CooperativeFormDrawer({
     defaultValues: toDefaults(cooperative),
   })
 
-  // Sync fields whenever the drawer opens (covers programmatic opens, which do
-  // not fire onOpenChange).
-  useEffect(() => {
-    if (open) reset(toDefaults(cooperative))
-  }, [open, cooperative, reset])
+  // Sincroniza os campos quando o drawer abre (inclui aberturas programáticas).
+  useFormDialogState(open, cooperative, (c) => reset(toDefaults(c)))
 
   const submit = handleSubmit(async (values) => {
     const payload: CreateCooperativePayload = values
@@ -84,7 +83,9 @@ export function CooperativeFormDrawer({
       }
       onOpenChange(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Ocorreu um erro inesperado')
+      toast.error(
+        err instanceof Error ? err.message : 'Ocorreu um erro inesperado',
+      )
     }
   })
 
@@ -114,7 +115,11 @@ export function CooperativeFormDrawer({
                 aria-invalid={!!errors.name}
                 className="text-sm"
               />
-              {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+              {errors.name && (
+                <p className="text-destructive text-xs">
+                  {errors.name.message}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px]">Cor da marca</Label>
@@ -127,7 +132,7 @@ export function CooperativeFormDrawer({
                       type="color"
                       value={field.value}
                       onChange={(e) => field.onChange(e.target.value)}
-                      className="h-9 w-12 cursor-pointer rounded-md border border-border p-0.5"
+                      className="border-border h-9 w-12 cursor-pointer rounded-md border p-0.5"
                     />
                     <Input
                       value={field.value}
@@ -141,7 +146,9 @@ export function CooperativeFormDrawer({
                 )}
               />
               {errors.brandColor && (
-                <p className="text-xs text-destructive">{errors.brandColor.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.brandColor.message}
+                </p>
               )}
             </div>
             <div className="space-y-1.5">
@@ -170,12 +177,16 @@ export function CooperativeFormDrawer({
                   />
                 )}
               />
-              {errors.phone && <p className="text-xs text-destructive">{errors.phone.message}</p>}
+              {errors.phone && (
+                <p className="text-destructive text-xs">
+                  {errors.phone.message}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px]">Site (opcional)</Label>
-              <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
-                <Globe className="h-4 w-4 text-muted-foreground" />
+              <div className="border-input bg-background flex items-center gap-2 rounded-md border px-3">
+                <Globe className="text-muted-foreground h-4 w-4" />
                 <Input
                   {...register('site')}
                   placeholder="https://..."
@@ -183,12 +194,16 @@ export function CooperativeFormDrawer({
                   className="border-0 bg-transparent px-0 text-sm focus-visible:ring-0"
                 />
               </div>
-              {errors.site && <p className="text-xs text-destructive">{errors.site.message}</p>}
+              {errors.site && (
+                <p className="text-destructive text-xs">
+                  {errors.site.message}
+                </p>
+              )}
             </div>
             <div className="space-y-1.5">
               <Label className="text-[13px]">URL do logotipo (opcional)</Label>
-              <div className="flex items-center gap-2 rounded-md border border-input bg-background px-3">
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
+              <div className="border-input bg-background flex items-center gap-2 rounded-md border px-3">
+                <ImageIcon className="text-muted-foreground h-4 w-4" />
                 <Input
                   {...register('logoUrl')}
                   placeholder="https://..."
@@ -196,13 +211,15 @@ export function CooperativeFormDrawer({
                 />
               </div>
               {errors.logoUrl && (
-                <p className="text-xs text-destructive">{errors.logoUrl.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.logoUrl.message}
+                </p>
               )}
             </div>
           </div>
         </form>
 
-        <SheetFooter className="border-t border-border pt-4">
+        <SheetFooter className="border-border border-t pt-4">
           <Button
             type="button"
             variant="ghost"

@@ -14,16 +14,12 @@ import {
 import { Label } from '@/components/ui/label'
 import { getBasePathByRole, useSession } from '@/lib/auth/session'
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
 const signInSchema = z.object({
   email: z.string().email('E-mail inválido'),
   password: z.string().min(1, 'Senha é obrigatória'),
 })
 
 type SignInInput = z.infer<typeof signInSchema>
-
-// ─── Component ───────────────────────────────────────────────────────────────
 
 export function SignIn() {
   const { signIn } = useSession()

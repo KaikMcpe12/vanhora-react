@@ -2,23 +2,19 @@ import { CalendarCheck2 } from 'lucide-react'
 
 import {
   AdminEmptyState,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import { useDriverSchedulesToday } from '@/lib/api/mock-driver-portal-api'
 import type { DriverScheduleEntry } from '@/lib/data/mock-driver-portal'
+import { DRIVER_SCHEDULE_STATUS_META } from '@/lib/status/status-meta'
 
 function getScheduleBadge(entry: DriverScheduleEntry) {
-  if (entry.status === 'completed') return { variant: 'success' as const, label: 'Concluído' }
-  if (entry.status === 'cancelled') return { variant: 'critical' as const, label: 'Cancelado' }
-  if (entry.status === 'delayed')
-    return {
-      variant: 'attention' as const,
-      label: entry.delayMinutes ? `Atrasado ${entry.delayMinutes}m` : 'Atrasado',
-    }
-  if (entry.status === 'on_time') return { variant: 'success' as const, label: 'No horário' }
-  return { variant: 'info' as const, label: 'Programado' }
+  const meta = DRIVER_SCHEDULE_STATUS_META[entry.status]
+  if (entry.status === 'delayed' && entry.delayMinutes)
+    return { ...meta, label: `Atrasado ${entry.delayMinutes}m` }
+  return meta
 }
 
 export function DriverMySchedulesPage() {
@@ -30,7 +26,9 @@ export function DriverMySchedulesPage() {
       label: 'Partida',
       width: '80px',
       render: (s) => (
-        <span className="text-[13px] font-semibold text-foreground">{s.departureTime}</span>
+        <span className="text-foreground text-[13px] font-semibold">
+          {s.departureTime}
+        </span>
       ),
     },
     {
@@ -39,7 +37,9 @@ export function DriverMySchedulesPage() {
       width: '90px',
       hideOnMobile: true,
       render: (s) => (
-        <span className="text-xs text-muted-foreground">{s.arrivalEstimate}</span>
+        <span className="text-muted-foreground text-xs">
+          {s.arrivalEstimate}
+        </span>
       ),
     },
     {
@@ -47,39 +47,26 @@ export function DriverMySchedulesPage() {
       label: 'Rota',
       render: (s) => (
         <div>
-          <p className="text-[13px] font-medium text-foreground">
+          <p className="text-foreground text-[13px] font-medium">
             {s.routeCode} — {s.routeName}
           </p>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             {s.origin} → {s.destination}
           </p>
         </div>
       ),
     },
     {
-      key: 'passengers',
-      label: 'Passageiros',
-      width: '110px',
-      align: 'right',
-      hideOnMobile: true,
-      render: (s) => (
-        <span className="text-[13px] text-muted-foreground">
-          {s.status === 'scheduled' ? '—' : `${s.passengers}/${s.capacity}`}
-        </span>
-      ),
-    },
-    {
       key: 'status',
       label: 'Status',
       width: '130px',
-      render: (s) => <AdminStatusBadge {...getScheduleBadge(s)} />,
+      render: (s) => <StatusChip {...getScheduleBadge(s)} />,
     },
   ]
 
-  const completedCount = schedules.filter((s) => s.status === 'completed').length
-  const totalPassengers = schedules
-    .filter((s) => s.status === 'completed')
-    .reduce((sum, s) => sum + s.passengers, 0)
+  const completedCount = schedules.filter(
+    (s) => s.status === 'completed',
+  ).length
 
   return (
     <section className="space-y-6">
@@ -98,9 +85,8 @@ export function DriverMySchedulesPage() {
       />
 
       {!isLoading && schedules.length > 0 && (
-        <p className="text-xs text-muted-foreground">
-          {completedCount} de {schedules.length} viagens concluídas ·{' '}
-          {totalPassengers} passageiros transportados
+        <p className="text-muted-foreground text-xs">
+          {completedCount} de {schedules.length} viagens concluídas
         </p>
       )}
     </section>

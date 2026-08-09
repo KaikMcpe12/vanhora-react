@@ -28,8 +28,6 @@ import {
   type AppPortalUser,
 } from '@/pages/app-portal/app-portal-navigation'
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
 export type SessionStatus = 'loading' | 'authenticated' | 'unauthenticated'
 
 export interface SessionContextValue {
@@ -44,8 +42,6 @@ interface StoredSession {
   expiresAt: number
 }
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
 const SESSION_KEY = 'vanhora-session'
 const SESSION_TTL_MS = 8 * 60 * 60 * 1000 // 8 h
 
@@ -54,8 +50,6 @@ const SESSION_TTL_MS = 8 * 60 * 60 * 1000 // 8 h
  * When it is absent (local dev without backend) the mock path runs instead.
  */
 const USE_REAL_API = Boolean(env.VITE_API_URL)
-
-// ─── Mock credentials (dev only) ─────────────────────────────────────────────
 
 /**
  * Mock credentials — only used when VITE_API_URL is not configured.
@@ -66,8 +60,6 @@ const MOCK_CREDENTIALS: Record<string, AppPortalUser> = {
   'coop@vanhora.dev': APP_PORTAL_MOCK_USERS.cooperative,
   'driver@vanhora.dev': APP_PORTAL_MOCK_USERS.driver,
 }
-
-// ─── localStorage helpers (mock session) ─────────────────────────────────────
 
 function readStoredSession(): AppPortalUser | null {
   try {
@@ -93,11 +85,7 @@ function deleteStoredSession(): void {
   localStorage.removeItem(SESSION_KEY)
 }
 
-// ─── Context ─────────────────────────────────────────────────────────────────
-
 const SessionContext = createContext<SessionContextValue | null>(null)
-
-// ─── Provider ────────────────────────────────────────────────────────────────
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [status, setStatus] = useState<SessionStatus>('loading')
@@ -193,8 +181,6 @@ export function SessionProvider({ children }: { children: ReactNode }) {
   )
 }
 
-// ─── Hook ────────────────────────────────────────────────────────────────────
-
 export function useSession(): SessionContextValue {
   const ctx = useContext(SessionContext)
   if (!ctx) {
@@ -202,8 +188,6 @@ export function useSession(): SessionContextValue {
   }
   return ctx
 }
-
-// ─── Helpers role ↔ path ─────────────────────────────────────────────────────
 
 export function getBasePathByRole(role: AppPortalRole): string {
   const map: Record<AppPortalRole, string> = {

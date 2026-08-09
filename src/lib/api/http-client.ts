@@ -29,15 +29,11 @@ import {
 
 import { refreshRequest } from './auth-api'
 
-// ─── Base instance ────────────────────────────────────────────────────────────
-
 export const apiClient: AxiosInstance = axios.create({
   baseURL: env.VITE_API_URL ?? '',
   headers: { 'Content-Type': 'application/json' },
   timeout: 15_000,
 })
-
-// ─── Request interceptor — attach Bearer token ────────────────────────────────
 
 apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const token = getAccessToken()
@@ -46,8 +42,6 @@ apiClient.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   }
   return config
 })
-
-// ─── Response interceptor — silent refresh on 401 ────────────────────────────
 
 /** Tracks whether a refresh is already in-flight to avoid cascading retries. */
 let isRefreshing = false

@@ -1,11 +1,4 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Eye,
-  Timer,
-  X,
-} from 'lucide-react'
+import { AlertTriangle, CheckCircle2, Clock, Eye, Timer, X } from 'lucide-react'
 import {
   parseAsArrayOf,
   parseAsString,
@@ -20,11 +13,12 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import {
   Select,
   SelectContent,
@@ -40,6 +34,8 @@ import {
 } from '@/lib/api/mock-delays-api'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
 import { MOCK_COOP_PORTAL_USER_ID } from '@/lib/data/mock-cooperative-portal'
+import { DELAY_STATUS_META } from '@/lib/status/status-meta'
+import { formatDelayDateTime } from '@/lib/utils/format'
 
 import { DelayDetailDialog } from '../admin/delay-detail-dialog'
 
@@ -51,21 +47,6 @@ const delayFilterParsers = {
   period: parseAsStringLiteral(DELAY_PERIODS).withDefault('30d'),
   severity: parseAsString.withDefault(''),
   statusFilter: parseAsArrayOf(parseAsString).withDefault([]),
-}
-
-function getSeverityBadge(severity: AdminDelay['severity']) {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
-}
-
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
 }
 
 function truncateText(text: string, max: number) {
@@ -113,8 +94,8 @@ export function CooperativeDelaysPage() {
       width: '120px',
       hideOnMobile: true,
       render: (d) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(d.reportedAt)}
+        <span className="text-muted-foreground text-xs">
+          {formatDelayDateTime(d.reportedAt)}
         </span>
       ),
     },
@@ -122,7 +103,7 @@ export function CooperativeDelaysPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="text-[13px] font-medium text-foreground">
+        <span className="text-foreground text-[13px] font-medium">
           {d.routeCode} — {d.routeName}
         </span>
       ),
@@ -141,7 +122,7 @@ export function CooperativeDelaysPage() {
       label: 'Motivo',
       hideOnMobile: true,
       render: (d) => (
-        <span className="text-[13px] text-muted-foreground" title={d.reason}>
+        <span className="text-muted-foreground text-[13px]" title={d.reason}>
           {truncateText(d.reason, 45)}
         </span>
       ),
@@ -150,18 +131,13 @@ export function CooperativeDelaysPage() {
       key: 'severity',
       label: 'Severidade',
       width: '110px',
-      render: (d) => <AdminStatusBadge {...getSeverityBadge(d.severity)} />,
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (d) => (
-        <AdminStatusBadge
-          variant={d.status === 'resolved' ? 'success' : 'attention'}
-          label={d.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-        />
-      ),
+      render: (d) => <StatusChip {...DELAY_STATUS_META[d.status]} />,
     },
     {
       key: 'actions',
@@ -242,7 +218,9 @@ export function CooperativeDelaysPage() {
 
             <Select
               value={severity || 'all'}
-              onValueChange={(v) => setFilters({ severity: v === 'all' ? '' : v })}
+              onValueChange={(v) =>
+                setFilters({ severity: v === 'all' ? '' : v })
+              }
             >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Severidade" />
@@ -273,7 +251,11 @@ export function CooperativeDelaysPage() {
         emptyState={
           <AdminEmptyState
             icon={hasFilters ? X : CheckCircle2}
-            title={hasFilters ? 'Nenhum atraso nos filtros' : 'Sem atrasos reportados'}
+            title={
+              hasFilters
+                ? 'Nenhum atraso nos filtros'
+                : 'Sem atrasos reportados'
+            }
             description={
               hasFilters
                 ? 'Ajuste os filtros para ver mais registros.'

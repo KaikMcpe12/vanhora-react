@@ -8,19 +8,25 @@ import {
   TrendingUp,
 } from 'lucide-react'
 
-import { AdminStatusBadge } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
 
 import { getCooperativeRoutes, getCooperativeStats } from '../cooperative-data'
 import { routeStatusBadge } from '../cooperative-shared'
 
-function CardHeader({ icon: Icon, title }: { icon: LucideIcon; title: string }) {
+function CardHeader({
+  icon: Icon,
+  title,
+}: {
+  icon: LucideIcon
+  title: string
+}) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+      <span className="bg-primary/10 text-primary flex h-7 w-7 shrink-0 items-center justify-center rounded-md">
         <Icon className="h-4 w-4" />
       </span>
-      <p className="text-[13px] font-semibold text-foreground">{title}</p>
+      <p className="text-foreground text-[13px] font-semibold">{title}</p>
     </div>
   )
 }
@@ -36,14 +42,14 @@ function InfoRow({
 }) {
   return (
     <div className="flex items-start gap-3">
-      <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+      <span className="bg-muted text-muted-foreground mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg">
         <Icon className="h-4 w-4" />
       </span>
       <div className="min-w-0">
-        <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
+        <p className="text-muted-foreground text-[11px] font-medium tracking-wide uppercase">
           {label}
         </p>
-        <p className="truncate text-[13px] text-foreground">{value || '—'}</p>
+        <p className="text-foreground truncate text-[13px]">{value || '—'}</p>
       </div>
     </div>
   )
@@ -57,7 +63,7 @@ export function GeneralTab({ cooperative }: { cooperative: AdminCooperative }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
       {/* Informações */}
-      <div className="space-y-4 rounded-xl border border-border bg-card p-5 lg:col-span-2">
+      <div className="border-border bg-card space-y-4 rounded-xl border p-5 lg:col-span-2">
         <CardHeader icon={Info} title="Informações" />
         <div className="grid gap-4 sm:grid-cols-2">
           <InfoRow icon={Phone} label="Telefone" value={cooperative.phone} />
@@ -74,31 +80,31 @@ export function GeneralTab({ cooperative }: { cooperative: AdminCooperative }) {
           />
         </div>
         {cooperative.description && (
-          <p className="border-t border-border pt-3 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="border-border text-muted-foreground border-t pt-3 text-[13px] leading-relaxed">
             {cooperative.description}
           </p>
         )}
       </div>
 
       {/* Taxa de pontualidade — highlight (recent_history.on_time_rate) */}
-      <div className="flex flex-col justify-between rounded-xl border border-primary/20 bg-primary/5 p-5">
-        <div className="flex items-center gap-2 text-primary">
+      <div className="border-primary/20 bg-primary/5 flex flex-col justify-between rounded-xl border p-5">
+        <div className="text-primary flex items-center gap-2">
           <TrendingUp className="h-4 w-4" />
           <p className="text-[13px] font-semibold">Taxa de pontualidade</p>
         </div>
-        <p className="mt-3 text-[40px] font-semibold leading-none text-primary">
+        <p className="text-primary mt-3 text-[40px] leading-none font-semibold">
           {stats.onTimeRate}%
         </p>
-        <p className="mt-2 text-[12px] text-muted-foreground">
+        <p className="text-muted-foreground mt-2 text-[12px]">
           {stats.pendingDelays} atraso(s) pendente(s) no período.
         </p>
       </div>
 
       {/* Principais rotas */}
-      <div className="space-y-3 rounded-xl border border-border bg-card p-5 lg:col-span-3">
+      <div className="border-border bg-card space-y-3 rounded-xl border p-5 lg:col-span-3">
         <CardHeader icon={RouteIcon} title="Principais rotas" />
         {routes.length === 0 ? (
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-muted-foreground text-[13px]">
             Nenhuma rota cadastrada para esta cooperativa.
           </p>
         ) : (
@@ -106,18 +112,18 @@ export function GeneralTab({ cooperative }: { cooperative: AdminCooperative }) {
             {routes.slice(0, 4).map((r) => (
               <div
                 key={r.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2.5"
+                className="border-border flex items-center justify-between gap-3 rounded-lg border px-3 py-2.5"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-[13px] font-medium text-foreground">
+                  <p className="text-foreground truncate text-[13px] font-medium">
                     {r.name}{' '}
                     <span className="text-muted-foreground">({r.code})</span>
                   </p>
-                  <p className="truncate text-[12px] text-muted-foreground">
+                  <p className="text-muted-foreground truncate text-[12px]">
                     {r.origin} → {r.destination}
                   </p>
                 </div>
-                <AdminStatusBadge {...routeStatusBadge(r.status)} />
+                <StatusChip {...routeStatusBadge(r.status)} />
               </div>
             ))}
           </div>

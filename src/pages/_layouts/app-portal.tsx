@@ -29,15 +29,11 @@ import {
 } from '@/pages/app-portal/app-portal-navigation'
 import type { RouteHandle } from '@/routes'
 
-// ─── Outlet context (exportado para as páginas filhas) ────────────────────────
-
 export interface AppPortalOutletContext {
   role: AppPortalRole
   user: AppPortalUser
   basePath: string
 }
-
-// ─── Loading skeleton ─────────────────────────────────────────────────────────
 
 function PortalSkeleton() {
   return (
@@ -55,8 +51,6 @@ function PortalSkeleton() {
     </div>
   )
 }
-
-// ─── Layout ───────────────────────────────────────────────────────────────────
 
 export function AppPortalLayout() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)

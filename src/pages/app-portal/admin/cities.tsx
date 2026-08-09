@@ -9,7 +9,7 @@ import {
   Route,
   X,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { toast } from 'sonner'
 
 import {
@@ -18,11 +18,11 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -40,6 +40,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useFormDialogState } from '@/hooks/use-form-dialog-state'
 import {
   useAdminCities,
   useCityStats,
@@ -48,10 +49,36 @@ import {
   useUpdateCity,
 } from '@/lib/api/mock-cities-api'
 import type { AdminCity } from '@/lib/data/mock-admin-cities'
+import { ROUTE_STATUS_META } from '@/lib/status/status-meta'
 
 const UF_OPTIONS = [
-  'AC','AL','AP','AM','BA','CE','DF','ES','GO','MA','MT','MS','MG','PA',
-  'PB','PR','PE','PI','RJ','RN','RS','RO','RR','SC','SP','SE','TO',
+  'AC',
+  'AL',
+  'AP',
+  'AM',
+  'BA',
+  'CE',
+  'DF',
+  'ES',
+  'GO',
+  'MA',
+  'MT',
+  'MS',
+  'MG',
+  'PA',
+  'PB',
+  'PR',
+  'PE',
+  'PI',
+  'RJ',
+  'RN',
+  'RS',
+  'RO',
+  'RR',
+  'SC',
+  'SP',
+  'SE',
+  'TO',
 ]
 
 interface CityFormDialogProps {
@@ -68,14 +95,11 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
   const createCity = useCreateCity()
   const updateCity = useUpdateCity()
 
-  // Sync fields whenever the dialog opens (covers programmatic opens, which do
-  // not fire onOpenChange).
-  useEffect(() => {
-    if (open) {
-      setName(city?.name ?? '')
-      setState(city?.state ?? 'CE')
-    }
-  }, [open, city])
+  // Sincroniza os campos quando o dialog abre (inclui aberturas programáticas).
+  useFormDialogState(open, city, (c) => {
+    setName(c?.name ?? '')
+    setState(c?.state ?? 'CE')
+  })
 
   function handleOpen(value: boolean) {
     onOpenChange(value)
@@ -87,7 +111,10 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
 
     try {
       if (isEdit && city) {
-        await updateCity.mutateAsync({ id: city.id, payload: { name: name.trim(), state } })
+        await updateCity.mutateAsync({
+          id: city.id,
+          payload: { name: name.trim(), state },
+        })
         toast.success(`Cidade "${name}" atualizada`)
       } else {
         await createCity.mutateAsync({ name: name.trim(), state })
@@ -95,7 +122,9 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
       }
       handleOpen(false)
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : 'Ocorreu um erro inesperado')
+      toast.error(
+        err instanceof Error ? err.message : 'Ocorreu um erro inesperado',
+      )
     }
   }
 
@@ -128,7 +157,9 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
               </SelectTrigger>
               <SelectContent>
                 {UF_OPTIONS.map((uf) => (
-                  <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                  <SelectItem key={uf} value={uf}>
+                    {uf}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -154,7 +185,10 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
 
 export function AdminCitiesPage() {
   const [search, setSearch] = useState('')
-  const [statusFilters, setStatusFilters] = useState<string[]>(['active', 'inactive'])
+  const [statusFilters, setStatusFilters] = useState<string[]>([
+    'active',
+    'inactive',
+  ])
   const [currentPage, setCurrentPage] = useState(1)
   const [formOpen, setFormOpen] = useState(false)
   const [editCity, setEditCity] = useState<AdminCity | null>(null)
@@ -162,7 +196,9 @@ export function AdminCitiesPage() {
   const [reactivateCity, setReactivateCity] = useState<AdminCity | null>(null)
 
   const activeStatus =
-    statusFilters.length === 2 ? '' : (statusFilters[0] as 'active' | 'inactive' | '')
+    statusFilters.length === 2
+      ? ''
+      : (statusFilters[0] as 'active' | 'inactive' | '')
 
   const PAGE_SIZE = 20
 
@@ -191,13 +227,19 @@ export function AdminCitiesPage() {
     {
       key: 'name',
       label: 'Nome',
-      render: (c) => <span className="font-medium text-foreground">{c.name}</span>,
+      render: (c) => (
+        <span className="text-foreground font-medium">{c.name}</span>
+      ),
     },
     {
       key: 'state',
       label: 'Estado',
       width: '80px',
-      render: (c) => <span className="font-mono text-[12px] text-muted-foreground">{c.state}</span>,
+      render: (c) => (
+        <span className="text-muted-foreground font-mono text-[12px]">
+          {c.state}
+        </span>
+      ),
     },
     {
       key: 'routeCount',
@@ -210,12 +252,7 @@ export function AdminCitiesPage() {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (c) => (
-        <AdminStatusBadge
-          variant={c.status === 'active' ? 'success' : 'neutral'}
-          label={c.status === 'active' ? 'Ativa' : 'Inativa'}
-        />
-      ),
+      render: (c) => <StatusChip {...ROUTE_STATUS_META[c.status]} />,
     },
     {
       key: 'actions',
@@ -255,14 +292,32 @@ export function AdminCitiesPage() {
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard label="Total de cidades" value={kpiStats.total} helper="cadastradas na plataforma" icon={MapPin} />
-        <AdminKPICard label="Com rotas ativas" value={kpiStats.withRoutes} helper="atualmente atendidas" icon={Route} />
-        <AdminKPICard label="Inativas" value={kpiStats.inactive} helper="sem operação" icon={MapPinOff} />
+        <AdminKPICard
+          label="Total de cidades"
+          value={kpiStats.total}
+          helper="cadastradas na plataforma"
+          icon={MapPin}
+        />
+        <AdminKPICard
+          label="Com rotas ativas"
+          value={kpiStats.withRoutes}
+          helper="atualmente atendidas"
+          icon={Route}
+        />
+        <AdminKPICard
+          label="Inativas"
+          value={kpiStats.inactive}
+          helper="sem operação"
+          icon={MapPinOff}
+        />
       </div>
 
       <AdminFilterBar
         searchValue={search}
-        onSearchChange={(v) => { setSearch(v); setCurrentPage(1) }}
+        onSearchChange={(v) => {
+          setSearch(v)
+          setCurrentPage(1)
+        }}
         searchPlaceholder="Buscar cidade por nome"
         filters={
           <StatusFilterChips
@@ -272,14 +327,20 @@ export function AdminCitiesPage() {
               { value: 'inactive', label: 'Inativa' },
             ]}
             value={statusFilters}
-            onChange={(v) => { setStatusFilters(v); setCurrentPage(1) }}
+            onChange={(v) => {
+              setStatusFilters(v)
+              setCurrentPage(1)
+            }}
           />
         }
         actions={
           <Button
             size="sm"
             className="gap-1.5"
-            onClick={() => { setEditCity(null); setFormOpen(true) }}
+            onClick={() => {
+              setEditCity(null)
+              setFormOpen(true)
+            }}
           >
             <Plus className="h-3.5 w-3.5" />
             Nova cidade
@@ -295,7 +356,11 @@ export function AdminCitiesPage() {
         emptyState={
           <AdminEmptyState
             icon={MapPin}
-            title={hasFilters ? 'Nenhuma cidade corresponde aos filtros' : 'Nenhuma cidade cadastrada'}
+            title={
+              hasFilters
+                ? 'Nenhuma cidade corresponde aos filtros'
+                : 'Nenhuma cidade cadastrada'
+            }
             description={
               hasFilters
                 ? 'Ajuste os filtros para ver as cidades.'
@@ -303,8 +368,22 @@ export function AdminCitiesPage() {
             }
             action={
               hasFilters
-                ? { label: 'Limpar filtros', onClick: () => { setSearch(''); setStatusFilters(['active', 'inactive']) }, icon: X }
-                : { label: 'Nova cidade', onClick: () => { setEditCity(null); setFormOpen(true) }, icon: Plus }
+                ? {
+                    label: 'Limpar filtros',
+                    onClick: () => {
+                      setSearch('')
+                      setStatusFilters(['active', 'inactive'])
+                    },
+                    icon: X,
+                  }
+                : {
+                    label: 'Nova cidade',
+                    onClick: () => {
+                      setEditCity(null)
+                      setFormOpen(true)
+                    },
+                    icon: Plus,
+                  }
             }
           />
         }
@@ -359,7 +438,9 @@ export function AdminCitiesPage() {
 
       <AdminConfirmDialog
         open={!!deactivateCity}
-        onOpenChange={(open) => { if (!open) setDeactivateCity(null) }}
+        onOpenChange={(open) => {
+          if (!open) setDeactivateCity(null)
+        }}
         title="Desativar cidade"
         description={
           deactivateCity?.routeCount
@@ -374,7 +455,10 @@ export function AdminCitiesPage() {
         }}
         onConfirm={async () => {
           if (!deactivateCity) return
-          await toggleStatus.mutateAsync({ id: deactivateCity.id, newStatus: 'inactive' })
+          await toggleStatus.mutateAsync({
+            id: deactivateCity.id,
+            newStatus: 'inactive',
+          })
           toast.success(`Cidade "${deactivateCity.name}" desativada`)
           setDeactivateCity(null)
         }}
@@ -382,14 +466,19 @@ export function AdminCitiesPage() {
 
       <AdminConfirmDialog
         open={!!reactivateCity}
-        onOpenChange={(open) => { if (!open) setReactivateCity(null) }}
+        onOpenChange={(open) => {
+          if (!open) setReactivateCity(null)
+        }}
         title="Reativar cidade"
         description={`A cidade "${reactivateCity?.name}" voltará a aparecer como opção em novas rotas.`}
         confirmLabel="Reativar"
         variant="default"
         onConfirm={async () => {
           if (!reactivateCity) return
-          await toggleStatus.mutateAsync({ id: reactivateCity.id, newStatus: 'active' })
+          await toggleStatus.mutateAsync({
+            id: reactivateCity.id,
+            newStatus: 'active',
+          })
           toast.success(`Cidade "${reactivateCity.name}" reativada`)
           setReactivateCity(null)
         }}

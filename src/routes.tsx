@@ -12,8 +12,6 @@ function NuqsRouteWrapper() {
   )
 }
 
-// ─── Route handle type ────────────────────────────────────────────────────────
-
 export interface RouteHandle {
   crumb?: string | ((params: Record<string, string>) => string)
 }

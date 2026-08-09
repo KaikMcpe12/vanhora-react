@@ -12,7 +12,19 @@ export function formatPrice(value: number): string {
 
 export function formatDatePt(dateStr: string): string {
   const date = new Date(dateStr + 'T12:00:00')
-  return new Intl.DateTimeFormat('pt-BR', { day: 'numeric', month: 'short' }).format(date)
+  return new Intl.DateTimeFormat('pt-BR', {
+    day: 'numeric',
+    month: 'short',
+  }).format(date)
+}
+
+export function formatDelayDateTime(date: string | Date): string {
+  return new Date(date).toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
 }
 
 export const WEEKDAYS_PT: Record<string, string> = {

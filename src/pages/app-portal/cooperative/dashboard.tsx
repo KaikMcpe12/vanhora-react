@@ -12,16 +12,18 @@ import {
   AdminEmptyState,
   AdminKPICard,
   AdminSectionTitle,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCoopPortalStats } from '@/lib/api/mock-cooperative-portal-api'
 import { useAdminDelays } from '@/lib/api/mock-delays-api'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
 import { MOCK_COOP_PORTAL_USER_ID } from '@/lib/data/mock-cooperative-portal'
+import { DELAY_STATUS_META } from '@/lib/status/status-meta'
 import type {
   AppPortalRole,
   AppPortalUser,
@@ -31,12 +33,6 @@ interface OutletContext {
   role: AppPortalRole
   user: AppPortalUser
   basePath: string
-}
-
-function getSeverityBadge(severity: AdminDelay['severity']) {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
 }
 
 function KpiSkeleton() {
@@ -66,7 +62,7 @@ export function CooperativeDashboardPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="text-[13px] font-medium text-foreground">
+        <span className="text-foreground text-[13px] font-medium">
           {d.routeCode} — {d.routeName}
         </span>
       ),
@@ -84,34 +80,32 @@ export function CooperativeDashboardPage() {
       key: 'severity',
       label: 'Severidade',
       width: '110px',
-      render: (d) => <AdminStatusBadge {...getSeverityBadge(d.severity)} />,
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (d) => (
-        <AdminStatusBadge
-          variant={d.status === 'resolved' ? 'success' : 'attention'}
-          label={d.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-        />
-      ),
+      render: (d) => <StatusChip {...DELAY_STATUS_META[d.status]} />,
     },
   ]
 
   return (
     <div className="space-y-10">
       <section className="space-y-1">
-        <h2 className="text-lg font-semibold text-foreground">
+        <h2 className="text-foreground text-lg font-semibold">
           Bem-vindo, {user.name.split(' ')[0]}
         </h2>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-muted-foreground text-sm">
           Acompanhe o desempenho operacional da sua cooperativa.
         </p>
       </section>
 
       <section className="space-y-4">
-        <AdminSectionTitle title="Visão geral" description="Dados operacionais do dia" />
+        <AdminSectionTitle
+          title="Visão geral"
+          description="Dados operacionais do dia"
+        />
         {statsLoading ? (
           <KpiSkeleton />
         ) : (

@@ -18,15 +18,17 @@ import {
   AdminEmptyState,
   AdminKPICard,
   AdminSectionTitle,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminDashboardStats } from '@/lib/api/mock-dashboard-api'
 import type { DelayRecord, DepartureRecord } from '@/lib/data/mock-dashboard'
+import { DRIVER_SCHEDULE_STATUS_META } from '@/lib/status/status-meta'
 import { cn } from '@/lib/utils'
 
 interface DashboardCriticalAlertProps {
@@ -72,7 +74,7 @@ function DashboardCriticalAlert({
           >
             {title}
           </p>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-[13px] leading-relaxed">
             {description}
           </p>
         </div>
@@ -105,22 +107,14 @@ function KpiSkeleton() {
   )
 }
 
-function getSeverityBadge(severity: 'low' | 'medium' | 'high') {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
-}
-
 function getDepartureBadge(
   status: DepartureRecord['status'],
   delayMinutes?: number,
 ) {
-  if (status === 'on_time') return { variant: 'success' as const, label: 'No horário' }
-  if (status === 'cancelled') return { variant: 'critical' as const, label: 'Cancelado' }
-  return {
-    variant: 'attention' as const,
-    label: delayMinutes ? `Atrasado ${delayMinutes}m` : 'Atrasado',
-  }
+  const meta = DRIVER_SCHEDULE_STATUS_META[status]
+  if (status === 'delayed' && delayMinutes)
+    return { ...meta, label: `Atrasado ${delayMinutes}m` }
+  return meta
 }
 
 export function AdminDashboardPage() {
@@ -149,7 +143,7 @@ export function AdminDashboardPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="font-medium text-foreground">
+        <span className="text-foreground font-medium">
           {d.routeCode} ({d.routeName})
         </span>
       ),
@@ -172,24 +166,22 @@ export function AdminDashboardPage() {
     {
       key: 'reason',
       label: 'Motivo',
-      render: (d) => (
-        <span className="text-muted-foreground">{d.reason}</span>
-      ),
+      render: (d) => <span className="text-muted-foreground">{d.reason}</span>,
     },
     {
       key: 'severity',
       label: 'Severidade',
-      render: (d) => {
-        const badge = getSeverityBadge(d.severity)
-        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
-      },
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'actions',
       label: '',
       align: 'right',
       render: (d) => (
-        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <AdminActionMenu
             items={[
               {
@@ -215,7 +207,7 @@ export function AdminDashboardPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="font-medium text-foreground">
+        <span className="text-foreground font-medium">
           {d.routeCode} ({d.routeName})
         </span>
       ),
@@ -244,7 +236,7 @@ export function AdminDashboardPage() {
       label: 'Status',
       render: (d) => {
         const badge = getDepartureBadge(d.status, d.delayMinutes)
-        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
+        return <StatusChip {...badge} />
       },
     },
     {
@@ -252,7 +244,10 @@ export function AdminDashboardPage() {
       label: '',
       align: 'right',
       render: (_d) => (
-        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
           <AdminActionMenu
             items={[
               {

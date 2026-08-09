@@ -9,21 +9,23 @@ interface MinuteStepperProps {
   min?: number
   max?: number
   step?: number
-  quickAdds?: number[]
+  shortcuts?: number[]
+  unit?: string
   className?: string
 }
 
 /**
- * Seletor de minutos sem teclado: [ − ] valor [ + ] + atalhos rápidos.
- * Substitui o campo numérico nativo. Alvos de toque de 44px (size-11).
+ * Seletor numérico sem teclado: [ − ] valor unidade [ + ] + atalhos rápidos.
+ * Substitui o campo numérico nativo. Alvos de toque de 44px (size-11, §6).
  */
 export function MinuteStepper({
   value,
   onChange,
   min = 1,
   max = 999,
-  step = 5,
-  quickAdds = [5, 10, 15],
+  step = 1,
+  shortcuts = [5, 10, 15],
+  unit = 'min',
   className,
 }: MinuteStepperProps) {
   const clamp = (n: number) => Math.min(max, Math.max(min, n))
@@ -33,7 +35,7 @@ export function MinuteStepper({
       <div className="flex items-center justify-center gap-4">
         <button
           type="button"
-          aria-label="Diminuir minutos"
+          aria-label="Diminuir"
           onClick={() => onChange(clamp(value - step))}
           disabled={value <= min}
           className="border-input bg-background text-foreground hover:bg-muted flex size-11 items-center justify-center rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-40"
@@ -43,12 +45,12 @@ export function MinuteStepper({
 
         <div className="min-w-24 text-center">
           <span className="text-3xl font-semibold tabular-nums">{value}</span>
-          <span className="text-muted-foreground ml-1 text-sm">min</span>
+          <span className="text-muted-foreground ml-1 text-sm">{unit}</span>
         </div>
 
         <button
           type="button"
-          aria-label="Aumentar minutos"
+          aria-label="Aumentar"
           onClick={() => onChange(clamp(value + step))}
           disabled={value >= max}
           className="border-input bg-background text-foreground hover:bg-muted flex size-11 items-center justify-center rounded-full border transition-colors disabled:pointer-events-none disabled:opacity-40"
@@ -58,16 +60,16 @@ export function MinuteStepper({
       </div>
 
       <div className="flex items-center justify-center gap-2">
-        {quickAdds.map((q) => (
+        {shortcuts.map((s) => (
           <Button
-            key={q}
+            key={s}
             type="button"
             variant="outline"
             size="sm"
             className="min-h-11 rounded-full px-4"
-            onClick={() => onChange(clamp(value + q))}
+            onClick={() => onChange(clamp(value + s))}
           >
-            +{q}
+            +{s}
           </Button>
         ))}
       </div>

@@ -1,4 +1,18 @@
-import { Edit, Eye,Plus, Trash2 } from 'lucide-react'
+import {
+  AlertTriangle,
+  CheckCircle2,
+  CircleDashed,
+  CloudRain,
+  Edit,
+  Eye,
+  Info,
+  Plus,
+  TrafficCone,
+  Trash2,
+  Users,
+  Wrench,
+  XCircle,
+} from 'lucide-react'
 import { useState } from 'react'
 
 import {
@@ -8,12 +22,31 @@ import {
   AdminFilterBar,
   AdminKPICard,
   AdminSectionTitle,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { ChoiceChips } from '@/components/forms/choice-chips'
+import { MinuteStepper } from '@/components/forms/minute-stepper'
+import { SelectableCard } from '@/components/forms/selectable-card'
+import { StepIndicator } from '@/components/forms/step-indicator'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
+  DELAY_STATUS_META,
+  DRIVER_SCHEDULE_STATUS_META,
+  ROUTE_STATUS_META,
+  SCHEDULE_STATUS_META,
+  type StatusChipInput,
+  USER_ROLE_META,
+  USER_STATUS_META,
+} from '@/lib/status/status-meta'
 
 interface SampleRow {
   id: string
@@ -24,17 +57,62 @@ interface SampleRow {
 }
 
 const sampleData: SampleRow[] = [
-  { id: '1', name: 'Metro Transporters', status: 'active', city: 'Fortaleza', routes: 12 },
-  { id: '2', name: 'Cooperativa Vale', status: 'suspended', city: 'Caucaia', routes: 5 },
-  { id: '3', name: 'Swift Bus Co.', status: 'inactive', city: 'Maracanaú', routes: 0 },
+  {
+    id: '1',
+    name: 'Metro Transporters',
+    status: 'active',
+    city: 'Fortaleza',
+    routes: 12,
+  },
+  {
+    id: '2',
+    name: 'Cooperativa Vale',
+    status: 'suspended',
+    city: 'Caucaia',
+    routes: 5,
+  },
+  {
+    id: '3',
+    name: 'Swift Bus Co.',
+    status: 'inactive',
+    city: 'Maracanaú',
+    routes: 0,
+  },
 ]
 
-function PreviewSection({ title, children }: { title: string; children: React.ReactNode }) {
+function PreviewSection({
+  title,
+  children,
+}: {
+  title: string
+  children: React.ReactNode
+}) {
   return (
     <section className="space-y-4">
-      <h2 className="text-base font-semibold text-foreground border-b border-border pb-2">{title}</h2>
+      <h2 className="text-foreground border-border border-b pb-2 text-base font-semibold">
+        {title}
+      </h2>
       <div>{children}</div>
     </section>
+  )
+}
+
+function StatusRow({
+  label,
+  chips,
+}: {
+  label: string
+  chips: StatusChipInput[]
+}) {
+  return (
+    <div className="grid grid-cols-[170px_1fr] items-center gap-3">
+      <span className="text-muted-foreground text-xs">{label}</span>
+      <div className="flex flex-wrap gap-2">
+        {chips.map((s) => (
+          <StatusChip key={s.label} {...s} />
+        ))}
+      </div>
+    </div>
   )
 }
 
@@ -43,9 +121,16 @@ export function AdminComponentsPreviewPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [confirmOpen, setConfirmOpenState] = useState(false)
   const [typedConfirmOpen, setTypedConfirmOpen] = useState(false)
-  const [sortState, setSortState] = useState<{ key: string; direction: 'asc' | 'desc' } | undefined>()
+  const [sortState, setSortState] = useState<
+    { key: string; direction: 'asc' | 'desc' } | undefined
+  >()
   const [showEmpty, setShowEmpty] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [stepperA, setStepperA] = useState(15)
+  const [stepperB, setStepperB] = useState(20)
+  const [stepperC, setStepperC] = useState(3)
+  const [chip, setChip] = useState<string | null>(null)
+  const [selectedCard, setSelectedCard] = useState<'a' | 'b'>('a')
 
   function handleSort(key: string) {
     setSortState((prev) => {
@@ -61,7 +146,7 @@ export function AdminComponentsPreviewPage() {
       key: 'name',
       label: 'Nome',
       render: (row) => (
-        <span className="font-medium text-foreground">{row.name}</span>
+        <span className="text-foreground font-medium">{row.name}</span>
       ),
       sortable: true,
     },
@@ -80,24 +165,7 @@ export function AdminComponentsPreviewPage() {
     {
       key: 'status',
       label: 'Status',
-      render: (row) => {
-        const variantMap = {
-          active: 'success',
-          suspended: 'attention',
-          inactive: 'neutral',
-        } as const
-        const labelMap = {
-          active: 'Ativo',
-          suspended: 'Suspenso',
-          inactive: 'Inativo',
-        }
-        return (
-          <AdminStatusBadge
-            variant={variantMap[row.status]}
-            label={labelMap[row.status]}
-          />
-        )
-      },
+      render: (row) => <StatusChip {...ROUTE_STATUS_META[row.status]} />,
     },
     {
       key: 'actions',
@@ -106,10 +174,23 @@ export function AdminComponentsPreviewPage() {
       render: (row) => (
         <AdminActionMenu
           items={[
-            { label: 'Ver detalhes', icon: Eye, onClick: () => alert(`Ver ${row.name}`) },
-            { label: 'Editar', icon: Edit, onClick: () => alert(`Editar ${row.name}`) },
+            {
+              label: 'Ver detalhes',
+              icon: Eye,
+              onClick: () => alert(`Ver ${row.name}`),
+            },
+            {
+              label: 'Editar',
+              icon: Edit,
+              onClick: () => alert(`Editar ${row.name}`),
+            },
             { divider: true, label: '', onClick: () => {} },
-            { label: 'Excluir', icon: Trash2, onClick: () => setConfirmOpenState(true), variant: 'danger' },
+            {
+              label: 'Excluir',
+              icon: Trash2,
+              onClick: () => setConfirmOpenState(true),
+              variant: 'danger',
+            },
           ]}
         />
       ),
@@ -121,8 +202,10 @@ export function AdminComponentsPreviewPage() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-2xl font-medium text-foreground">Componentes Admin</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="text-foreground text-2xl font-medium">
+          Componentes Admin
+        </h1>
+        <p className="text-muted-foreground mt-1 text-sm">
           Referência visual dos componentes da biblioteca{' '}
           <code className="font-mono text-xs">src/components/admin/</code>
         </p>
@@ -133,18 +216,30 @@ export function AdminComponentsPreviewPage() {
           <AdminKPICard
             label="Cooperativas Ativas"
             value="48"
-            trend={{ value: '+3.2%', direction: 'up', contextLabel: 'com operação ativa' }}
+            trend={{
+              value: '+3.2%',
+              direction: 'up',
+              contextLabel: 'com operação ativa',
+            }}
           />
           <AdminKPICard
             label="Atrasos (24h)"
             value="14"
-            trend={{ value: '+5', direction: 'up', contextLabel: 'vs período anterior' }}
+            trend={{
+              value: '+5',
+              direction: 'up',
+              contextLabel: 'vs período anterior',
+            }}
             severity="critical"
           />
           <AdminKPICard
             label="Avaliação Média"
             value="4.6"
-            trend={{ value: '-0.1', direction: 'down', contextLabel: 'esta semana' }}
+            trend={{
+              value: '-0.1',
+              direction: 'down',
+              contextLabel: 'esta semana',
+            }}
             severity="attention"
           />
           <AdminKPICard
@@ -164,31 +259,6 @@ export function AdminComponentsPreviewPage() {
             trend={{ value: '+7%', direction: 'up' }}
             onClick={() => alert('card clicado')}
           />
-        </div>
-      </PreviewSection>
-
-      <PreviewSection title="AdminStatusBadge">
-        <div className="flex flex-wrap items-center gap-4">
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">sm (default)</p>
-            <div className="flex flex-wrap gap-2">
-              <AdminStatusBadge variant="success" label="No Horário" />
-              <AdminStatusBadge variant="attention" label="Atrasado" />
-              <AdminStatusBadge variant="critical" label="Cancelado" />
-              <AdminStatusBadge variant="neutral" label="Suspenso" />
-              <AdminStatusBadge variant="info" label="Agendado" />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">md</p>
-            <div className="flex flex-wrap gap-2">
-              <AdminStatusBadge variant="success" label="Ativo" size="md" />
-              <AdminStatusBadge variant="attention" label="Atenção" size="md" />
-              <AdminStatusBadge variant="critical" label="Alta" size="md" />
-              <AdminStatusBadge variant="neutral" label="Inativo" size="md" />
-              <AdminStatusBadge variant="info" label="Baixa" size="md" />
-            </div>
-          </div>
         </div>
       </PreviewSection>
 
@@ -254,7 +324,7 @@ export function AdminComponentsPreviewPage() {
       <PreviewSection title="AdminActionMenu">
         <div className="flex items-center gap-8">
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Padrão</p>
+            <p className="text-muted-foreground text-xs">Padrão</p>
             <AdminActionMenu
               items={[
                 { label: 'Ver detalhes', icon: Eye, onClick: () => {} },
@@ -263,13 +333,18 @@ export function AdminComponentsPreviewPage() {
             />
           </div>
           <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">Com ação perigo</p>
+            <p className="text-muted-foreground text-xs">Com ação perigo</p>
             <AdminActionMenu
               items={[
                 { label: 'Ver detalhes', icon: Eye, onClick: () => {} },
                 { label: 'Editar', icon: Edit, onClick: () => {} },
                 { divider: true, label: '', onClick: () => {} },
-                { label: 'Excluir', icon: Trash2, onClick: () => {}, variant: 'danger' },
+                {
+                  label: 'Excluir',
+                  icon: Trash2,
+                  onClick: () => {},
+                  variant: 'danger',
+                },
               ]}
             />
           </div>
@@ -300,9 +375,7 @@ export function AdminComponentsPreviewPage() {
           title="Desativar cooperativa"
           description="Esta ação vai desativar a cooperativa Metro Transporters e todas as suas 12 rotas ativas. Passageiros não conseguirão mais ver horários dessa cooperativa."
           confirmLabel="Desativar"
-          onConfirm={() =>
-            new Promise((resolve) => setTimeout(resolve, 1500))
-          }
+          onConfirm={() => new Promise((resolve) => setTimeout(resolve, 1500))}
         />
 
         <AdminConfirmDialog
@@ -315,22 +388,20 @@ export function AdminComponentsPreviewPage() {
             expectedText: 'Metro Transporters',
             label: 'Digite "Metro Transporters" para confirmar:',
           }}
-          onConfirm={() =>
-            new Promise((resolve) => setTimeout(resolve, 1500))
-          }
+          onConfirm={() => new Promise((resolve) => setTimeout(resolve, 1500))}
         />
       </PreviewSection>
 
       <PreviewSection title="AdminEmptyState">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <div className="rounded-xl border border-border">
+          <div className="border-border rounded-xl border">
             <AdminEmptyState
               title="Nenhuma rota encontrada"
               description="Ajuste os filtros ou crie uma nova rota para começar."
               action={{ label: 'Nova rota', onClick: () => {}, icon: Plus }}
             />
           </div>
-          <div className="rounded-xl border border-border">
+          <div className="border-border rounded-xl border">
             <AdminEmptyState title="Nenhum item encontrado" />
           </div>
         </div>
@@ -348,6 +419,178 @@ export function AdminComponentsPreviewPage() {
               </Button>
             }
           />
+        </div>
+      </PreviewSection>
+
+      <PreviewSection title="Componentes-base (PR3)">
+        <div className="space-y-8">
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">MinuteStepper</p>
+            <div className="grid gap-6 sm:grid-cols-3">
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground text-xs">
+                  default (step 1 · +5/+10/+15)
+                </p>
+                <MinuteStepper value={stepperA} onChange={setStepperA} />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground text-xs">
+                  shortcuts custom (+1/+2/+3)
+                </p>
+                <MinuteStepper
+                  value={stepperB}
+                  onChange={setStepperB}
+                  shortcuts={[1, 2, 3]}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <p className="text-muted-foreground text-xs">
+                  min/max estreito (0–10 · unit “un”)
+                </p>
+                <MinuteStepper
+                  value={stepperC}
+                  onChange={setStepperC}
+                  min={0}
+                  max={10}
+                  unit="un"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">ChoiceChips</p>
+            <p className="text-muted-foreground text-xs">
+              seleção única · ícone + label
+            </p>
+            <ChoiceChips
+              options={[
+                { value: 'traffic', label: 'Trânsito', icon: TrafficCone },
+                { value: 'mechanical', label: 'Mecânico', icon: Wrench },
+                { value: 'weather', label: 'Clima', icon: CloudRain },
+                { value: 'passengers', label: 'Passageiros', icon: Users },
+              ]}
+              value={chip}
+              onChange={setChip}
+              ariaLabel="Exemplo de ChoiceChips"
+            />
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">
+              SelectableCard
+            </p>
+            <p className="text-muted-foreground text-xs">
+              radio-indicator + border-l verde no selecionado
+            </p>
+            <div
+              role="radiogroup"
+              aria-label="Exemplo de SelectableCard"
+              className="grid gap-3 sm:grid-cols-2"
+            >
+              <SelectableCard
+                selected={selectedCard === 'a'}
+                onSelect={() => setSelectedCard('a')}
+              >
+                <div className="flex-1 space-y-0.5">
+                  <div className="font-medium">Opção A</div>
+                  <div className="text-muted-foreground text-sm">
+                    selecionada por padrão
+                  </div>
+                </div>
+              </SelectableCard>
+              <SelectableCard
+                selected={selectedCard === 'b'}
+                onSelect={() => setSelectedCard('b')}
+              >
+                <div className="flex-1 space-y-0.5">
+                  <div className="font-medium">Opção B</div>
+                  <div className="text-muted-foreground text-sm">
+                    clique para selecionar
+                  </div>
+                </div>
+              </SelectableCard>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">StepIndicator</p>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <StepIndicator
+                current={1}
+                total={3}
+                labels={['Rota', 'Horário', 'Detalhes']}
+              />
+              <StepIndicator
+                current={2}
+                total={3}
+                labels={['Rota', 'Horário', 'Detalhes']}
+              />
+              <StepIndicator
+                current={3}
+                total={3}
+                labels={['Rota', 'Horário', 'Detalhes']}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">StatusChip</p>
+            <p className="text-muted-foreground text-xs">
+              sempre cor + ícone + texto (§6)
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <StatusChip
+                tone="success"
+                icon={CheckCircle2}
+                label="Em operação"
+              />
+              <StatusChip
+                tone="warning"
+                icon={AlertTriangle}
+                label="Atrasado"
+              />
+              <StatusChip tone="danger" icon={XCircle} label="Cancelado" />
+              <StatusChip tone="info" icon={Info} label="Programado" />
+              <StatusChip tone="neutral" icon={CircleDashed} label="Suspenso" />
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <p className="text-foreground text-sm font-medium">
+              StatusChip — Status de domínio
+            </p>
+            <p className="text-muted-foreground text-xs">
+              chips reais gerados pelos metas em{' '}
+              <code className="font-mono">src/lib/status/status-meta.ts</code>
+            </p>
+            <div className="space-y-2">
+              <StatusRow
+                label="Horário (operação)"
+                chips={Object.values(SCHEDULE_STATUS_META)}
+              />
+              <StatusRow
+                label="Rota / cidade / cooperativa"
+                chips={Object.values(ROUTE_STATUS_META)}
+              />
+              <StatusRow
+                label="Usuário / motorista"
+                chips={Object.values(USER_STATUS_META)}
+              />
+              <StatusRow
+                label="Atraso (resolução)"
+                chips={Object.values(DELAY_STATUS_META)}
+              />
+              <StatusRow
+                label="Viagem do motorista"
+                chips={Object.values(DRIVER_SCHEDULE_STATUS_META)}
+              />
+              <StatusRow
+                label="Papel do usuário"
+                chips={Object.values(USER_ROLE_META)}
+              />
+            </div>
+          </div>
         </div>
       </PreviewSection>
     </div>

@@ -1,4 +1,8 @@
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
+import {
+  ROUTE_STATUS_META,
+  type StatusChipInput,
+} from '@/lib/status/status-meta'
 
 export function getInitials(name: string) {
   return name
@@ -9,19 +13,14 @@ export function getInitials(name: string) {
     .toUpperCase()
 }
 
-export function cooperativeStatusBadge(status: AdminCooperative['status']) {
-  if (status === 'active') return { variant: 'success' as const, label: 'Ativa' }
-  if (status === 'suspended')
-    return { variant: 'attention' as const, label: 'Suspensa' }
-  return { variant: 'neutral' as const, label: 'Inativa' }
+export function cooperativeStatusBadge(
+  status: AdminCooperative['status'],
+): StatusChipInput {
+  return ROUTE_STATUS_META[status]
 }
 
-const routeStatusMap = {
-  active: { variant: 'success' as const, label: 'Ativa' },
-  suspended: { variant: 'attention' as const, label: 'Suspensa' },
-  inactive: { variant: 'neutral' as const, label: 'Inativa' },
-}
-
-export function routeStatusBadge(status: 'active' | 'suspended' | 'inactive') {
-  return routeStatusMap[status]
+export function routeStatusBadge(
+  status: 'active' | 'suspended' | 'inactive',
+): StatusChipInput {
+  return ROUTE_STATUS_META[status]
 }

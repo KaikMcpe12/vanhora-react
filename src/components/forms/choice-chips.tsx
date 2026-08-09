@@ -12,7 +12,7 @@ export interface ChoiceOption<T extends string> {
 
 interface ChoiceChipsProps<T extends string> {
   options: ChoiceOption<T>[]
-  value?: T
+  value: T | null
   onChange: (value: T) => void
   ariaLabel?: string
   className?: string
@@ -20,7 +20,7 @@ interface ChoiceChipsProps<T extends string> {
 
 /**
  * Chips de escolha única sobre Radix ToggleGroup (roving tabindex, setas).
- * Alvos de toque de 44px (min-h-11). Entrada animada com Motion (escopo PR1).
+ * Alvos de toque de 44px (min-h-11). Entrada animada com Motion.
  */
 export function ChoiceChips<T extends string>({
   options,

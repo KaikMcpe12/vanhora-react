@@ -11,7 +11,11 @@ import {
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useNavigate, useOutletContext, useSearchParams } from 'react-router-dom'
+import {
+  useNavigate,
+  useOutletContext,
+  useSearchParams,
+} from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -19,9 +23,9 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   StatusFilterChips,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import {
   type AdminRouteRow,
@@ -29,6 +33,7 @@ import {
   useRoutesList,
   useToggleRouteStatus,
 } from '@/lib/api/mock-routes-api'
+import { ROUTE_STATUS_META } from '@/lib/status/status-meta'
 import { cn } from '@/lib/utils'
 import {
   type AppPortalRole,
@@ -45,15 +50,6 @@ const STATUS_LABEL: Record<RouteRowStatus, string> = {
   active: 'Ativa',
   suspended: 'Suspensa',
   inactive: 'Inativa',
-}
-
-const STATUS_BADGE_VARIANT: Record<
-  RouteRowStatus,
-  'success' | 'attention' | 'neutral'
-> = {
-  active: 'success',
-  suspended: 'attention',
-  inactive: 'neutral',
 }
 
 const STATUS_BORDER: Record<RouteRowStatus, string> = {
@@ -103,10 +99,18 @@ export function RoutesPage() {
     const activeFilters = statusFilters as RouteRowStatus[]
 
     return routes.filter((route) => {
-      if (activeFilters.length > 0 && !activeFilters.includes(route.status)) return false
-      if (cooperativeParam && route.cooperativeName !== cooperativeParam) return false
+      if (activeFilters.length > 0 && !activeFilters.includes(route.status))
+        return false
+      if (cooperativeParam && route.cooperativeName !== cooperativeParam)
+        return false
       if (!q) return true
-      return [route.name, route.code, route.origin, route.destination, route.cooperativeName]
+      return [
+        route.name,
+        route.code,
+        route.origin,
+        route.destination,
+        route.cooperativeName,
+      ]
         .filter(Boolean)
         .join(' ')
         .toLowerCase()
@@ -143,9 +147,25 @@ export function RoutesPage() {
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard label="Rotas ativas" value={kpiStats.active} helper="em operação regular" icon={PlayCircle} />
-        <AdminKPICard label="Rotas suspensas" value={kpiStats.suspended} helper="com revisão operacional" severity="attention" icon={PowerOff} />
-        <AdminKPICard label="Rotas inativas" value={kpiStats.inactive} helper="sem operação hoje" icon={MapPin} />
+        <AdminKPICard
+          label="Rotas ativas"
+          value={kpiStats.active}
+          helper="em operação regular"
+          icon={PlayCircle}
+        />
+        <AdminKPICard
+          label="Rotas suspensas"
+          value={kpiStats.suspended}
+          helper="com revisão operacional"
+          severity="attention"
+          icon={PowerOff}
+        />
+        <AdminKPICard
+          label="Rotas inativas"
+          value={kpiStats.inactive}
+          helper="sem operação hoje"
+          icon={MapPin}
+        />
       </div>
 
       <AdminFilterBar
@@ -158,7 +178,10 @@ export function RoutesPage() {
         filters={
           <StatusFilterChips
             minOne
-            options={ALL_STATUSES.map((s) => ({ value: s, label: STATUS_LABEL[s] }))}
+            options={ALL_STATUSES.map((s) => ({
+              value: s,
+              label: STATUS_LABEL[s],
+            }))}
             value={statusFilters}
             onChange={(v) => {
               setStatusFilters(v)
@@ -176,10 +199,12 @@ export function RoutesPage() {
 
       {cooperativeParam && (
         <div className="flex items-center gap-2">
-          <span className="text-[12px] text-muted-foreground">Filtrando por:</span>
+          <span className="text-muted-foreground text-[12px]">
+            Filtrando por:
+          </span>
           <button
             onClick={clearCooperativeFilter}
-            className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-primary/10 px-3 py-1 text-[12px] font-medium text-primary transition-colors hover:bg-primary/20"
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors"
           >
             {cooperativeParam}
             <X className="h-3 w-3" />
@@ -190,7 +215,11 @@ export function RoutesPage() {
       {!isLoading && paginatedRoutes.length === 0 ? (
         <AdminEmptyState
           icon={MapPin}
-          title={hasActiveFilters || cooperativeParam ? 'Nenhuma rota corresponde aos filtros' : 'Nenhuma rota cadastrada'}
+          title={
+            hasActiveFilters || cooperativeParam
+              ? 'Nenhuma rota corresponde aos filtros'
+              : 'Nenhuma rota cadastrada'
+          }
           description={
             hasActiveFilters || cooperativeParam
               ? 'Ajuste os filtros ou limpe-os para ver todas as rotas.'
@@ -223,24 +252,25 @@ export function RoutesPage() {
                     }
                   }}
                   className={cn(
-                    'bg-card flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-l-4 border-border p-5 transition-colors',
-                    'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+                    'bg-card border-border flex h-full cursor-pointer flex-col gap-4 rounded-xl border border-l-4 p-5 transition-colors',
+                    'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
                     STATUS_BORDER[route.status],
                     isInactive && 'opacity-70',
                   )}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="space-y-2">
-                      <AdminStatusBadge
-                        variant={STATUS_BADGE_VARIANT[route.status]}
-                        label={STATUS_LABEL[route.status]}
-                      />
+                      <StatusChip {...ROUTE_STATUS_META[route.status]} />
                       <div>
-                        <h3 className="text-foreground text-base font-semibold">{route.name}</h3>
-                        <p className="font-mono text-[11px] text-muted-foreground">{route.code}</p>
+                        <h3 className="text-foreground text-base font-semibold">
+                          {route.name}
+                        </h3>
+                        <p className="text-muted-foreground font-mono text-[11px]">
+                          {route.code}
+                        </p>
                       </div>
                     </div>
-                    <span className="text-[13px] font-semibold text-foreground">
+                    <span className="text-foreground text-[13px] font-semibold">
                       R$ {route.price.toFixed(2)}
                     </span>
                   </div>
@@ -249,18 +279,29 @@ export function RoutesPage() {
                     <div className="grid grid-cols-[auto_1fr] gap-x-3">
                       <div className="flex flex-col items-center">
                         <span className="mt-[5px] h-2 w-2 rounded-full bg-emerald-500" />
-                        <span className="my-0.5 h-4 w-px bg-border" />
+                        <span className="bg-border my-0.5 h-4 w-px" />
                         <span className="mb-[5px] h-2 w-2 rounded-full bg-red-500" />
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-foreground leading-6">{route.origin}</p>
-                        <p className="text-muted-foreground leading-6">{route.destination}</p>
+                        <p className="text-foreground leading-6">
+                          {route.origin}
+                        </p>
+                        <p className="text-muted-foreground leading-6">
+                          {route.destination}
+                        </p>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <UserRound className="h-4 w-4 shrink-0 text-muted-foreground" />
-                      <span className={cn('text-sm', route.driverName ? 'text-foreground' : 'text-muted-foreground italic')}>
+                      <UserRound className="text-muted-foreground h-4 w-4 shrink-0" />
+                      <span
+                        className={cn(
+                          'text-sm',
+                          route.driverName
+                            ? 'text-foreground'
+                            : 'text-muted-foreground italic',
+                        )}
+                      >
                         {route.driverName ?? 'Sem motorista'}
                       </span>
                     </div>
@@ -272,11 +313,20 @@ export function RoutesPage() {
                     onClick={(e) => e.stopPropagation()}
                     onKeyDown={(e) => e.stopPropagation()}
                   >
-                    <Button size="sm" className="rounded-full" onClick={() => navigate(schedulePath)}>
+                    <Button
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => navigate(schedulePath)}
+                    >
                       <CalendarDays className="h-3.5 w-3.5" />
                       Horários
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded-full" onClick={() => goToEdit(route)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      onClick={() => goToEdit(route)}
+                    >
                       <Pencil className="h-3.5 w-3.5" />
                       Editar
                     </Button>
@@ -285,11 +335,16 @@ export function RoutesPage() {
                       size="sm"
                       className={cn(
                         'rounded-full',
-                        !isReactivate && 'text-destructive hover:text-destructive',
+                        !isReactivate &&
+                          'text-destructive hover:text-destructive',
                       )}
                       onClick={() => setConfirmRoute(route)}
                     >
-                      {isReactivate ? <PlayCircle className="h-3.5 w-3.5" /> : <PowerOff className="h-3.5 w-3.5" />}
+                      {isReactivate ? (
+                        <PlayCircle className="h-3.5 w-3.5" />
+                      ) : (
+                        <PowerOff className="h-3.5 w-3.5" />
+                      )}
                       {isReactivate ? 'Reativar' : 'Suspender'}
                     </Button>
                   </div>
@@ -300,16 +355,36 @@ export function RoutesPage() {
 
           {totalPages > 1 && (
             <div className="flex items-center justify-center gap-1">
-              <Button variant="outline" size="sm" className="rounded-full" disabled={currentPage === 1} onClick={() => setCurrentPage((p) => p - 1)}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage((p) => p - 1)}
+              >
                 <ChevronLeft className="h-4 w-4" />
                 Anterior
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                <Button key={page} variant={currentPage === page ? 'default' : 'outline'} size="sm" className="h-8 w-8 rounded-full p-0" onClick={() => setCurrentPage(page)}>
-                  {page}
-                </Button>
-              ))}
-              <Button variant="outline" size="sm" className="rounded-full" disabled={currentPage === totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                (page) => (
+                  <Button
+                    key={page}
+                    variant={currentPage === page ? 'default' : 'outline'}
+                    size="sm"
+                    className="h-8 w-8 rounded-full p-0"
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </Button>
+                ),
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage((p) => p + 1)}
+              >
                 Próximo
                 <ChevronRight className="h-4 w-4" />
               </Button>
@@ -320,7 +395,9 @@ export function RoutesPage() {
 
       <AdminConfirmDialog
         open={confirmRoute !== null}
-        onOpenChange={(open) => { if (!open) setConfirmRoute(null) }}
+        onOpenChange={(open) => {
+          if (!open) setConfirmRoute(null)
+        }}
         title={confirmIsReactivate ? 'Reativar rota' : 'Suspender rota'}
         description={
           confirmIsReactivate

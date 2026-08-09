@@ -20,7 +20,6 @@
 type AnyParams = Record<string, any>
 
 export const queryKeys = {
-  // ── Schedules (portal público) ──────────────────────────────────────────────
   schedules: {
     /** ['schedules'] — invalida todas as queries de schedules */
     all: () => ['schedules'] as const,
@@ -34,7 +33,6 @@ export const queryKeys = {
     ratingCheck: (scheduleId: string) => ['rating-check', scheduleId] as const,
   },
 
-  // ── Admin ───────────────────────────────────────────────────────────────────
   admin: {
     /** ['admin'] — invalida todo o namespace admin */
     all: () => ['admin'] as const,
@@ -69,7 +67,6 @@ export const queryKeys = {
     },
   },
 
-  // ── Users ───────────────────────────────────────────────────────────────────
   users: {
     all: () => ['users'] as const,
     list: (params?: AnyParams) => ['users', params] as const,
@@ -79,7 +76,6 @@ export const queryKeys = {
       ['driver-schedules', driverId] as const,
   },
 
-  // ── Cooperative portal ───────────────────────────────────────────────────────
   cooperative: {
     portal: {
       stats: () => ['cooperative', 'portal', 'stats'] as const,
@@ -87,7 +83,6 @@ export const queryKeys = {
     },
   },
 
-  // ── Driver portal ────────────────────────────────────────────────────────────
   driver: {
     portal: {
       profile: () => ['driver', 'portal', 'profile'] as const,
@@ -96,7 +91,6 @@ export const queryKeys = {
     },
   },
 
-  // ── Geo ─────────────────────────────────────────────────────────────────────
   geo: {
     userCity: () => ['user-city'] as const,
   },

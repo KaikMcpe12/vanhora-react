@@ -1,7 +1,8 @@
 import { ArrowRight, CircleCheck, Plus, Route as RouteIcon } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
-import { AdminEmptyState, AdminStat, AdminStatusBadge } from '@/components/admin'
+import { AdminEmptyState, AdminStat } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
 import { cn } from '@/lib/utils'
 
@@ -63,34 +64,34 @@ export function RoutesTab({ cooperative }: { cooperative: AdminCooperative }) {
               }
             }}
             className={cn(
-              'group flex cursor-pointer flex-col gap-3 rounded-xl border border-l-4 border-border bg-card p-4 transition-colors',
-              'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50',
+              'group border-border bg-card flex cursor-pointer flex-col gap-3 rounded-xl border border-l-4 p-4 transition-colors',
+              'hover:border-primary/40 hover:bg-accent/20 focus-visible:border-primary/40 focus-visible:bg-accent/20 focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
               statusBorder[r.status],
             )}
           >
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <p className="truncate text-[14px] font-medium text-foreground">
+                <p className="text-foreground truncate text-[14px] font-medium">
                   {r.name}
                 </p>
-                <p className="text-[12px] text-muted-foreground">{r.code}</p>
+                <p className="text-muted-foreground text-[12px]">{r.code}</p>
               </div>
-              <AdminStatusBadge {...routeStatusBadge(r.status)} />
+              <StatusChip {...routeStatusBadge(r.status)} />
             </div>
 
-            <div className="flex items-center gap-2 text-[13px] text-foreground">
+            <div className="text-foreground flex items-center gap-2 text-[13px]">
               <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-500" />
               <span className="truncate">{r.origin}</span>
-              <ArrowRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+              <ArrowRight className="text-muted-foreground h-3.5 w-3.5 shrink-0" />
               <span className="h-2 w-2 shrink-0 rounded-full bg-red-500" />
               <span className="truncate">{r.destination}</span>
             </div>
 
-            <div className="flex items-center justify-between border-t border-border pt-2.5">
-              <span className="text-[13px] font-medium text-foreground">
+            <div className="border-border flex items-center justify-between border-t pt-2.5">
+              <span className="text-foreground text-[13px] font-medium">
                 {r.price ? `R$ ${r.price.toFixed(2)}` : '—'}
               </span>
-              <span className="inline-flex items-center gap-1 text-[12px] font-medium text-muted-foreground group-hover:text-primary">
+              <span className="text-muted-foreground group-hover:text-primary inline-flex items-center gap-1 text-[12px] font-medium">
                 Ver detalhes
                 <ArrowRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5" />
               </span>
@@ -101,7 +102,7 @@ export function RoutesTab({ cooperative }: { cooperative: AdminCooperative }) {
         {/* Cadastrar nova rota */}
         <button
           onClick={() => navigate(createHref)}
-          className="flex min-h-[132px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-border text-muted-foreground transition-colors hover:border-primary/40 hover:bg-primary/5 hover:text-primary"
+          className="border-border text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-primary flex min-h-[132px] flex-col items-center justify-center gap-2 rounded-xl border border-dashed transition-colors"
         >
           <Plus className="h-6 w-6" />
           <span className="text-[13px] font-medium">Cadastrar nova rota</span>

@@ -4,21 +4,17 @@ import { useState } from 'react'
 import {
   AdminEmptyState,
   AdminStat,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
+import { DELAY_STATUS_META } from '@/lib/status/status-meta'
 import { DelayDetailDialog } from '@/pages/app-portal/admin/delay-detail-dialog'
 
 import { getCooperativeDelays } from '../cooperative-data'
-
-const severityBadge = {
-  low: { variant: 'success' as const, label: 'Baixo' },
-  medium: { variant: 'attention' as const, label: 'Médio' },
-  high: { variant: 'critical' as const, label: 'Alto' },
-}
 
 const delayColor = {
   low: 'text-emerald-600 dark:text-emerald-400',
@@ -41,10 +37,10 @@ export function DelaysTab({ cooperative }: { cooperative: AdminCooperative }) {
       label: 'Rota',
       render: (d) => (
         <div className="min-w-0">
-          <p className="truncate text-[13px] font-medium text-foreground">
+          <p className="text-foreground truncate text-[13px] font-medium">
             {d.routeName}
           </p>
-          <p className="text-[11px] text-muted-foreground">{d.routeCode}</p>
+          <p className="text-muted-foreground text-[11px]">{d.routeCode}</p>
         </div>
       ),
     },
@@ -63,19 +59,14 @@ export function DelaysTab({ cooperative }: { cooperative: AdminCooperative }) {
       key: 'severity',
       label: 'Severidade',
       width: '110px',
-      render: (d) => <AdminStatusBadge {...severityBadge[d.severity]} />,
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'status',
       label: 'Status',
       width: '110px',
       hideOnMobile: true,
-      render: (d) => (
-        <AdminStatusBadge
-          variant={d.status === 'resolved' ? 'neutral' : 'attention'}
-          label={d.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-        />
-      ),
+      render: (d) => <StatusChip {...DELAY_STATUS_META[d.status]} />,
     },
   ]
 

@@ -4,8 +4,6 @@ import { isRouteErrorResponse, useNavigate, useRouteError } from 'react-router-d
 
 import { Button } from '@/components/ui/button'
 
-// ─── Shared visual shell ──────────────────────────────────────────────────────
-
 interface ErrorShellProps {
   code?: string | number
   title: string
@@ -52,8 +50,6 @@ function ErrorShell({ code, title, description, detail, actions }: ErrorShellPro
     </div>
   )
 }
-
-// ─── RouteErrorElement (usado em errorElement das rotas) ──────────────────────
 
 export function RouteErrorElement() {
   const error = useRouteError()
@@ -127,8 +123,6 @@ export function RouteErrorElement() {
     />
   )
 }
-
-// ─── AppErrorBoundary (captura erros JS fora do react-router) ─────────────────
 
 interface AppErrorBoundaryProps {
   children: ReactNode

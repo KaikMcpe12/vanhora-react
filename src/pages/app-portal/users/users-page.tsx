@@ -22,11 +22,11 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import {
   Select,
@@ -39,6 +39,7 @@ import { mockUsersApi } from '@/lib/api/mock-users-api'
 import type { User } from '@/lib/data/mock-users'
 import { MOCK_COOPERATIVES } from '@/lib/data/mock-users'
 import { queryKeys } from '@/lib/query-keys'
+import { USER_ROLE_META, USER_STATUS_META } from '@/lib/status/status-meta'
 import {
   type AppPortalRole,
   type AppPortalUser,
@@ -62,14 +63,9 @@ type UserRole = 'admin' | 'cooperative' | 'driver'
 const ALL_STATUSES: UserStatus[] = ['active', 'inactive']
 const PAGE_SIZE = 10
 
-function roleToBadge(role: UserRole) {
-  if (role === 'admin') return { variant: 'info' as const, label: 'Administrador' }
-  if (role === 'cooperative') return { variant: 'success' as const, label: 'Cooperativa' }
-  return { variant: 'attention' as const, label: 'Motorista' }
-}
-
 export function UsersPage() {
-  const { role, user: loggedInUser } = useOutletContext<AppPortalOutletContext>()
+  const { role, user: loggedInUser } =
+    useOutletContext<AppPortalOutletContext>()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
 
@@ -90,20 +86,28 @@ export function UsersPage() {
     }
   }
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
-  const [selectedUserForView, setSelectedUserForView] = useState<User | null>(null)
-  const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(null)
-  const [selectedUserForSchedules, setSelectedUserForSchedules] = useState<User | null>(null)
+  const [selectedUserForView, setSelectedUserForView] = useState<User | null>(
+    null,
+  )
+  const [selectedUserForEdit, setSelectedUserForEdit] = useState<User | null>(
+    null,
+  )
+  const [selectedUserForSchedules, setSelectedUserForSchedules] =
+    useState<User | null>(null)
   const [userToDeactivate, setUserToDeactivate] = useState<User | null>(null)
   const [confirmDeactivateOpen, setConfirmDeactivateOpen] = useState(false)
 
   const loggedInUserId = loggedInUser.email.replace('@', '_').split('.')[0]
-  const loggedInCooperativeId = role === 'cooperative' ? 'coop-metro' : undefined
+  const loggedInCooperativeId =
+    role === 'cooperative' ? 'coop-metro' : undefined
 
-  const activeStatusFilter = statusFilters.length === ALL_STATUSES.length
-    ? undefined
-    : (statusFilters[0] as UserStatus | undefined)
+  const activeStatusFilter =
+    statusFilters.length === ALL_STATUSES.length
+      ? undefined
+      : (statusFilters[0] as UserStatus | undefined)
 
-  const activeRoleFilter = roleFilter === 'all' ? undefined : roleFilter as UserRole
+  const activeRoleFilter =
+    roleFilter === 'all' ? undefined : (roleFilter as UserRole)
 
   const { data: usersData, isLoading } = useQuery({
     queryKey: queryKeys.users.list({
@@ -185,10 +189,12 @@ export function UsersPage() {
         <div className="flex items-center gap-3">
           <UserAvatar name={u.name} role={u.role} size="sm" />
           <div className="min-w-0">
-            <p className="text-[13px] font-medium text-foreground leading-tight truncate">
+            <p className="text-foreground truncate text-[13px] leading-tight font-medium">
               {u.name}
             </p>
-            <p className="text-[11px] text-muted-foreground truncate">{u.email}</p>
+            <p className="text-muted-foreground truncate text-[11px]">
+              {u.email}
+            </p>
           </div>
         </div>
       ),
@@ -197,7 +203,7 @@ export function UsersPage() {
       key: 'role',
       label: 'Perfil',
       width: '140px',
-      render: (u) => <AdminStatusBadge {...roleToBadge(u.role)} />,
+      render: (u) => <StatusChip {...USER_ROLE_META[u.role]} />,
     },
     {
       key: 'cooperative',
@@ -216,12 +222,7 @@ export function UsersPage() {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (u) => (
-        <AdminStatusBadge
-          variant={u.status === 'active' ? 'success' : 'neutral'}
-          label={u.status === 'active' ? 'Ativo' : 'Inativo'}
-        />
-      ),
+      render: (u) => <StatusChip {...USER_STATUS_META[u.status]} />,
     },
     {
       key: 'actions',
@@ -229,44 +230,50 @@ export function UsersPage() {
       align: 'right',
       width: '48px',
       render: (u) => (
-        <div onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()}>
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Ver detalhes',
-              icon: Eye,
-              onClick: () => setSelectedUserForView(u),
-            },
-            {
-              label: 'Editar',
-              icon: Pencil,
-              onClick: () => setSelectedUserForEdit(u),
-            },
-            ...(u.role === 'driver'
-              ? [
-                  {
-                    label: 'Ver horários',
-                    icon: Calendar,
-                    onClick: () => setSelectedUserForSchedules(u),
-                  },
-                ]
-              : []),
-            { divider: true, label: '', onClick: () => {} },
-            {
-              label: u.status === 'active' ? 'Desativar' : 'Reativar',
-              icon: u.status === 'active' ? UserX : UserCheck,
-              onClick: () => {
-                if (u.status === 'active') {
-                  setUserToDeactivate(u)
-                  setConfirmDeactivateOpen(true)
-                } else {
-                  toggleStatus({ userId: u.id, newStatus: 'active' })
-                }
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Ver detalhes',
+                icon: Eye,
+                onClick: () => setSelectedUserForView(u),
               },
-              variant: u.status === 'active' ? ('danger' as const) : ('default' as const),
-            },
-          ]}
-        />
+              {
+                label: 'Editar',
+                icon: Pencil,
+                onClick: () => setSelectedUserForEdit(u),
+              },
+              ...(u.role === 'driver'
+                ? [
+                    {
+                      label: 'Ver horários',
+                      icon: Calendar,
+                      onClick: () => setSelectedUserForSchedules(u),
+                    },
+                  ]
+                : []),
+              { divider: true, label: '', onClick: () => {} },
+              {
+                label: u.status === 'active' ? 'Desativar' : 'Reativar',
+                icon: u.status === 'active' ? UserX : UserCheck,
+                onClick: () => {
+                  if (u.status === 'active') {
+                    setUserToDeactivate(u)
+                    setConfirmDeactivateOpen(true)
+                  } else {
+                    toggleStatus({ userId: u.id, newStatus: 'active' })
+                  }
+                },
+                variant:
+                  u.status === 'active'
+                    ? ('danger' as const)
+                    : ('default' as const),
+              },
+            ]}
+          />
         </div>
       ),
     },
@@ -275,9 +282,24 @@ export function UsersPage() {
   return (
     <section className="space-y-6">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        <AdminKPICard label="Total de usuários" value={kpiStats.total} helper="em toda a plataforma" icon={Users} />
-        <AdminKPICard label="Motoristas" value={kpiStats.drivers} helper="ativos no sistema" icon={Car} />
-        <AdminKPICard label="Inativos" value={kpiStats.inactive} helper="sem atividade" icon={UserX} />
+        <AdminKPICard
+          label="Total de usuários"
+          value={kpiStats.total}
+          helper="em toda a plataforma"
+          icon={Users}
+        />
+        <AdminKPICard
+          label="Motoristas"
+          value={kpiStats.drivers}
+          helper="ativos no sistema"
+          icon={Car}
+        />
+        <AdminKPICard
+          label="Inativos"
+          value={kpiStats.inactive}
+          helper="sem atividade"
+          icon={UserX}
+        />
       </div>
 
       <AdminFilterBar
@@ -321,7 +343,9 @@ export function UsersPage() {
             {role === 'admin' && (
               <Select
                 value={selectedCooperative || 'all'}
-                onValueChange={(v) => setCooperativeFilter(v === 'all' ? '' : v)}
+                onValueChange={(v) =>
+                  setCooperativeFilter(v === 'all' ? '' : v)
+                }
               >
                 <SelectTrigger className="h-8 w-44 text-xs">
                   <SelectValue placeholder="Cooperativa" />
@@ -339,7 +363,11 @@ export function UsersPage() {
           </div>
         }
         actions={
-          <Button size="sm" className="gap-1.5" onClick={() => setIsAddUserModalOpen(true)}>
+          <Button
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setIsAddUserModalOpen(true)}
+          >
             <UserPlus className="h-3.5 w-3.5" />
             Adicionar
           </Button>
@@ -355,8 +383,16 @@ export function UsersPage() {
         emptyState={
           <AdminEmptyState
             icon={Users}
-            title={hasActiveFilters ? 'Nenhum usuário corresponde aos filtros' : 'Nenhum usuário cadastrado'}
-            description={hasActiveFilters ? 'Ajuste os filtros.' : 'Adicione o primeiro usuário da plataforma.'}
+            title={
+              hasActiveFilters
+                ? 'Nenhum usuário corresponde aos filtros'
+                : 'Nenhum usuário cadastrado'
+            }
+            description={
+              hasActiveFilters
+                ? 'Ajuste os filtros.'
+                : 'Adicione o primeiro usuário da plataforma.'
+            }
             action={
               hasActiveFilters
                 ? { label: 'Limpar filtros', onClick: clearFilters, icon: X }
@@ -424,8 +460,13 @@ export function UsersPage() {
         }
         onConfirm={async () => {
           if (!userToDeactivate) return
-          await toggleStatusAsync({ userId: userToDeactivate.id, newStatus: 'inactive' })
-          toast.success(`Usuário "${userToDeactivate.name}" desativado com sucesso`)
+          await toggleStatusAsync({
+            userId: userToDeactivate.id,
+            newStatus: 'inactive',
+          })
+          toast.success(
+            `Usuário "${userToDeactivate.name}" desativado com sucesso`,
+          )
         }}
       />
 
@@ -465,7 +506,8 @@ export function UsersPage() {
 
       <DriverSchedulesModal
         isOpen={
-          !!selectedUserForSchedules && selectedUserForSchedules.role === 'driver'
+          !!selectedUserForSchedules &&
+          selectedUserForSchedules.role === 'driver'
         }
         onClose={() => setSelectedUserForSchedules(null)}
         driver={selectedUserForSchedules}

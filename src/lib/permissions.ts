@@ -11,8 +11,6 @@
 
 import type { AppPortalRole } from '@/pages/app-portal/app-portal-navigation'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
 export type ResourceKey =
   | 'dashboard'
   | 'routes'
@@ -31,8 +29,6 @@ export type ActionKey = 'view' | 'create' | 'edit' | 'delete' | 'export'
 type PermissionMatrix = Partial<
   Record<ResourceKey, Partial<Record<ActionKey, AppPortalRole[]>>>
 >
-
-// ─── Matrix ───────────────────────────────────────────────────────────────────
 
 export const PERMISSIONS: PermissionMatrix = {
   dashboard: {
@@ -98,8 +94,6 @@ export const PERMISSIONS: PermissionMatrix = {
     create: ['driver'],
   },
 }
-
-// ─── Helper ───────────────────────────────────────────────────────────────────
 
 /**
  * Retorna `true` se o papel `role` pode executar `action` no recurso `resource`.

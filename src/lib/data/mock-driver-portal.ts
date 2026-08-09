@@ -35,8 +35,6 @@ export interface DriverScheduleEntry {
   arrivalEstimate: string
   status: 'scheduled' | 'on_time' | 'delayed' | 'completed' | 'cancelled'
   delayMinutes?: number
-  passengers: number
-  capacity: number
 }
 
 export const MOCK_DRIVER_PROFILE: DriverProfile = {
@@ -75,11 +73,10 @@ export const MOCK_DRIVER_ROUTES: DriverRoute[] = [
   },
 ]
 
-const today = new Date('2026-08-04')
 const fmt = (h: number, m: number) =>
   `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 
-export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
+const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
   {
     id: 'sch-d-001',
     routeCode: 'R-204',
@@ -89,8 +86,6 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(7, 30),
     arrivalEstimate: fmt(8, 15),
     status: 'completed',
-    passengers: 18,
-    capacity: 22,
   },
   {
     id: 'sch-d-002',
@@ -101,8 +96,6 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(10, 0),
     arrivalEstimate: fmt(10, 45),
     status: 'completed',
-    passengers: 14,
-    capacity: 22,
   },
   {
     id: 'sch-d-003',
@@ -112,12 +105,10 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     destination: 'Distrito Industrial',
     departureTime: fmt(13, 0),
     arrivalEstimate: fmt(13, 50),
-    status: 'delayed',
-    delayMinutes: 12,
-    passengers: 20,
-    capacity: 22,
+    status: 'completed',
   },
   {
+    // viagem em andamento no "agora" simulado (15:50) — janela 15:30→16:15
     id: 'sch-d-004',
     routeCode: 'R-204',
     routeName: 'Expresso Norte',
@@ -125,9 +116,7 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     destination: 'Zona Industrial',
     departureTime: fmt(15, 30),
     arrivalEstimate: fmt(16, 15),
-    status: 'scheduled',
-    passengers: 0,
-    capacity: 22,
+    status: 'on_time',
   },
   {
     id: 'sch-d-005',
@@ -138,8 +127,6 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(17, 0),
     arrivalEstimate: fmt(17, 50),
     status: 'scheduled',
-    passengers: 0,
-    capacity: 22,
   },
   {
     id: 'sch-d-006',
@@ -150,10 +137,41 @@ export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(19, 0),
     arrivalEstimate: fmt(19, 45),
     status: 'scheduled',
-    passengers: 0,
-    capacity: 22,
   },
 ]
 
-// suprimir aviso de variável não usada — today é apenas documentação
-void today
+export interface DriverStats {
+  onTimeRate: number // % de pontualidade
+  onTimeDelta: number // Δ em pontos vs semana passada
+  delaysReported: number
+}
+
+export const MOCK_DRIVER_STATS: DriverStats = {
+  onTimeRate: 94,
+  onTimeDelta: 2,
+  delaysReported: 3,
+}
+
+/**
+ * DEV: cenário simulado da home do motorista. Troque para validar os 3 casos:
+ *   'in_progress' → viagem em andamento (padrão)
+ *   'upcoming'    → sem viagem atual, mas com próximas saídas
+ *   'empty'       → nenhuma saída no dia
+ */
+export type DriverHomeScenario = 'in_progress' | 'upcoming' | 'empty'
+// `as` evita o narrowing do const p/ o literal — o flag precisa ser comparável aos 3 valores
+export const DRIVER_HOME_SCENARIO = 'in_progress' as DriverHomeScenario
+
+// "agora" simulado — só o horário importa (getCurrentTrip compara minutos do dia).
+// backend real usaria new Date(); fixo aqui para uma demo determinística.
+function mockNow(hour: number, minute: number): Date {
+  const d = new Date()
+  d.setHours(hour, minute, 0, 0)
+  return d
+}
+
+export const MOCK_DRIVER_NOW: Date =
+  DRIVER_HOME_SCENARIO === 'upcoming' ? mockNow(6, 0) : mockNow(15, 50)
+
+export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] =
+  DRIVER_HOME_SCENARIO === 'empty' ? [] : ALL_DRIVER_SCHEDULES_TODAY

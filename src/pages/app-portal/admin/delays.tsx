@@ -24,11 +24,12 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import {
   Select,
   SelectContent,
@@ -46,6 +47,8 @@ import {
 } from '@/lib/api/mock-delays-api'
 import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
+import { DELAY_STATUS_META } from '@/lib/status/status-meta'
+import { formatDelayDateTime } from '@/lib/utils/format'
 
 import { DelayDetailDialog } from './delay-detail-dialog'
 
@@ -61,22 +64,6 @@ const delayFilterParsers = {
   statusFilter: parseAsArrayOf(parseAsString).withDefault([]),
 }
 
-function getSeverityBadge(severity: AdminDelay['severity']) {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
-}
-
-function formatDateTime(iso: string) {
-  const date = new Date(iso)
-  return date.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
-
 function truncateText(text: string, max: number) {
   return text.length > max ? text.slice(0, max) + '…' : text
 }
@@ -84,8 +71,10 @@ function truncateText(text: string, max: number) {
 export function AdminDelaysPage() {
   const navigate = useNavigate()
 
-  const [{ search, period, severity, cooperativeId, statusFilter }, setFilters] =
-    useQueryStates(delayFilterParsers)
+  const [
+    { search, period, severity, cooperativeId, statusFilter },
+    setFilters,
+  ] = useQueryStates(delayFilterParsers)
   // delayId controla qual dialog está aberto — fechar remove só ele, filtros permanecem
   const [delayId, setDelayId] = useQueryState('delayId')
 
@@ -108,7 +97,8 @@ export function AdminDelaysPage() {
   const { data, isLoading } = useAdminDelays(filters)
   const { data: stats, isLoading: statsLoading } = useAdminDelayStats()
   // fetch dedicado por id — independente da paginação/filtros da lista
-  const { data: selectedDelay = null, isLoading: delayDetailLoading } = useAdminDelay(delayId)
+  const { data: selectedDelay = null, isLoading: delayDetailLoading } =
+    useAdminDelay(delayId)
 
   const hasFilters =
     Boolean(search.trim()) ||
@@ -117,7 +107,9 @@ export function AdminDelaysPage() {
     statusFilter.length > 0 ||
     period !== '30d'
 
-  const cooperativeOptions = MOCK_ADMIN_COOPERATIVES.filter((c) => c.status !== 'inactive')
+  const cooperativeOptions = MOCK_ADMIN_COOPERATIVES.filter(
+    (c) => c.status !== 'inactive',
+  )
 
   async function handleResolve(id: string) {
     await resolveDelay.mutateAsync(id)
@@ -130,7 +122,13 @@ export function AdminDelaysPage() {
   }
 
   function clearFilters() {
-    setFilters({ search: '', severity: '', cooperativeId: '', statusFilter: [], period: '30d' })
+    setFilters({
+      search: '',
+      severity: '',
+      cooperativeId: '',
+      statusFilter: [],
+      period: '30d',
+    })
   }
 
   const columns: AdminTableColumn<AdminDelay>[] = [
@@ -140,8 +138,8 @@ export function AdminDelaysPage() {
       width: '120px',
       hideOnMobile: true,
       render: (d) => (
-        <span className="text-xs text-muted-foreground">
-          {formatDateTime(d.reportedAt)}
+        <span className="text-muted-foreground text-xs">
+          {formatDelayDateTime(d.reportedAt)}
         </span>
       ),
     },
@@ -149,7 +147,7 @@ export function AdminDelaysPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="font-medium text-foreground text-[13px]">
+        <span className="text-foreground text-[13px] font-medium">
           {d.routeCode} — {d.routeName}
         </span>
       ),
@@ -159,7 +157,9 @@ export function AdminDelaysPage() {
       label: 'Cooperativa',
       hideOnMobile: true,
       render: (d) => (
-        <span className="text-[13px] text-muted-foreground">{d.cooperativeName}</span>
+        <span className="text-muted-foreground text-[13px]">
+          {d.cooperativeName}
+        </span>
       ),
     },
     {
@@ -168,7 +168,7 @@ export function AdminDelaysPage() {
       width: '90px',
       align: 'right',
       render: (d) => (
-        <span className="font-semibold text-[13px]">{d.delayMinutes} min</span>
+        <span className="text-[13px] font-semibold">{d.delayMinutes} min</span>
       ),
     },
     {
@@ -176,10 +176,7 @@ export function AdminDelaysPage() {
       label: 'Motivo',
       hideOnMobile: true,
       render: (d) => (
-        <span
-          className="text-[13px] text-muted-foreground"
-          title={d.reason}
-        >
+        <span className="text-muted-foreground text-[13px]" title={d.reason}>
           {truncateText(d.reason, 45)}
         </span>
       ),
@@ -188,18 +185,13 @@ export function AdminDelaysPage() {
       key: 'severity',
       label: 'Severidade',
       width: '110px',
-      render: (d) => <AdminStatusBadge {...getSeverityBadge(d.severity)} />,
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'status',
       label: 'Status',
       width: '110px',
-      render: (d) => (
-        <AdminStatusBadge
-          variant={d.status === 'resolved' ? 'success' : 'attention'}
-          label={d.status === 'resolved' ? 'Resolvido' : 'Pendente'}
-        />
-      ),
+      render: (d) => <StatusChip {...DELAY_STATUS_META[d.status]} />,
     },
     {
       key: 'actions',
@@ -297,7 +289,9 @@ export function AdminDelaysPage() {
 
             <Select
               value={severity || 'all'}
-              onValueChange={(v) => setFilters({ severity: v === 'all' ? '' : v })}
+              onValueChange={(v) =>
+                setFilters({ severity: v === 'all' ? '' : v })
+              }
             >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Severidade" />
@@ -312,7 +306,9 @@ export function AdminDelaysPage() {
 
             <Select
               value={cooperativeId || 'all'}
-              onValueChange={(v) => setFilters({ cooperativeId: v === 'all' ? '' : v })}
+              onValueChange={(v) =>
+                setFilters({ cooperativeId: v === 'all' ? '' : v })
+              }
             >
               <SelectTrigger className="h-8 w-44 text-xs">
                 <SelectValue placeholder="Cooperativa" />
@@ -320,7 +316,9 @@ export function AdminDelaysPage() {
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
                 {cooperativeOptions.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -343,7 +341,11 @@ export function AdminDelaysPage() {
         emptyState={
           <AdminEmptyState
             icon={hasFilters ? X : CheckCircle2}
-            title={hasFilters ? 'Nenhum atraso nos filtros' : 'Sem atrasos reportados'}
+            title={
+              hasFilters
+                ? 'Nenhum atraso nos filtros'
+                : 'Sem atrasos reportados'
+            }
             description={
               hasFilters
                 ? 'Ajuste os filtros para ver mais registros.'

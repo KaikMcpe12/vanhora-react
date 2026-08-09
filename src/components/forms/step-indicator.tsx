@@ -7,14 +7,16 @@ interface StepIndicatorProps {
   className?: string
 }
 
-/** Barra de progresso "Passo N de M" para o modo wizard do DelayForm. */
+/** Barra de progresso segmentada "Passo N de M · label". */
 export function StepIndicator({
   current,
   total,
   labels,
   className,
 }: StepIndicatorProps) {
-  const label = labels?.[current - 1]
+  const resolvedLabels =
+    labels ?? Array.from({ length: total }, (_, i) => `Passo ${i + 1}`)
+  const label = resolvedLabels[current - 1]
 
   return (
     <div className={cn('space-y-2', className)}>

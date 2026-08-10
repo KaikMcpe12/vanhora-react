@@ -55,7 +55,8 @@ export const queryKeys = {
 
     cooperatives: {
       all: () => ['admin', 'cooperatives'] as const,
-      list: (filters?: AnyParams) => ['admin', 'cooperatives', filters] as const,
+      list: (filters?: AnyParams) =>
+        ['admin', 'cooperatives', filters] as const,
       stats: () => ['admin', 'cooperatives', 'stats'] as const,
     },
 
@@ -79,7 +80,10 @@ export const queryKeys = {
   cooperative: {
     portal: {
       stats: () => ['cooperative', 'portal', 'stats'] as const,
-      profile: (id: string) => ['cooperative', 'portal', 'profile', id] as const,
+      profile: (id: string) =>
+        ['cooperative', 'portal', 'profile', id] as const,
+      operationalPanel: () =>
+        ['cooperative', 'portal', 'operational-panel'] as const,
     },
   },
 

@@ -1,29 +1,19 @@
-import {
-  AlertTriangle,
-  CheckCircle2,
-  Clock3,
-  Route,
-  Star,
-  Users,
-} from 'lucide-react'
-import { useNavigate, useOutletContext } from 'react-router-dom'
+import { AlertTriangle, Clock, PauseCircle, PlayCircle } from 'lucide-react'
+import { motion } from 'motion/react'
+import { useState } from 'react'
+import { useOutletContext } from 'react-router-dom'
 
-import {
-  AdminEmptyState,
-  AdminKPICard,
-  AdminSectionTitle,
-  AdminTable,
-  type AdminTableColumn,
-} from '@/components/admin'
-import { SeverityBadge } from '@/components/delays/severity-badge'
-import { StatusChip } from '@/components/status-chip'
+import { AdminKPICard, AdminSectionTitle } from '@/components/admin'
+import { DelaysByRouteBarChart } from '@/components/charts/delays-by-route-bar-chart'
+import { OnTimeAreaChart } from '@/components/charts/on-time-area-chart'
+import { SeverityDonutChart } from '@/components/charts/severity-donut-chart'
+import { LiveUpdatedAt } from '@/components/cooperative/live-updated-at'
+import { OperationsBoard } from '@/components/cooperative/operations-board'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useCoopPortalStats } from '@/lib/api/mock-cooperative-portal-api'
-import { useAdminDelays } from '@/lib/api/mock-delays-api'
-import type { AdminDelay } from '@/lib/data/mock-admin-delays'
-import { MOCK_COOP_PORTAL_USER_ID } from '@/lib/data/mock-cooperative-portal'
-import { DELAY_STATUS_META } from '@/lib/status/status-meta'
+import { useCoopOperationalPanel } from '@/lib/api/mock-cooperative-portal-api'
+import { COOP_NOW } from '@/lib/data/mock-cooperative-operations'
+import { cn } from '@/lib/utils'
 import type {
   AppPortalRole,
   AppPortalUser,
@@ -35,146 +25,188 @@ interface OutletContext {
   basePath: string
 }
 
-function KpiSkeleton() {
-  return (
-    <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-      {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} className="h-[108px] rounded-xl" />
-      ))}
-    </div>
-  )
+const NOW_MIN = COOP_NOW.getHours() * 60 + COOP_NOW.getMinutes()
+const toMin = (hhmm: string) => {
+  const [h, m] = hhmm.split(':').map(Number)
+  return h * 60 + m
 }
 
 export function CooperativeDashboardPage() {
-  const navigate = useNavigate()
   const { user } = useOutletContext<OutletContext>()
+  const { data, isLoading, dataUpdatedAt } = useCoopOperationalPanel()
+  const [showAllNext, setShowAllNext] = useState(false)
 
-  const { data: stats, isLoading: statsLoading } = useCoopPortalStats()
-  const { data: delaysData, isLoading: delaysLoading } = useAdminDelays({
-    cooperativeId: MOCK_COOP_PORTAL_USER_ID,
-    period: '24h',
-  })
+  const kpis = data?.kpis
+  const operations = data?.operations ?? []
+  const nextDepartures = data?.nextDepartures ?? []
+  const onTimeHistory = data?.onTimeHistory ?? []
+  const delaysByRoute = data?.delaysByRoute ?? []
+  const severityDistribution = data?.severityDistribution ?? []
 
-  const recentDelays = delaysData?.data.slice(0, 5) ?? []
+  const firstName = user.name.split(' ')[0]
 
-  const delayColumns: AdminTableColumn<AdminDelay>[] = [
+  const kpiCards = [
     {
-      key: 'route',
-      label: 'Rota',
-      render: (d) => (
-        <span className="text-foreground text-[13px] font-medium">
-          {d.routeCode} — {d.routeName}
-        </span>
-      ),
+      label: 'Em operação',
+      value: kpis?.emOperacao ?? 0,
+      icon: PlayCircle,
+      severity: 'default' as const,
     },
     {
-      key: 'delay',
-      label: 'Atraso',
-      width: '90px',
-      align: 'right',
-      render: (d) => (
-        <span className="text-[13px] font-semibold">{d.delayMinutes} min</span>
-      ),
+      label: 'Atrasadas',
+      value: kpis?.atrasadas ?? 0,
+      icon: AlertTriangle,
+      severity:
+        (kpis?.atrasadas ?? 0) > 0
+          ? ('critical' as const)
+          : ('default' as const),
     },
     {
-      key: 'severity',
-      label: 'Severidade',
-      width: '110px',
-      render: (d) => <SeverityBadge severity={d.severity} />,
+      label: 'Suspensas',
+      value: kpis?.suspensas ?? 0,
+      icon: PauseCircle,
+      severity:
+        (kpis?.suspensas ?? 0) > 0
+          ? ('attention' as const)
+          : ('default' as const),
     },
     {
-      key: 'status',
-      label: 'Status',
-      width: '110px',
-      render: (d) => <StatusChip {...DELAY_STATUS_META[d.status]} />,
+      label: 'Atrasos pendentes',
+      value: kpis?.pendentes ?? 0,
+      icon: Clock,
+      severity:
+        (kpis?.pendentes ?? 0) > 0
+          ? ('attention' as const)
+          : ('default' as const),
     },
   ]
 
+  const visibleNext = showAllNext ? nextDepartures : nextDepartures.slice(0, 4)
+
   return (
-    <div className="space-y-10">
-      <section className="space-y-1">
-        <h2 className="text-foreground text-lg font-semibold">
-          Bem-vindo, {user.name.split(' ')[0]}
-        </h2>
-        <p className="text-muted-foreground text-sm">
-          Acompanhe o desempenho operacional da sua cooperativa.
-        </p>
+    <div className="space-y-8">
+      <section className="flex flex-wrap items-center justify-between gap-3">
+        <div className="space-y-1">
+          <h2 className="text-foreground text-xl font-semibold">
+            Bem-vindo, {firstName} 👋
+          </h2>
+          <p className="text-muted-foreground text-sm">
+            Painel operacional — o que está rodando agora
+          </p>
+        </div>
+        {dataUpdatedAt ? <LiveUpdatedAt updatedAt={dataUpdatedAt} /> : null}
+      </section>
+
+      <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+        {kpiCards.map((k, i) => (
+          <motion.div
+            key={k.label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: i * 0.05 }}
+          >
+            <AdminKPICard
+              label={k.label}
+              value={k.value}
+              icon={k.icon}
+              severity={k.severity}
+            />
+          </motion.div>
+        ))}
       </section>
 
       <section className="space-y-4">
         <AdminSectionTitle
-          title="Visão geral"
-          description="Dados operacionais do dia"
+          title="Agora"
+          description="Operações em andamento neste momento"
         />
-        {statsLoading ? (
-          <KpiSkeleton />
+        {isLoading ? (
+          <Skeleton className="h-40 w-full rounded-xl" />
         ) : (
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-3">
-            <AdminKPICard
-              label="Rotas Ativas"
-              value={stats?.activeRoutes ?? 0}
-              icon={Route}
-            />
-            <AdminKPICard
-              label="Motoristas"
-              value={stats?.totalDrivers ?? 0}
-              icon={Users}
-            />
-            <AdminKPICard
-              label="Horários Hoje"
-              value={stats?.schedulesToday ?? 0}
-              icon={Clock3}
-            />
-            <AdminKPICard
-              label="Pontualidade"
-              value={`${Math.round((stats?.onTimeRate ?? 0) * 100)}%`}
-              helper="nos últimos 30 dias"
-              icon={CheckCircle2}
-            />
-            <AdminKPICard
-              label="Avaliação Média"
-              value={stats?.avgRating ?? 0}
-              icon={Star}
-            />
-            <AdminKPICard
-              label="Atrasos Pendentes"
-              value={stats?.pendingDelays ?? 0}
-              severity={stats?.criticalDelays ? 'critical' : 'default'}
-              helper="aguardando resolução"
-              icon={AlertTriangle}
-            />
-          </div>
+          <OperationsBoard
+            operations={operations}
+            nextDeparture={nextDepartures[0]}
+          />
         )}
       </section>
 
-      <section className="space-y-4">
-        <AdminSectionTitle
-          title="Atrasos recentes"
-          description="Ocorrências da sua cooperativa nas últimas 24 horas"
-          actions={
+      {nextDepartures.length > 0 && (
+        <section className="space-y-4">
+          <AdminSectionTitle
+            title="Próximas saídas"
+            description="Partidas ainda programadas para hoje"
+          />
+          <ul className="space-y-2">
+            {visibleNext.map((op) => {
+              const mins = toMin(op.departureTime) - NOW_MIN
+              const soon = mins <= 30
+              return (
+                <li
+                  key={op.id}
+                  className={cn(
+                    'flex items-center gap-3 rounded-lg border p-3',
+                    soon && 'border-l-4 border-l-emerald-500',
+                  )}
+                >
+                  <span className="text-foreground text-sm font-semibold tabular-nums">
+                    {op.departureTime}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-foreground truncate text-sm font-medium">
+                      {op.routeCode} → {op.destination}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {op.origin}
+                    </p>
+                  </div>
+                  {soon && (
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
+                      em {mins} min
+                    </span>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          {nextDepartures.length > 4 && (
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate('/cooperative/delays')}
+              onClick={() => setShowAllNext((v) => !v)}
             >
-              Ver todos →
+              {showAllNext
+                ? 'Ver menos'
+                : `Ver todas (${nextDepartures.length})`}
             </Button>
-          }
+          )}
+        </section>
+      )}
+
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Desempenho"
+          description="Tendências dos últimos 30 dias"
         />
-        <AdminTable
-          columns={delayColumns}
-          data={recentDelays}
-          keyExtractor={(d) => d.id}
-          isLoading={delaysLoading}
-          onRowClick={() => navigate('/cooperative/delays')}
-          emptyState={
-            <AdminEmptyState
-              icon={CheckCircle2}
-              title="Nenhum atraso nas últimas 24 horas"
-              description="Sua cooperativa está operando dentro do esperado."
-            />
-          }
-        />
+        <div className="bg-card rounded-xl border p-4">
+          <p className="text-foreground mb-3 text-sm font-medium">
+            Pontualidade — % de viagens no prazo (30 dias)
+          </p>
+          <OnTimeAreaChart data={onTimeHistory} />
+        </div>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <div className="bg-card rounded-xl border p-4">
+            <p className="text-foreground mb-3 text-sm font-medium">
+              Atrasos por rota
+            </p>
+            <DelaysByRouteBarChart data={delaysByRoute} />
+          </div>
+          <div className="bg-card rounded-xl border p-4">
+            <p className="text-foreground mb-3 text-sm font-medium">
+              Distribuição de severidade
+            </p>
+            <SeverityDonutChart data={severityDistribution} />
+          </div>
+        </div>
       </section>
     </div>
   )

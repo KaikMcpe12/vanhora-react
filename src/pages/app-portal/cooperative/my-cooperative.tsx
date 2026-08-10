@@ -1,11 +1,21 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Building2, Globe, Phone, Save } from 'lucide-react'
+import {
+  Building2,
+  Clock3,
+  Globe,
+  Phone,
+  Route,
+  Save,
+  Star,
+  Users,
+} from 'lucide-react'
+import { motion } from 'motion/react'
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 import { z } from 'zod'
 
-import { AdminSectionTitle } from '@/components/admin'
+import { AdminKPICard, AdminSectionTitle } from '@/components/admin'
 import { Button } from '@/components/ui/button'
 import {
   Form,
@@ -19,6 +29,7 @@ import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  useCoopPortalStats,
   useCoopProfile,
   useUpdateCoopProfile,
 } from '@/lib/api/mock-cooperative-portal-api'
@@ -55,6 +66,7 @@ function ProfileSkeleton() {
 export function CooperativeMyCooperativePage() {
   const { data: profile, isLoading } = useCoopProfile(MOCK_COOP_PORTAL_USER_ID)
   const updateProfile = useUpdateCoopProfile(MOCK_COOP_PORTAL_USER_ID)
+  const { data: stats } = useCoopPortalStats()
 
   const form = useForm<CoopProfileForm>({
     resolver: zodResolver(coopProfileSchema),
@@ -85,6 +97,46 @@ export function CooperativeMyCooperativePage() {
 
   return (
     <div className="space-y-8">
+      <section className="space-y-4">
+        <AdminSectionTitle
+          title="Visão geral"
+          description="Resumo da sua cooperativa"
+        />
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {[
+            {
+              label: 'Total de rotas',
+              value: stats?.activeRoutes ?? 0,
+              icon: Route,
+            },
+            {
+              label: 'Motoristas ativos',
+              value: stats?.totalDrivers ?? 0,
+              icon: Users,
+            },
+            {
+              label: 'Horários ativos',
+              value: stats?.schedulesToday ?? 0,
+              icon: Clock3,
+            },
+            {
+              label: 'Avaliação média',
+              value: stats?.avgRating ?? 0,
+              icon: Star,
+            },
+          ].map((k, i) => (
+            <motion.div
+              key={k.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: i * 0.05 }}
+            >
+              <AdminKPICard label={k.label} value={k.value} icon={k.icon} />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
       <section className="space-y-6">
         <AdminSectionTitle
           title="Dados da cooperativa"
@@ -103,7 +155,7 @@ export function CooperativeMyCooperativePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1.5">
-                        <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Building2 className="text-muted-foreground h-3.5 w-3.5" />
                         Nome da cooperativa
                       </FormLabel>
                       <FormControl>
@@ -120,7 +172,7 @@ export function CooperativeMyCooperativePage() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="flex items-center gap-1.5">
-                        <Phone className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Phone className="text-muted-foreground h-3.5 w-3.5" />
                         Telefone de contato
                       </FormLabel>
                       <FormControl>
@@ -137,11 +189,14 @@ export function CooperativeMyCooperativePage() {
                   render={({ field }) => (
                     <FormItem className="md:col-span-2">
                       <FormLabel className="flex items-center gap-1.5">
-                        <Globe className="h-3.5 w-3.5 text-muted-foreground" />
+                        <Globe className="text-muted-foreground h-3.5 w-3.5" />
                         Site oficial
                       </FormLabel>
                       <FormControl>
-                        <Input placeholder="https://suacooperativa.com.br" {...field} />
+                        <Input
+                          placeholder="https://suacooperativa.com.br"
+                          {...field}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -173,7 +228,9 @@ export function CooperativeMyCooperativePage() {
                   disabled={updateProfile.isPending || !form.formState.isDirty}
                 >
                   <Save className="h-4 w-4" />
-                  {updateProfile.isPending ? 'Salvando...' : 'Salvar alterações'}
+                  {updateProfile.isPending
+                    ? 'Salvando...'
+                    : 'Salvar alterações'}
                 </Button>
               </div>
             </form>
@@ -183,7 +240,7 @@ export function CooperativeMyCooperativePage() {
 
       {profile && (
         <section className="space-y-3 border-t pt-6">
-          <p className="text-xs text-muted-foreground">
+          <p className="text-muted-foreground text-xs">
             Cadastrada em{' '}
             {new Date(profile.createdAt).toLocaleDateString('pt-BR', {
               day: '2-digit',

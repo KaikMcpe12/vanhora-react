@@ -17,9 +17,38 @@ function toMinutes(hhmm: string): number {
   return h * 60 + m
 }
 
+/** true se `now` está dentro da janela departure→arrival. */
+export function isTripActive(
+  departureTime: string,
+  arrivalEstimate: string,
+  now: Date,
+): boolean {
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  return (
+    toMinutes(departureTime) <= nowMin && nowMin <= toMinutes(arrivalEstimate)
+  )
+}
+
 /**
- * Deriva a viagem atual a partir do relógio + janela departure→arrival.
- * Sem GPS: progresso é tempo linear na janela. Retorna null se nada está rodando.
+ * Progresso linear por tempo na janela departure→arrival (sem GPS).
+ * Reusado pelo painel operacional da cooperativa (PR5).
+ */
+export function tripProgress(
+  departureTime: string,
+  arrivalEstimate: string,
+  now: Date,
+): { progressPct: number; minutesRemaining: number } {
+  const nowMin = now.getHours() * 60 + now.getMinutes()
+  const dep = toMinutes(departureTime)
+  const arr = toMinutes(arrivalEstimate)
+  const span = Math.max(1, arr - dep)
+  const progressPct = Math.min(100, Math.max(0, ((nowMin - dep) / span) * 100))
+  const minutesRemaining = Math.max(0, arr - nowMin)
+  return { progressPct, minutesRemaining }
+}
+
+/**
+ * Deriva a viagem atual a partir do relógio + janela. Sem GPS. null se nada roda.
  */
 export function getCurrentTrip(
   schedules: DriverScheduleEntry[],
@@ -27,13 +56,11 @@ export function getCurrentTrip(
 ): CurrentTripView | null {
   const nowMin = now.getHours() * 60 + now.getMinutes()
 
-  const candidates = schedules.filter((s) => {
-    if (!RUNNING_STATUSES.includes(s.status)) return false
-    return (
-      toMinutes(s.departureTime) <= nowMin &&
-      nowMin <= toMinutes(s.arrivalEstimate)
-    )
-  })
+  const candidates = schedules.filter(
+    (s) =>
+      RUNNING_STATUSES.includes(s.status) &&
+      isTripActive(s.departureTime, s.arrivalEstimate, now),
+  )
   if (candidates.length === 0) return null
 
   // desempate improvável: departureTime mais próximo de now
@@ -43,11 +70,11 @@ export function getCurrentTrip(
       Math.abs(nowMin - toMinutes(b.departureTime)),
   )[0]
 
-  const dep = toMinutes(entry.departureTime)
-  const arr = toMinutes(entry.arrivalEstimate)
-  const span = Math.max(1, arr - dep)
-  const progressPct = Math.min(100, Math.max(0, ((nowMin - dep) / span) * 100))
-  const minutesRemaining = Math.max(0, arr - nowMin)
+  const { progressPct, minutesRemaining } = tripProgress(
+    entry.departureTime,
+    entry.arrivalEstimate,
+    now,
+  )
 
   // nextStopHint fica de fora: o mock não tem paradas com horário e não inventamos posição.
   return { entry, progressPct, minutesRemaining }

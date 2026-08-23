@@ -1,13 +1,12 @@
 import {
   ArrowLeft,
   Clock,
-  ExternalLink,
   Info,
   Pencil,
   Route as RouteIcon,
   Users,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
 
 import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
@@ -19,24 +18,12 @@ import {
   getCooperativeDelays,
   getCooperativeDrivers,
   getCooperativeRoutes,
-  getCooperativeStats,
 } from './cooperative-data'
 import { cooperativeStatusBadge, getInitials } from './cooperative-shared'
 import { DelaysTab } from './tabs/delays-tab'
 import { DriversTab } from './tabs/drivers-tab'
 import { GeneralTab } from './tabs/general-tab'
 import { RoutesTab } from './tabs/routes-tab'
-
-function Metric({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-muted-foreground text-[11px] tracking-wide uppercase">
-        {label}
-      </p>
-      <p className="text-foreground text-[15px] font-semibold">{value}</p>
-    </div>
-  )
-}
 
 interface CooperativeDetailPanelProps {
   cooperative: AdminCooperative
@@ -53,49 +40,28 @@ export function CooperativeDetailPanel({
   onEdit,
   onBack,
 }: CooperativeDetailPanelProps) {
-  const navigate = useNavigate()
-  const coopName = encodeURIComponent(cooperative.name)
-  const quickLinks = [
-    {
-      label: 'Ver rotas',
-      icon: RouteIcon,
-      to: `/admin/routes?cooperative=${coopName}`,
-    },
-    {
-      label: 'Ver motoristas',
-      icon: Users,
-      to: `/admin/users?cooperative=${cooperative.id}`,
-    },
-    {
-      label: 'Ver horários',
-      icon: Clock,
-      to: `/admin/schedules?cooperative=${coopName}`,
-    },
-  ]
-  const stats = getCooperativeStats(cooperative)
+  const reduce = useReducedMotion()
+
+  // contagens síncronas para os badges — batem com o que cada aba lista
   const routeCount = getCooperativeRoutes(cooperative.id).length
   const driverCount = getCooperativeDrivers(cooperative.id).length
   const delayCount = getCooperativeDelays(cooperative.id).length
 
   const tabs = [
-    {
-      value: 'geral',
-      label: 'Geral',
-      icon: Info,
-      count: undefined as number | undefined,
-    },
+    { value: 'geral', label: 'Geral', icon: Info, count: undefined as number | undefined },
     { value: 'rotas', label: 'Rotas', icon: RouteIcon, count: routeCount },
-    {
-      value: 'motoristas',
-      label: 'Motoristas',
-      icon: Users,
-      count: driverCount,
-    },
+    { value: 'motoristas', label: 'Motoristas', icon: Users, count: driverCount },
     { value: 'atrasos', label: 'Atrasos', icon: Clock, count: delayCount },
   ]
 
   return (
-    <div className="space-y-5">
+    <motion.div
+      key={cooperative.id}
+      className="space-y-5"
+      initial={reduce ? false : { opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.2 }}
+    >
       {/* Header */}
       <div className="flex items-start gap-3">
         {onBack && (
@@ -123,8 +89,8 @@ export function CooperativeDetailPanel({
             <StatusChip {...cooperativeStatusBadge(cooperative.status)} />
           </div>
           <p className="text-muted-foreground text-[12px]">
-            {cooperative.phone}
-            {cooperative.site ? ` • ${cooperative.site}` : ''}
+            {routeCount} rota{routeCount === 1 ? '' : 's'} · {driverCount}{' '}
+            motorista{driverCount === 1 ? '' : 's'}
           </p>
         </div>
         <Button
@@ -138,45 +104,11 @@ export function CooperativeDetailPanel({
         </Button>
       </div>
 
-      {/* Metrics */}
-      <div className="border-border bg-card flex flex-wrap gap-x-8 gap-y-3 rounded-xl border px-5 py-4">
-        <Metric label="Rotas" value={String(routeCount)} />
-        <Metric label="Frota" value={String(driverCount)} />
-        <Metric
-          label="Avaliação"
-          value={
-            cooperative.reviewCount > 0 ? cooperative.rating.toFixed(1) : '—'
-          }
-        />
-        <Metric label="Pontualidade" value={`${stats.onTimeRate}%`} />
-        <Metric label="Alertas críticos" value={String(stats.criticalAlerts)} />
-      </div>
-
-      {/* Quick links → dedicated pages filtered by this cooperative */}
-      <div className="flex flex-wrap gap-2">
-        {quickLinks.map((link) => {
-          const Icon = link.icon
-          return (
-            <Button
-              key={link.label}
-              variant="outline"
-              size="sm"
-              className="gap-1.5 rounded-full"
-              onClick={() => navigate(link.to)}
-            >
-              <Icon className="h-3.5 w-3.5" />
-              {link.label}
-              <ExternalLink className="text-muted-foreground h-3 w-3" />
-            </Button>
-          )
-        })}
-      </div>
-
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={onTabChange}>
         <TabsList
           variant="line"
-          className="border-border w-full justify-start gap-1 border-b"
+          className="border-border w-full justify-start gap-1 overflow-x-auto border-b"
         >
           {tabs.map((t) => {
             const Icon = t.icon
@@ -207,7 +139,10 @@ export function CooperativeDetailPanel({
         </TabsList>
 
         <TabsContent value="geral" className="pt-5">
-          <GeneralTab cooperative={cooperative} />
+          <GeneralTab
+            cooperative={cooperative}
+            onViewRoutes={() => onTabChange('rotas')}
+          />
         </TabsContent>
         <TabsContent value="rotas" className="pt-5">
           <RoutesTab cooperative={cooperative} />
@@ -219,6 +154,6 @@ export function CooperativeDetailPanel({
           <DelaysTab cooperative={cooperative} />
         </TabsContent>
       </Tabs>
-    </div>
+    </motion.div>
   )
 }

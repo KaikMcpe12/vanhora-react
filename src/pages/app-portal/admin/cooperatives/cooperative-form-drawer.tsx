@@ -32,6 +32,8 @@ interface CooperativeFormDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   cooperative?: AdminCooperative | null
+  /** chamado com a cooperativa recém-criada — usado para selecioná-la na lista */
+  onCreated?: (cooperative: AdminCooperative) => void
 }
 
 function toDefaults(
@@ -51,6 +53,7 @@ export function CooperativeFormDrawer({
   open,
   onOpenChange,
   cooperative,
+  onCreated,
 }: CooperativeFormDrawerProps) {
   const isEdit = !!cooperative
 
@@ -78,8 +81,9 @@ export function CooperativeFormDrawer({
         await updateCoop.mutateAsync({ id: cooperative.id, payload })
         toast.success(`Cooperativa "${values.name}" atualizada`)
       } else {
-        await createCoop.mutateAsync(payload)
+        const created = await createCoop.mutateAsync(payload)
         toast.success(`Cooperativa "${values.name}" criada`)
+        onCreated?.(created)
       }
       onOpenChange(false)
     } catch (err) {

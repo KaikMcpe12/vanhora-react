@@ -1,12 +1,16 @@
 import {
   AlertTriangle,
+  Building2,
   CheckCircle2,
+  CircleCheck,
   CircleDashed,
   CloudRain,
   Edit,
   Eye,
   Info,
+  MousePointerClick,
   Plus,
+  Route as RouteIcon,
   TrafficCone,
   Trash2,
   Users,
@@ -21,6 +25,7 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
+  AdminPagination,
   AdminSectionTitle,
   AdminTable,
   type AdminTableColumn,
@@ -29,8 +34,14 @@ import { ChoiceChips } from '@/components/forms/choice-chips'
 import { MinuteStepper } from '@/components/forms/minute-stepper'
 import { SelectableCard } from '@/components/forms/selectable-card'
 import { StepIndicator } from '@/components/forms/step-indicator'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
+import {
+  type Weekday,
+  WeekdayPicker,
+} from '@/components/pickers/weekday-picker'
 import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
+import { SearchableSelect } from '@/components/ui/searchable-select'
 import {
   Select,
   SelectContent,
@@ -38,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import {
   DELAY_STATUS_META,
   DRIVER_SCHEDULE_STATUS_META,
@@ -47,6 +59,8 @@ import {
   USER_ROLE_META,
   USER_STATUS_META,
 } from '@/lib/status/status-meta'
+import { CooperativeDetailPanel } from '@/pages/app-portal/admin/cooperatives/cooperative-detail-panel'
+import { GeneralTab } from '@/pages/app-portal/admin/cooperatives/tabs/general-tab'
 
 interface SampleRow {
   id: string
@@ -79,6 +93,14 @@ const sampleData: SampleRow[] = [
     routes: 0,
   },
 ]
+
+// Cooperativas de exemplo para o preview do PR9 (dados mock reais).
+const previewCoopRich = MOCK_ADMIN_COOPERATIVES.find(
+  (c) => c.id === '11111111-1111-4111-8111-111111111111',
+)!
+const previewCoopGeneral = MOCK_ADMIN_COOPERATIVES.find(
+  (c) => c.id === '44444444-4444-4444-8444-444444444444',
+)!
 
 function PreviewSection({
   title,
@@ -131,6 +153,13 @@ export function AdminComponentsPreviewPage() {
   const [stepperC, setStepperC] = useState(3)
   const [chip, setChip] = useState<string | null>(null)
   const [selectedCard, setSelectedCard] = useState<'a' | 'b'>('a')
+  const [previewPage, setPreviewPage] = useState(0)
+  const [previewCoop, setPreviewCoop] = useState<string | null>(null)
+  const [coopPicker, setCoopPicker] = useState('')
+  const [weekMulti, setWeekMulti] = useState<Weekday[]>(['seg', 'ter', 'qua'])
+  const [weekNoPreset, setWeekNoPreset] = useState<Weekday[]>(['sex'])
+  const [weekSingle, setWeekSingle] = useState<Weekday[]>(['qua'])
+  const [detailTab, setDetailTab] = useState('geral')
 
   function handleSort(key: string) {
     setSortState((prev) => {
@@ -590,6 +619,250 @@ export function AdminComponentsPreviewPage() {
                 chips={Object.values(USER_ROLE_META)}
               />
             </div>
+          </div>
+        </div>
+      </PreviewSection>
+
+      <PreviewSection title="Infra de tabela (PR7)">
+        <div className="space-y-8">
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              AdminTable — linhas clicáveis (onRowClick)
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Tab até a linha + Enter/Espaço aciona; foco visível; cabeçalho
+              ordenável com aria-sort.
+            </p>
+            <AdminTable
+              columns={sampleColumns}
+              data={sampleData}
+              keyExtractor={(row) => row.id}
+              onRowClick={(row) => alert(`Linha: ${row.name}`)}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              AdminTable — estática (sem onRowClick)
+            </p>
+            <AdminTable
+              columns={sampleColumns}
+              data={sampleData}
+              keyExtractor={(row) => row.id}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              AdminTable — empty state
+            </p>
+            <AdminTable
+              columns={sampleColumns}
+              data={[]}
+              keyExtractor={(row) => row.id}
+              emptyState={
+                <AdminEmptyState
+                  icon={Users}
+                  title="Nenhum registro"
+                  description="Ajuste os filtros ou cadastre um novo item."
+                />
+              }
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              AdminPagination — 0-indexed, "N–M de T"
+            </p>
+            <AdminPagination
+              page={previewPage}
+              perPage={10}
+              total={87}
+              onPageChange={setPreviewPage}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              SearchableSelect — combobox pesquisável (15 opções)
+            </p>
+            <SearchableSelect
+              options={Array.from({ length: 15 }, (_, i) => ({
+                value: `coop-${i + 1}`,
+                label: `Cooperativa ${i + 1}`,
+              }))}
+              value={previewCoop}
+              onChange={setPreviewCoop}
+              allLabel="Todas as cooperativas"
+              searchPlaceholder="Buscar cooperativa"
+            />
+          </div>
+        </div>
+      </PreviewSection>
+
+      <PreviewSection title="Pickers de domínio (PR8)">
+        <div className="space-y-8">
+          <div className="grid gap-6 sm:grid-cols-3">
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                CooperativePicker — padrão (com "Todas")
+              </p>
+              <p className="text-muted-foreground text-xs">
+                dados reais (React Query) + bolinha da cor da marca
+              </p>
+              <CooperativePicker value={coopPicker} onChange={setCoopPicker} />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                CooperativePicker — sem "Todas" (allowAll=false)
+              </p>
+              <CooperativePicker
+                value={coopPicker}
+                onChange={setCoopPicker}
+                allowAll={false}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                CooperativePicker — desabilitado
+              </p>
+              <CooperativePicker
+                value="11111111-1111-4111-8111-111111111111"
+                onChange={() => {}}
+                disabled
+              />
+            </div>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-3">
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                WeekdayPicker — multi + presets
+              </p>
+              <WeekdayPicker
+                value={weekMulti}
+                onChange={setWeekMulti}
+                presets
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                WeekdayPicker — multi sem presets
+              </p>
+              <WeekdayPicker
+                value={weekNoPreset}
+                onChange={setWeekNoPreset}
+                presets={false}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <p className="text-foreground text-sm font-medium">
+                WeekdayPicker — single
+              </p>
+              <WeekdayPicker
+                value={weekSingle}
+                onChange={setWeekSingle}
+                mode="single"
+              />
+            </div>
+          </div>
+        </div>
+      </PreviewSection>
+
+      <PreviewSection title="Cooperativas admin (PR9)">
+        <div className="space-y-8">
+          {/* Painel de detalhes com dados mock — master-detail, 4 abas */}
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              Painel de detalhes (master-detail) — {previewCoopRich.name}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              4 abas navegáveis por teclado (setas). Geral consome
+              GET&nbsp;/api/cooperatives/:id; Rotas/Motoristas/Atrasos consomem
+              seus endpoints isolados por cooperative_id.
+            </p>
+            <div className="border-border rounded-xl border p-5">
+              <CooperativeDetailPanel
+                cooperative={previewCoopRich}
+                activeTab={detailTab}
+                onTabChange={setDetailTab}
+                onEdit={() => alert('Editar cooperativa')}
+              />
+            </div>
+          </div>
+
+          {/* Aba Geral isolada — a lente criativa */}
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              Aba Geral isolada — {previewCoopGeneral.name}
+            </p>
+            <p className="text-muted-foreground text-xs">
+              Identidade com brand_color, KPIs escalonados, padrão semanal,
+              cidades atendidas, pontualidade e cancelamentos recentes.
+            </p>
+            <div className="border-border rounded-xl border p-5">
+              <GeneralTab cooperative={previewCoopGeneral} />
+            </div>
+          </div>
+
+          {/* Estados degradados */}
+          <div className="space-y-2">
+            <p className="text-foreground text-sm font-medium">
+              Estados degradados
+            </p>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <div className="border-border rounded-xl border p-4">
+                <p className="text-muted-foreground mb-3 text-xs">
+                  1 · Nenhuma cooperativa selecionada
+                </p>
+                <AdminEmptyState
+                  icon={MousePointerClick}
+                  title="Selecione uma cooperativa"
+                  description="Escolha uma cooperativa na lista para ver o painel completo."
+                />
+              </div>
+              <div className="border-border rounded-xl border p-4">
+                <p className="text-muted-foreground mb-3 text-xs">
+                  2 · Cooperativa sem rotas
+                </p>
+                <AdminEmptyState
+                  icon={Plus}
+                  title="Nenhuma rota cadastrada"
+                  description="Esta cooperativa ainda não possui rotas."
+                  action={{ label: 'Cadastrar rota', onClick: () => {}, icon: Plus }}
+                />
+              </div>
+              <div className="border-border rounded-xl border p-4">
+                <p className="text-muted-foreground mb-3 text-xs">
+                  3 · Cooperativa sem motoristas
+                </p>
+                <AdminEmptyState
+                  icon={Users}
+                  title="Nenhum motorista vinculado"
+                  description="Esta cooperativa ainda não possui motoristas cadastrados."
+                />
+              </div>
+              <div className="border-border rounded-xl border p-4">
+                <p className="text-muted-foreground mb-3 text-xs">
+                  4 · Sem atrasos (boa notícia)
+                </p>
+                <AdminEmptyState
+                  icon={CircleCheck}
+                  title="Nenhum atraso registrado"
+                  description="Sem atrasos nos últimos 30 dias. ✓"
+                />
+              </div>
+            </div>
+            <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+              <Building2 className="h-3.5 w-3.5" />
+              Em telas ≤md o layout vira stack: a lista ocupa a tela e, ao
+              selecionar, o painel abre em tela cheia com botão de voltar.
+              <RouteIcon className="h-3.5 w-3.5" />
+            </p>
           </div>
         </div>
       </PreviewSection>

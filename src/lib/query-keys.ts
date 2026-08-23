@@ -59,6 +59,15 @@ export const queryKeys = {
         ['admin', 'cooperatives', filters] as const,
       stats: () => ['admin', 'cooperatives', 'stats'] as const,
       options: () => ['admin', 'cooperatives', 'options'] as const,
+      // detalhe master-detail — 4 endpoints isolados (api-spec §3.5)
+      detail: (id: string) =>
+        ['admin', 'cooperatives', 'detail', id] as const,
+      routes: (id: string) =>
+        ['admin', 'cooperatives', 'routes', id] as const,
+      drivers: (id: string) =>
+        ['admin', 'cooperatives', 'drivers', id] as const,
+      delays: (id: string) =>
+        ['admin', 'cooperatives', 'delays', id] as const,
     },
 
     delays: {

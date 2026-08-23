@@ -101,7 +101,7 @@ export function UsersPage() {
 
   const loggedInUserId = loggedInUser.email.replace('@', '_').split('.')[0]
   const loggedInCooperativeId =
-    role === 'cooperative' ? 'coop-metro' : undefined
+    role === 'cooperative' ? '11111111-1111-4111-8111-111111111111' : undefined
 
   const activeStatusFilter =
     statusFilters.length === ALL_STATUSES.length

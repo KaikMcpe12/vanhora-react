@@ -44,7 +44,7 @@ export const MOCK_DRIVER_PROFILE: DriverProfile = {
   phone: '(85) 99234-5678',
   cnh: '12345678900',
   cnhType: 'D',
-  cooperativeId: 'coop-metro',
+  cooperativeId: '11111111-1111-4111-8111-111111111111',
   cooperativeName: 'Metro Transportes',
   status: 'active',
   createdAt: '2025-03-15T00:00:00Z',

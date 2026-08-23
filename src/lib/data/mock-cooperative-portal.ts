@@ -1,5 +1,5 @@
 // id da cooperativa associada ao usuário mock de role 'cooperative'
-export const MOCK_COOP_PORTAL_USER_ID = 'coop-metro'
+export const MOCK_COOP_PORTAL_USER_ID = '11111111-1111-4111-8111-111111111111'
 
 export interface CooperativePortalStats {
   activeRoutes: number
@@ -33,7 +33,7 @@ export interface CooperativeProfileData {
 }
 
 export const MOCK_COOP_PROFILE: CooperativeProfileData = {
-  id: 'coop-metro',
+  id: '11111111-1111-4111-8111-111111111111',
   name: 'Metro Transportes',
   phone: '(85) 3234-5678',
   site: 'https://metrotransportes.com.br',

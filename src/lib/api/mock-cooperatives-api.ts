@@ -75,7 +75,8 @@ export const mockCooperativesApi = {
     await delay(API_DELAY)
 
     const newCoop: AdminCooperative = {
-      id: `coop-${Date.now()}`,
+      // novas cooperativas recebem UUID v4 real (contrato api-spec.md §1.2)
+      id: crypto.randomUUID(),
       name: payload.name,
       phone: payload.phone,
       site: payload.site,

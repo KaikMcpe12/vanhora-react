@@ -1,4 +1,4 @@
-import { ChevronDown,ChevronsUpDown, ChevronUp } from 'lucide-react'
+import { ChevronDown, ChevronsUpDown, ChevronUp } from 'lucide-react'
 import { type ReactNode } from 'react'
 
 import { Skeleton } from '@/components/ui/skeleton'
@@ -70,30 +70,45 @@ export function AdminTable<T>({
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border">
+    <div className="border-border overflow-hidden rounded-xl border">
       <Table>
         <TableHeader>
           <TableRow className="bg-accent/30 hover:bg-accent/30">
-            {columns.map((col) => (
-              <TableHead
-                key={col.key}
-                style={col.width ? { width: col.width } : undefined}
-                className={cn(
-                  'h-11 px-4 text-[11px] font-medium uppercase tracking-wide text-muted-foreground',
-                  alignClass[col.align ?? 'left'],
-                  col.sortable && onSort && 'cursor-pointer select-none',
-                  col.hideOnMobile && 'hidden sm:table-cell',
-                )}
-                onClick={
-                  col.sortable && onSort ? () => onSort(col.key) : undefined
-                }
-              >
-                {col.label}
-                {col.sortable && onSort && (
-                  <SortIcon columnKey={col.key} sortState={sortState} />
-                )}
-              </TableHead>
-            ))}
+            {columns.map((col) => {
+              const isSortable = Boolean(col.sortable && onSort)
+              const ariaSort = isSortable
+                ? sortState?.key === col.key
+                  ? sortState.direction === 'asc'
+                    ? 'ascending'
+                    : 'descending'
+                  : 'none'
+                : undefined
+              return (
+                <TableHead
+                  key={col.key}
+                  aria-sort={ariaSort}
+                  style={col.width ? { width: col.width } : undefined}
+                  className={cn(
+                    'text-muted-foreground h-11 px-4 text-[11px] font-medium tracking-wide uppercase',
+                    alignClass[col.align ?? 'left'],
+                    col.hideOnMobile && 'hidden sm:table-cell',
+                  )}
+                >
+                  {isSortable ? (
+                    <button
+                      type="button"
+                      onClick={() => onSort!(col.key)}
+                      className="focus-visible:ring-ring/50 -mx-1 inline-flex items-center rounded px-1 uppercase select-none focus-visible:ring-2 focus-visible:outline-none"
+                    >
+                      {col.label}
+                      <SortIcon columnKey={col.key} sortState={sortState} />
+                    </button>
+                  ) : (
+                    col.label
+                  )}
+                </TableHead>
+              )
+            })}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -141,7 +156,7 @@ export function AdminTable<T>({
                 className={cn(
                   'text-[13px]',
                   onRowClick &&
-                    'cursor-pointer hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-inset',
+                    'hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:ring-ring/50 cursor-pointer focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
                 )}
               >
                 {columns.map((col) => (

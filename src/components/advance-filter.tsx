@@ -1,7 +1,7 @@
 import { SlidersHorizontal, X } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
-import { CooperativePicker } from '@/components/cooperative-picker'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
 import { Button } from '@/components/ui/button'
 import {
   InputGroup,
@@ -102,9 +102,9 @@ export function AdvanceFilter() {
               control={control}
               render={({ field }) => (
                 <CooperativePicker
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={field.onChange}
-                  placeholder="Todas as cooperativas"
+                  triggerClassName="h-10 w-full"
                 />
               )}
             />

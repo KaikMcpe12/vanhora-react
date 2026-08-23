@@ -25,11 +25,20 @@ import {
   Plus,
   Trash2,
 } from 'lucide-react'
-import { type Control, Controller, useFieldArray, useForm } from 'react-hook-form'
+import {
+  type Control,
+  Controller,
+  useFieldArray,
+  useForm,
+} from 'react-hook-form'
 
 import { AdminStat } from '@/components/admin'
 import { CityPicker } from '@/components/city-picker'
 import { DriverPicker } from '@/components/driver-picker'
+import {
+  type Weekday,
+  WeekdayPicker,
+} from '@/components/pickers/weekday-picker'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -45,18 +54,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TimeField } from '@/components/ui/time-field'
 import type { RouteRowStatus } from '@/lib/api/mock-routes-api'
 import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
-import { routeFormSchema,type RouteFormValues } from '@/lib/schemas/route-schema'
+import {
+  routeFormSchema,
+  type RouteFormValues,
+} from '@/lib/schemas/route-schema'
 import { cn } from '@/lib/utils'
-
-const DAYS: { value: string; label: string }[] = [
-  { value: 'seg', label: 'Seg' },
-  { value: 'ter', label: 'Ter' },
-  { value: 'qua', label: 'Qua' },
-  { value: 'qui', label: 'Qui' },
-  { value: 'sex', label: 'Sex' },
-  { value: 'sab', label: 'Sáb' },
-  { value: 'dom', label: 'Dom' },
-]
 
 const STATUS_OPTIONS: { value: RouteRowStatus; label: string }[] = [
   { value: 'active', label: 'Ativa' },
@@ -72,29 +74,40 @@ interface SortableStopRowProps {
 }
 
 /** Linha de parada arrastável (@dnd-kit); o GripVertical é o handle de drag. */
-function SortableStopRow({ id, index, control, onRemove }: SortableStopRowProps) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id })
+function SortableStopRow({
+  id,
+  index,
+  control,
+  onRemove,
+}: SortableStopRowProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id })
 
   return (
     <div
       ref={setNodeRef}
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
-        'flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2',
+        'border-border bg-card flex items-center gap-2 rounded-lg border px-3 py-2',
         isDragging && 'relative z-10 opacity-80 shadow-lg',
       )}
     >
       <button
         type="button"
         aria-label="Reordenar parada"
-        className="cursor-grab touch-none text-muted-foreground active:cursor-grabbing"
+        className="text-muted-foreground cursor-grab touch-none active:cursor-grabbing"
         {...attributes}
         {...listeners}
       >
         <GripVertical className="h-4 w-4" />
       </button>
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[11px] font-bold text-primary">
+      <span className="bg-primary/10 text-primary flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-bold">
         {index + 1}
       </span>
       <Controller
@@ -125,7 +138,7 @@ function SortableStopRow({ id, index, control, onRemove }: SortableStopRowProps)
         type="button"
         variant="ghost"
         size="icon"
-        className="h-8 w-8 shrink-0 text-muted-foreground hover:text-destructive"
+        className="text-muted-foreground hover:text-destructive h-8 w-8 shrink-0"
         onClick={onRemove}
       >
         <Trash2 className="h-3.5 w-3.5" />
@@ -169,11 +182,16 @@ export function RouteForm({
     defaultValues,
   })
 
-  const { fields, append, remove, move } = useFieldArray({ control, name: 'stops' })
+  const { fields, append, remove, move } = useFieldArray({
+    control,
+    name: 'stops',
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   )
 
   const handleStopsDragEnd = (event: DragEndEvent) => {
@@ -195,7 +213,7 @@ export function RouteForm({
           <button
             type="button"
             onClick={onCancel}
-            className="mb-1 inline-flex items-center gap-1 text-[12px] text-muted-foreground transition-colors hover:text-foreground"
+            className="text-muted-foreground hover:text-foreground mb-1 inline-flex items-center gap-1 text-[12px] transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Rotas
@@ -209,15 +227,26 @@ export function RouteForm({
               'Nova Rota'
             )}
           </h1>
-          <p className="text-[13px] text-muted-foreground">
+          <p className="text-muted-foreground text-[13px]">
             Configure as informações, paradas e horários desta rota.
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={isSubmitting}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onCancel}
+            disabled={isSubmitting}
+          >
             Descartar
           </Button>
-          <Button type="submit" size="sm" className="gap-1.5" disabled={isSubmitting}>
+          <Button
+            type="submit"
+            size="sm"
+            className="gap-1.5"
+            disabled={isSubmitting}
+          >
             {isSubmitting
               ? 'Salvando...'
               : mode === 'edit'
@@ -228,16 +257,28 @@ export function RouteForm({
       </div>
 
       <Tabs defaultValue="geral">
-        <TabsList variant="line" className="w-full justify-start gap-1 border-b border-border">
-          <TabsTrigger value="geral" className="gap-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary">
+        <TabsList
+          variant="line"
+          className="border-border w-full justify-start gap-1 border-b"
+        >
+          <TabsTrigger
+            value="geral"
+            className="text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary gap-1.5"
+          >
             <Info className="h-4 w-4" />
             Informações Gerais
           </TabsTrigger>
-          <TabsTrigger value="paradas" className="gap-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary">
+          <TabsTrigger
+            value="paradas"
+            className="text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary gap-1.5"
+          >
             <MapPin className="h-4 w-4" />
             Paradas
           </TabsTrigger>
-          <TabsTrigger value="horarios" className="gap-1.5 text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary">
+          <TabsTrigger
+            value="horarios"
+            className="text-muted-foreground data-[state=active]:text-primary data-[state=active]:after:bg-primary gap-1.5"
+          >
             <Clock className="h-4 w-4" />
             Horários
           </TabsTrigger>
@@ -245,12 +286,20 @@ export function RouteForm({
 
         {/* Informações Gerais */}
         <TabsContent value="geral" className="pt-5">
-          <div className="space-y-5 rounded-xl border border-border bg-card p-5">
+          <div className="border-border bg-card space-y-5 rounded-xl border p-5">
             <div className="grid gap-5 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label className="text-[13px]">Nome da rota *</Label>
-                <Input {...register('name')} aria-invalid={!!errors.name} className="text-sm" />
-                {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                <Input
+                  {...register('name')}
+                  aria-invalid={!!errors.name}
+                  className="text-sm"
+                />
+                {errors.name && (
+                  <p className="text-destructive text-xs">
+                    {errors.name.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[13px]">Preço da passagem (R$)</Label>
@@ -258,10 +307,18 @@ export function RouteForm({
                   name="price"
                   control={control}
                   render={({ field }) => (
-                    <PriceField value={field.value} onChange={field.onChange} invalid={!!errors.price} />
+                    <PriceField
+                      value={field.value}
+                      onChange={field.onChange}
+                      invalid={!!errors.price}
+                    />
                   )}
                 />
-                {errors.price && <p className="text-xs text-destructive">{errors.price.message}</p>}
+                {errors.price && (
+                  <p className="text-destructive text-xs">
+                    {errors.price.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[13px]">Cooperativa *</Label>
@@ -273,23 +330,32 @@ export function RouteForm({
                       value={field.value}
                       onValueChange={(v) => {
                         field.onChange(v)
-                        const coop = MOCK_ADMIN_COOPERATIVES.find((c) => c.name === v)
+                        const coop = MOCK_ADMIN_COOPERATIVES.find(
+                          (c) => c.name === v,
+                        )
                         setValue('cooperativeId', coop?.id)
                       }}
                     >
-                      <SelectTrigger className="text-sm" aria-invalid={!!errors.cooperativeName}>
+                      <SelectTrigger
+                        className="text-sm"
+                        aria-invalid={!!errors.cooperativeName}
+                      >
                         <SelectValue placeholder="Selecione a cooperativa" />
                       </SelectTrigger>
                       <SelectContent>
                         {MOCK_ADMIN_COOPERATIVES.map((c) => (
-                          <SelectItem key={c.id} value={c.name}>{c.name}</SelectItem>
+                          <SelectItem key={c.id} value={c.name}>
+                            {c.name}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
                 {errors.cooperativeName && (
-                  <p className="text-xs text-destructive">{errors.cooperativeName.message}</p>
+                  <p className="text-destructive text-xs">
+                    {errors.cooperativeName.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-1.5">
@@ -298,7 +364,11 @@ export function RouteForm({
                   name="driverName"
                   control={control}
                   render={({ field }) => (
-                    <DriverPicker value={field.value} onChange={field.onChange} placeholder="Nenhum" />
+                    <DriverPicker
+                      value={field.value}
+                      onChange={field.onChange}
+                      placeholder="Nenhum"
+                    />
                   )}
                 />
               </div>
@@ -316,7 +386,11 @@ export function RouteForm({
                     />
                   )}
                 />
-                {errors.origin && <p className="text-xs text-destructive">{errors.origin.message}</p>}
+                {errors.origin && (
+                  <p className="text-destructive text-xs">
+                    {errors.origin.message}
+                  </p>
+                )}
               </div>
               <div className="space-y-1.5">
                 <Label className="text-[13px]">Destino *</Label>
@@ -333,7 +407,9 @@ export function RouteForm({
                   )}
                 />
                 {errors.destination && (
-                  <p className="text-xs text-destructive">{errors.destination.message}</p>
+                  <p className="text-destructive text-xs">
+                    {errors.destination.message}
+                  </p>
                 )}
               </div>
               <div className="space-y-1.5">
@@ -343,10 +419,14 @@ export function RouteForm({
                   control={control}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="text-sm"><SelectValue /></SelectTrigger>
+                      <SelectTrigger className="text-sm">
+                        <SelectValue />
+                      </SelectTrigger>
                       <SelectContent>
                         {STATUS_OPTIONS.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                          <SelectItem key={s.value} value={s.value}>
+                            {s.label}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -361,36 +441,17 @@ export function RouteForm({
                 name="activeDays"
                 control={control}
                 render={({ field }) => (
-                  <div className="flex flex-wrap gap-1.5">
-                    {DAYS.map((day) => {
-                      const active = field.value.includes(day.value)
-                      return (
-                        <button
-                          key={day.value}
-                          type="button"
-                          onClick={() =>
-                            field.onChange(
-                              active
-                                ? field.value.filter((d) => d !== day.value)
-                                : [...field.value, day.value],
-                            )
-                          }
-                          className={cn(
-                            'h-8 min-w-[42px] rounded-full border px-2 text-xs font-medium transition-colors',
-                            active
-                              ? 'border-primary bg-primary/10 text-primary'
-                              : 'border-input text-muted-foreground hover:bg-accent',
-                          )}
-                        >
-                          {day.label}
-                        </button>
-                      )
-                    })}
-                  </div>
+                  <WeekdayPicker
+                    value={field.value as Weekday[]}
+                    onChange={field.onChange}
+                    presets
+                  />
                 )}
               />
               {errors.activeDays && (
-                <p className="text-xs text-destructive">{errors.activeDays.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.activeDays.message}
+                </p>
               )}
             </div>
           </div>
@@ -399,9 +460,11 @@ export function RouteForm({
         {/* Paradas */}
         <TabsContent value="paradas" className="pt-5">
           <div className="grid gap-4 lg:grid-cols-3">
-            <div className="space-y-3 rounded-xl border border-border bg-card p-5 lg:col-span-2">
+            <div className="border-border bg-card space-y-3 rounded-xl border p-5 lg:col-span-2">
               <div className="flex items-center justify-between">
-                <p className="text-[13px] font-semibold text-foreground">Sequência de paradas</p>
+                <p className="text-foreground text-[13px] font-semibold">
+                  Sequência de paradas
+                </p>
                 <Button
                   type="button"
                   variant="outline"
@@ -436,16 +499,27 @@ export function RouteForm({
                 </SortableContext>
               </DndContext>
               {fields.length === 0 && (
-                <p className="py-4 text-center text-[13px] text-muted-foreground">
+                <p className="text-muted-foreground py-4 text-center text-[13px]">
                   Nenhuma parada. Adicione a primeira.
                 </p>
               )}
             </div>
 
-            <div className="space-y-3 rounded-xl border border-border bg-card p-5">
-              <p className="text-[13px] font-semibold text-foreground">Resumo da rota</p>
-              <AdminStat label="Nº de paradas" value={fields.length} icon={MapPin} />
-              <AdminStat label="Origem → Destino" value={`${origin || '—'}`} icon={MapPin} tone="success" />
+            <div className="border-border bg-card space-y-3 rounded-xl border p-5">
+              <p className="text-foreground text-[13px] font-semibold">
+                Resumo da rota
+              </p>
+              <AdminStat
+                label="Nº de paradas"
+                value={fields.length}
+                icon={MapPin}
+              />
+              <AdminStat
+                label="Origem → Destino"
+                value={`${origin || '—'}`}
+                icon={MapPin}
+                tone="success"
+              />
             </div>
           </div>
         </TabsContent>
@@ -455,21 +529,32 @@ export function RouteForm({
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2 lg:max-w-lg">
               <AdminStat label="Horários" value={scheduleCount} icon={Clock} />
-              <AdminStat label="Dias ativos" value={activeDays.length} icon={CalendarDays} tone="success" />
+              <AdminStat
+                label="Dias ativos"
+                value={activeDays.length}
+                icon={CalendarDays}
+                tone="success"
+              />
             </div>
             {mode === 'edit' && onManageSchedules ? (
-              <div className="flex flex-col items-start gap-3 rounded-xl border border-border bg-card p-5">
-                <p className="text-[13px] text-muted-foreground">
-                  Os horários desta rota são gerenciados na página de Horários, já filtrada por esta rota.
+              <div className="border-border bg-card flex flex-col items-start gap-3 rounded-xl border p-5">
+                <p className="text-muted-foreground text-[13px]">
+                  Os horários desta rota são gerenciados na página de Horários,
+                  já filtrada por esta rota.
                 </p>
-                <Button type="button" size="sm" className="gap-1.5" onClick={onManageSchedules}>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="gap-1.5"
+                  onClick={onManageSchedules}
+                >
                   <Clock className="h-3.5 w-3.5" />
                   Gerenciar horários desta rota
                 </Button>
               </div>
             ) : (
-              <div className="rounded-xl border border-border bg-card p-5">
-                <p className="text-[13px] text-muted-foreground">
+              <div className="border-border bg-card rounded-xl border p-5">
+                <p className="text-muted-foreground text-[13px]">
                   Salve a rota para começar a cadastrar horários.
                 </p>
               </div>

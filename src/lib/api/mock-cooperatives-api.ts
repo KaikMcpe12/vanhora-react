@@ -16,6 +16,12 @@ interface ListCooperativesFilters {
   pageSize?: number
 }
 
+export interface CooperativeOption {
+  id: string
+  name: string
+  brandColor: string
+}
+
 export interface CreateCooperativePayload {
   name: string
   phone: string
@@ -53,6 +59,14 @@ export const mockCooperativesApi = {
     const data = filtered.slice(start, start + pageSize)
 
     return { data, total, avgRating: Math.round(avgRating * 10) / 10 }
+  },
+
+  async getCooperativeOptions(): Promise<CooperativeOption[]> {
+    await delay(API_DELAY)
+    // exclui inativas — não devem ser opção de atribuição/filtro
+    return MOCK_ADMIN_COOPERATIVES.filter((c) => c.status !== 'inactive').map(
+      (c) => ({ id: c.id, name: c.name, brandColor: c.brandColor }),
+    )
   },
 
   async createCooperative(
@@ -132,6 +146,15 @@ export function useAdminCooperatives(filters: ListCooperativesFilters = {}) {
   })
 }
 
+/** Fonte única de opções de cooperativa (React Query, sem loading fake). */
+export function useCooperativeOptions() {
+  return useQuery({
+    queryKey: queryKeys.admin.cooperatives.options(),
+    queryFn: () => mockCooperativesApi.getCooperativeOptions(),
+    staleTime: 5 * 60_000,
+  })
+}
+
 export function useCooperativeStats() {
   return useQuery({
     queryKey: queryKeys.admin.cooperatives.stats(),
@@ -145,7 +168,9 @@ export function useCreateCooperative() {
     mutationFn: (payload: CreateCooperativePayload) =>
       mockCooperativesApi.createCooperative(payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }
 
@@ -160,7 +185,9 @@ export function useUpdateCooperative() {
       payload: Partial<CreateCooperativePayload>
     }) => mockCooperativesApi.updateCooperative(id, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }
 
@@ -175,6 +202,8 @@ export function useToggleCooperativeStatus() {
       newStatus: AdminCooperative['status']
     }) => mockCooperativesApi.toggleCooperativeStatus(id, newStatus),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cooperatives.all() }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }

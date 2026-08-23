@@ -30,7 +30,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-01-10T00:00:00Z',
   },
   {
-    id: 'coop-saofrancisco',
+    id: 'coop-expresso',
     name: 'Expresso São Francisco',
     phone: '(88) 3511-2233',
     site: 'https://expressosfco.com.br',

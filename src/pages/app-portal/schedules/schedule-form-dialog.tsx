@@ -2,6 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useEffect, useMemo } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 
+import {
+  type Weekday,
+  WeekdayPicker,
+} from '@/components/pickers/weekday-picker'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -25,17 +29,6 @@ import {
   type ScheduleFormSchemaValues,
 } from '@/lib/schemas/schedule-form-schema'
 import type { AdminRoute, DayOfWeek } from '@/lib/types/admin-schedule'
-import { cn } from '@/lib/utils'
-
-const DAYS: { value: DayOfWeek; label: string }[] = [
-  { value: 'seg', label: 'Seg' },
-  { value: 'ter', label: 'Ter' },
-  { value: 'qua', label: 'Qua' },
-  { value: 'qui', label: 'Qui' },
-  { value: 'sex', label: 'Sex' },
-  { value: 'sab', label: 'Sáb' },
-  { value: 'dom', label: 'Dom' },
-]
 
 export type ScheduleFormMode = 'create' | 'edit' | 'duplicate'
 
@@ -59,7 +52,11 @@ interface ScheduleFormDialogProps {
   /** Locked route for edit/duplicate. When absent (create), the route is selectable. */
   routeId?: string
   initialValues?: ScheduleFormValues
-  onSubmit: (routeId: string, values: ScheduleFormValues, mode: ScheduleFormMode) => void
+  onSubmit: (
+    routeId: string,
+    values: ScheduleFormValues,
+    mode: ScheduleFormMode,
+  ) => void
 }
 
 export function ScheduleFormDialog({
@@ -83,7 +80,12 @@ export function ScheduleFormDialog({
   } = useForm<ScheduleFormSchemaValues>({
     resolver: zodResolver(scheduleFormSchema),
     mode: 'onChange',
-    defaultValues: { routeId: '', departureTime: '', activeDays: [], notes: '' },
+    defaultValues: {
+      routeId: '',
+      departureTime: '',
+      activeDays: [],
+      notes: '',
+    },
   })
 
   // Reset the form each time it opens (covers programmatic opens).
@@ -120,11 +122,13 @@ export function ScheduleFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-[15px] font-medium">{TITLES[mode]}</DialogTitle>
+          <DialogTitle className="text-[15px] font-medium">
+            {TITLES[mode]}
+          </DialogTitle>
           {isRouteLocked && lockedRoute && (
             <p className="text-muted-foreground text-sm">
-              {lockedRoute.code} &bull; {lockedRoute.origin} &rarr; {lockedRoute.destination}{' '}
-              &bull; {lockedRoute.cooperativeName}
+              {lockedRoute.code} &bull; {lockedRoute.origin} &rarr;{' '}
+              {lockedRoute.destination} &bull; {lockedRoute.cooperativeName}
             </p>
           )}
         </DialogHeader>
@@ -139,7 +143,10 @@ export function ScheduleFormDialog({
                 control={control}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="text-sm" aria-invalid={!!errors.routeId}>
+                    <SelectTrigger
+                      className="text-sm"
+                      aria-invalid={!!errors.routeId}
+                    >
                       <SelectValue placeholder="Selecione a rota" />
                     </SelectTrigger>
                     <SelectContent>
@@ -153,7 +160,9 @@ export function ScheduleFormDialog({
                 )}
               />
               {errors.routeId && (
-                <p className="text-xs text-destructive">{errors.routeId.message}</p>
+                <p className="text-destructive text-xs">
+                  {errors.routeId.message}
+                </p>
               )}
             </div>
           )}
@@ -175,7 +184,9 @@ export function ScheduleFormDialog({
               )}
             />
             {errors.departureTime && (
-              <p className="text-xs text-destructive">{errors.departureTime.message}</p>
+              <p className="text-destructive text-xs">
+                {errors.departureTime.message}
+              </p>
             )}
           </div>
 
@@ -185,36 +196,17 @@ export function ScheduleFormDialog({
               name="activeDays"
               control={control}
               render={({ field }) => (
-                <div className="flex flex-wrap gap-1.5">
-                  {DAYS.map((day) => {
-                    const active = field.value.includes(day.value)
-                    return (
-                      <button
-                        key={day.value}
-                        type="button"
-                        onClick={() =>
-                          field.onChange(
-                            active
-                              ? field.value.filter((d) => d !== day.value)
-                              : [...field.value, day.value],
-                          )
-                        }
-                        className={cn(
-                          'h-8 min-w-[42px] rounded-full border px-2 text-xs font-medium transition-colors',
-                          active
-                            ? 'border-primary bg-primary/10 text-primary'
-                            : 'border-input text-muted-foreground hover:bg-accent',
-                        )}
-                      >
-                        {day.label}
-                      </button>
-                    )
-                  })}
-                </div>
+                <WeekdayPicker
+                  value={field.value as Weekday[]}
+                  onChange={(days) => field.onChange(days as DayOfWeek[])}
+                  presets
+                />
               )}
             />
             {errors.activeDays && (
-              <p className="text-xs text-destructive">{errors.activeDays.message}</p>
+              <p className="text-destructive text-xs">
+                {errors.activeDays.message}
+              </p>
             )}
           </div>
 
@@ -235,7 +227,12 @@ export function ScheduleFormDialog({
           <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button type="submit" form="schedule-form" size="sm" disabled={!isValid}>
+          <Button
+            type="submit"
+            form="schedule-form"
+            size="sm"
+            disabled={!isValid}
+          >
             {mode === 'edit' ? 'Salvar' : 'Criar horário'}
           </Button>
         </DialogFooter>

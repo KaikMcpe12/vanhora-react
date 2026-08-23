@@ -13,7 +13,6 @@ import {
   parseAsString,
   parseAsStringLiteral,
   useQueryState,
-  useQueryStates,
 } from 'nuqs'
 import { useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -29,6 +28,7 @@ import {
   StatusFilterChips,
 } from '@/components/admin'
 import { SeverityBadge } from '@/components/delays/severity-badge'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
 import { StatusChip } from '@/components/status-chip'
 import {
   Select,
@@ -38,6 +38,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useTableFilters } from '@/hooks/use-table-filters'
 import {
   useAdminDelay,
   useAdminDelays,
@@ -45,7 +46,6 @@ import {
   useReopenDelay,
   useResolveDelay,
 } from '@/lib/api/mock-delays-api'
-import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import type { AdminDelay } from '@/lib/data/mock-admin-delays'
 import { DELAY_STATUS_META } from '@/lib/status/status-meta'
 import { formatDelayDateTime } from '@/lib/utils/format'
@@ -55,13 +55,20 @@ import { DelayDetailDialog } from './delay-detail-dialog'
 const DELAY_PERIODS = ['24h', '7d', '30d'] as const
 type DelayPeriod = (typeof DELAY_PERIODS)[number]
 
-// parsers para os filtros persistidos na url
-const delayFilterParsers = {
-  search: parseAsString.withDefault(''),
-  period: parseAsStringLiteral(DELAY_PERIODS).withDefault('30d'),
-  severity: parseAsString.withDefault(''),
-  cooperativeId: parseAsString.withDefault(''),
-  statusFilter: parseAsArrayOf(parseAsString).withDefault([]),
+type DelayFilters = {
+  search: string
+  period: DelayPeriod
+  severity: string
+  cooperativeId: string
+  statusFilter: string[]
+}
+
+const DELAY_FILTER_DEFAULTS: DelayFilters = {
+  search: '',
+  period: '30d',
+  severity: '',
+  cooperativeId: '',
+  statusFilter: [],
 }
 
 function truncateText(text: string, max: number) {
@@ -71,10 +78,16 @@ function truncateText(text: string, max: number) {
 export function AdminDelaysPage() {
   const navigate = useNavigate()
 
-  const [
-    { search, period, severity, cooperativeId, statusFilter },
-    setFilters,
-  ] = useQueryStates(delayFilterParsers)
+  // filtros na URL via hook padronizado; parsers explícitos p/ manter o
+  // contrato de URL idêntico (period string-literal, statusFilter array)
+  const { filters: tableFilters, setFilters } = useTableFilters<DelayFilters>({
+    defaults: DELAY_FILTER_DEFAULTS,
+    parsers: {
+      period: parseAsStringLiteral(DELAY_PERIODS).withDefault('30d'),
+      statusFilter: parseAsArrayOf(parseAsString).withDefault([]),
+    },
+  })
+  const { search, period, severity, cooperativeId, statusFilter } = tableFilters
   // delayId controla qual dialog está aberto — fechar remove só ele, filtros permanecem
   const [delayId, setDelayId] = useQueryState('delayId')
 
@@ -106,10 +119,6 @@ export function AdminDelaysPage() {
     cooperativeId !== '' ||
     statusFilter.length > 0 ||
     period !== '30d'
-
-  const cooperativeOptions = MOCK_ADMIN_COOPERATIVES.filter(
-    (c) => c.status !== 'inactive',
-  )
 
   async function handleResolve(id: string) {
     await resolveDelay.mutateAsync(id)
@@ -304,24 +313,11 @@ export function AdminDelaysPage() {
               </SelectContent>
             </Select>
 
-            <Select
-              value={cooperativeId || 'all'}
-              onValueChange={(v) =>
-                setFilters({ cooperativeId: v === 'all' ? '' : v })
-              }
-            >
-              <SelectTrigger className="h-8 w-44 text-xs">
-                <SelectValue placeholder="Cooperativa" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {cooperativeOptions.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <CooperativePicker
+              value={cooperativeId}
+              onChange={(v) => setFilters({ cooperativeId: v })}
+              triggerClassName="w-44"
+            />
 
             <StatusFilterChips
               options={[{ value: 'pending', label: 'Não resolvido' }]}

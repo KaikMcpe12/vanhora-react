@@ -58,6 +58,7 @@ export const queryKeys = {
       list: (filters?: AnyParams) =>
         ['admin', 'cooperatives', filters] as const,
       stats: () => ['admin', 'cooperatives', 'stats'] as const,
+      options: () => ['admin', 'cooperatives', 'options'] as const,
     },
 
     delays: {

@@ -1,6 +1,4 @@
 import {
-  ChevronLeft,
-  ChevronRight,
   MapPin,
   MapPinOff,
   Pencil,
@@ -18,6 +16,7 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
+  AdminPagination,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
@@ -41,6 +40,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useFormDialogState } from '@/hooks/use-form-dialog-state'
+import { useTableFilters } from '@/hooks/use-table-filters'
 import {
   useAdminCities,
   useCityStats,
@@ -183,13 +183,19 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
   )
 }
 
+const CITY_FILTER_DEFAULTS = {
+  search: '',
+  status: ['active', 'inactive'] as string[],
+}
+
+const PAGE_SIZE = 20
+
 export function AdminCitiesPage() {
-  const [search, setSearch] = useState('')
-  const [statusFilters, setStatusFilters] = useState<string[]>([
-    'active',
-    'inactive',
-  ])
-  const [currentPage, setCurrentPage] = useState(1)
+  const { filters, setFilter, reset, page, setPage } = useTableFilters({
+    defaults: CITY_FILTER_DEFAULTS,
+  })
+  const { search, status: statusFilters } = filters
+
   const [formOpen, setFormOpen] = useState(false)
   const [editCity, setEditCity] = useState<AdminCity | null>(null)
   const [deactivateCity, setDeactivateCity] = useState<AdminCity | null>(null)
@@ -200,12 +206,11 @@ export function AdminCitiesPage() {
       ? ''
       : (statusFilters[0] as 'active' | 'inactive' | '')
 
-  const PAGE_SIZE = 20
-
   const { data, isLoading } = useAdminCities({
     search,
     status: activeStatus,
-    page: currentPage,
+    // hook é 0-indexed; a API de cidades é 1-indexed
+    page: page + 1,
     pageSize: PAGE_SIZE,
   })
 
@@ -218,8 +223,6 @@ export function AdminCitiesPage() {
     withRoutes: stats?.withRoutes ?? 0,
     inactive: stats?.inactive ?? 0,
   }
-
-  const totalPages = Math.ceil((data?.total ?? 0) / PAGE_SIZE)
 
   const hasFilters = Boolean(search.trim()) || statusFilters.length !== 2
 
@@ -260,31 +263,36 @@ export function AdminCitiesPage() {
       width: '48px',
       align: 'right',
       render: (c) => (
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Editar',
-              icon: Pencil,
-              onClick: () => {
-                setEditCity(c)
-                setFormOpen(true)
-              },
-            },
-            { divider: true, label: '', onClick: () => {} },
-            c.status === 'active'
-              ? {
-                  label: 'Desativar',
-                  icon: X,
-                  onClick: () => setDeactivateCity(c),
-                  variant: 'danger' as const,
-                }
-              : {
-                  label: 'Reativar',
-                  icon: RotateCcw,
-                  onClick: () => setReactivateCity(c),
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Editar',
+                icon: Pencil,
+                onClick: () => {
+                  setEditCity(c)
+                  setFormOpen(true)
                 },
-          ]}
-        />
+              },
+              { divider: true, label: '', onClick: () => {} },
+              c.status === 'active'
+                ? {
+                    label: 'Desativar',
+                    icon: X,
+                    onClick: () => setDeactivateCity(c),
+                    variant: 'danger' as const,
+                  }
+                : {
+                    label: 'Reativar',
+                    icon: RotateCcw,
+                    onClick: () => setReactivateCity(c),
+                  },
+            ]}
+          />
+        </div>
       ),
     },
   ]
@@ -314,10 +322,7 @@ export function AdminCitiesPage() {
 
       <AdminFilterBar
         searchValue={search}
-        onSearchChange={(v) => {
-          setSearch(v)
-          setCurrentPage(1)
-        }}
+        onSearchChange={(v) => setFilter('search', v)}
         searchPlaceholder="Buscar cidade por nome"
         filters={
           <StatusFilterChips
@@ -327,10 +332,7 @@ export function AdminCitiesPage() {
               { value: 'inactive', label: 'Inativa' },
             ]}
             value={statusFilters}
-            onChange={(v) => {
-              setStatusFilters(v)
-              setCurrentPage(1)
-            }}
+            onChange={(v) => setFilter('status', v)}
           />
         }
         actions={
@@ -353,6 +355,10 @@ export function AdminCitiesPage() {
         data={data?.data ?? []}
         keyExtractor={(c) => c.id}
         isLoading={isLoading}
+        onRowClick={(c) => {
+          setEditCity(c)
+          setFormOpen(true)
+        }}
         emptyState={
           <AdminEmptyState
             icon={MapPin}
@@ -370,10 +376,7 @@ export function AdminCitiesPage() {
               hasFilters
                 ? {
                     label: 'Limpar filtros',
-                    onClick: () => {
-                      setSearch('')
-                      setStatusFilters(['active', 'inactive'])
-                    },
+                    onClick: reset,
                     icon: X,
                   }
                 : {
@@ -389,43 +392,12 @@ export function AdminCitiesPage() {
         }
       />
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 w-8 rounded-full p-0"
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-          >
-            Próximo
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        perPage={PAGE_SIZE}
+        total={data?.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <CityFormDialog
         open={formOpen}

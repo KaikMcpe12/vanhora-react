@@ -2,8 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   Calendar,
   Car,
-  ChevronLeft,
-  ChevronRight,
   Eye,
   Pencil,
   UserCheck,
@@ -13,7 +11,7 @@ import {
   X,
 } from 'lucide-react'
 import { useState } from 'react'
-import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { useOutletContext } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -22,10 +20,12 @@ import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
+  AdminPagination,
   AdminTable,
   type AdminTableColumn,
   StatusFilterChips,
 } from '@/components/admin'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
 import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,6 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { useTableFilters } from '@/hooks/use-table-filters'
 import { mockUsersApi } from '@/lib/api/mock-users-api'
 import type { User } from '@/lib/data/mock-users'
 import { MOCK_COOPERATIVES } from '@/lib/data/mock-users'
@@ -63,28 +64,29 @@ type UserRole = 'admin' | 'cooperative' | 'driver'
 const ALL_STATUSES: UserStatus[] = ['active', 'inactive']
 const PAGE_SIZE = 10
 
+// URL key `cooperative` preservada (deep-link vindo de cooperative-detail-panel)
+const USER_FILTER_DEFAULTS = {
+  search: '',
+  role: 'all',
+  cooperative: '',
+  status: ALL_STATUSES as string[],
+}
+
 export function UsersPage() {
   const { role, user: loggedInUser } =
     useOutletContext<AppPortalOutletContext>()
   const queryClient = useQueryClient()
-  const [searchParams, setSearchParams] = useSearchParams()
 
-  const [search, setSearch] = useState('')
-  const [statusFilters, setStatusFilters] = useState<string[]>(ALL_STATUSES)
-  const [roleFilter, setRoleFilter] = useState<string>('all')
-  const [selectedCooperative, setSelectedCooperative] = useState<string>(
-    () => searchParams.get('cooperative') ?? '',
-  )
-  const [currentPage, setCurrentPage] = useState(1)
+  const { filters, setFilter, reset, page, setPage } = useTableFilters({
+    defaults: USER_FILTER_DEFAULTS,
+  })
+  const {
+    search,
+    role: roleFilter,
+    cooperative: selectedCooperative,
+    status: statusFilters,
+  } = filters
 
-  const setCooperativeFilter = (value: string) => {
-    setSelectedCooperative(value)
-    setCurrentPage(1)
-    if (!value) {
-      searchParams.delete('cooperative')
-      setSearchParams(searchParams)
-    }
-  }
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false)
   const [selectedUserForView, setSelectedUserForView] = useState<User | null>(
     null,
@@ -115,7 +117,7 @@ export function UsersPage() {
       statusFilters,
       roleFilter,
       selectedCooperative,
-      currentPage,
+      currentPage: page,
       role,
       loggedInUserId,
     }),
@@ -126,7 +128,8 @@ export function UsersPage() {
           status: activeStatusFilter,
           role: activeRoleFilter,
           cooperativeId: selectedCooperative || undefined,
-          page: currentPage,
+          // hook é 0-indexed; a API de usuários é 1-indexed
+          page: page + 1,
           pageSize: PAGE_SIZE,
         },
         loggedInUserId,
@@ -165,21 +168,13 @@ export function UsersPage() {
     inactive: userStats?.inactive ?? 0,
   }
 
-  const totalPages = usersData ? Math.ceil(usersData.total / PAGE_SIZE) : 1
-
   const hasActiveFilters =
     Boolean(search.trim()) ||
     statusFilters.length !== ALL_STATUSES.length ||
     roleFilter !== 'all' ||
     Boolean(selectedCooperative)
 
-  const clearFilters = () => {
-    setSearch('')
-    setStatusFilters(ALL_STATUSES)
-    setRoleFilter('all')
-    setCooperativeFilter('')
-    setCurrentPage(1)
-  }
+  const clearFilters = () => reset()
 
   const columns: AdminTableColumn<User>[] = [
     {
@@ -304,10 +299,7 @@ export function UsersPage() {
 
       <AdminFilterBar
         searchValue={search}
-        onSearchChange={(v) => {
-          setSearch(v)
-          setCurrentPage(1)
-        }}
+        onSearchChange={(v) => setFilter('search', v)}
         searchPlaceholder="Buscar usuário por nome ou email"
         filters={
           <div className="flex items-center gap-2">
@@ -318,17 +310,11 @@ export function UsersPage() {
                 { value: 'inactive', label: 'Inativo' },
               ]}
               value={statusFilters}
-              onChange={(v) => {
-                setStatusFilters(v)
-                setCurrentPage(1)
-              }}
+              onChange={(v) => setFilter('status', v)}
             />
             <Select
               value={roleFilter}
-              onValueChange={(v) => {
-                setRoleFilter(v)
-                setCurrentPage(1)
-              }}
+              onValueChange={(v) => setFilter('role', v)}
             >
               <SelectTrigger className="h-8 w-36 text-xs">
                 <SelectValue placeholder="Perfil" />
@@ -341,24 +327,11 @@ export function UsersPage() {
               </SelectContent>
             </Select>
             {role === 'admin' && (
-              <Select
-                value={selectedCooperative || 'all'}
-                onValueChange={(v) =>
-                  setCooperativeFilter(v === 'all' ? '' : v)
-                }
-              >
-                <SelectTrigger className="h-8 w-44 text-xs">
-                  <SelectValue placeholder="Cooperativa" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as cooperativas</SelectItem>
-                  {MOCK_COOPERATIVES.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <CooperativePicker
+                value={selectedCooperative}
+                onChange={(v) => setFilter('cooperative', v)}
+                triggerClassName="w-44"
+              />
             )}
           </div>
         }
@@ -402,43 +375,12 @@ export function UsersPage() {
         }
       />
 
-      {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage((p) => p - 1)}
-          >
-            <ChevronLeft className="h-4 w-4" />
-            Anterior
-          </Button>
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-            <Button
-              key={page}
-              variant={currentPage === page ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 w-8 rounded-full p-0"
-              onClick={() => setCurrentPage(page)}
-            >
-              {page}
-            </Button>
-          ))}
-
-          <Button
-            variant="outline"
-            size="sm"
-            className="rounded-full"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage((p) => p + 1)}
-          >
-            Próximo
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
+      <AdminPagination
+        page={page}
+        perPage={PAGE_SIZE}
+        total={usersData?.total ?? 0}
+        onPageChange={setPage}
+      />
 
       <AdminConfirmDialog
         open={confirmDeactivateOpen}

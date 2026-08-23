@@ -58,7 +58,7 @@ const ROUTES_STORE: AdminRouteRow[] = [
     name: 'Linha Sul Express',
     code: 'R-319',
     cooperativeName: 'Expresso São Francisco',
-    cooperativeId: 'coop-saofrancisco',
+    cooperativeId: 'coop-expresso',
     origin: 'Praça da Sé',
     destination: 'Aeroporto Int.',
     status: 'suspended',

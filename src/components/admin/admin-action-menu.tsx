@@ -34,7 +34,7 @@ export function AdminActionMenu({
           variant="ghost"
           size="icon"
           onClick={(e) => e.stopPropagation()}
-          className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
+          className="relative h-7 w-7 rounded-full text-muted-foreground hover:text-foreground before:absolute before:-inset-2 before:content-[''] sm:before:hidden"
         >
           <MoreHorizontal className="h-4 w-4" />
           <span className="sr-only">Mais opções</span>

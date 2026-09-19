@@ -1,15 +1,10 @@
-export { AdminKPICard } from './admin-kpi-card'
-export { AdminTable, type AdminTableColumn } from './admin-table'
-export {
-  AdminStatusBadge,
-  type StatusBadgeVariant,
-} from './admin-status-badge'
-export {
-  AdminActionMenu,
-  type AdminActionMenuItem,
-} from './admin-action-menu'
+export { AdminActionMenu, type AdminActionMenuItem } from './admin-action-menu'
 export { AdminConfirmDialog } from './admin-confirm-dialog'
-export { AdminFilterBar } from './admin-filter-bar'
 export { AdminEmptyState } from './admin-empty-state'
+export { AdminFilterBar } from './admin-filter-bar'
+export { AdminKPICard } from './admin-kpi-card'
+export { AdminPagination } from './admin-pagination'
 export { AdminSectionTitle } from './admin-section-title'
+export { AdminStat, type AdminStatTone } from './admin-stat'
+export { AdminTable, type AdminTableColumn } from './admin-table'
 export { StatusFilterChips } from './status-filter-chips'

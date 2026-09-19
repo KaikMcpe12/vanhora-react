@@ -24,6 +24,11 @@ interface CityPickerProps {
   placeholder?: string
   disabled?: boolean
   className?: string
+  /**
+   * O que `value`/`onChange` carregam: `'id'` (padrão, usado na busca pública)
+   * ou `'name'` (usado nos formulários admin, onde as rotas guardam o nome).
+   */
+  valueMode?: 'id' | 'name'
 }
 
 export function CityPicker({
@@ -32,10 +37,13 @@ export function CityPicker({
   placeholder = 'Selecione uma cidade',
   disabled = false,
   className,
+  valueMode = 'id',
 }: CityPickerProps) {
   const [open, setOpen] = useState(false)
 
-  const selectedCity = CITIES_WITH_IDS.find((city) => city.id === value)
+  const cityValue = (city: (typeof CITIES_WITH_IDS)[number]) =>
+    valueMode === 'name' ? city.name : city.id
+  const selectedCity = CITIES_WITH_IDS.find((city) => cityValue(city) === value)
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -51,7 +59,6 @@ export function CityPicker({
               'h-10 w-full justify-start text-left font-normal',
               'bg-muted/50 border-border rounded-xl',
               'hover:bg-muted/70 transition-colors',
-              'focus:ring-primary focus:border-primary focus:ring-2',
               'focus-visible:ring-primary focus-visible:ring-2',
               'pr-10 pl-3',
               value ? 'text-foreground' : 'text-muted-foreground',
@@ -60,7 +67,7 @@ export function CityPicker({
             )}
           >
             <span className="truncate">
-              {selectedCity ? selectedCity.name : placeholder}
+              {selectedCity ? selectedCity.name : value || placeholder}
             </span>
           </Button>
 
@@ -84,7 +91,8 @@ export function CityPicker({
                   key={city.id}
                   value={city.name}
                   onSelect={() => {
-                    onChange(city.id === value ? '' : city.id)
+                    const next = cityValue(city)
+                    onChange(next === value ? '' : next)
                     setOpen(false)
                   }}
                   className="cursor-pointer"
@@ -92,7 +100,7 @@ export function CityPicker({
                   <Check
                     className={cn(
                       'mr-2 h-4 w-4',
-                      value === city.id ? 'opacity-100' : 'opacity-0',
+                      value === cityValue(city) ? 'opacity-100' : 'opacity-0',
                     )}
                   />
                   {city.name}

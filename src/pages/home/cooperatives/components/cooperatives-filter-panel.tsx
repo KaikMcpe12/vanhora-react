@@ -69,7 +69,7 @@ export function CooperativesFilterPanel({
         <Filter size={14} strokeWidth={1.75} className="text-muted-foreground" />
         <span className="text-[13px] font-medium text-foreground">Filtros</span>
         {activeFilterCount > 0 && (
-          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-[#0F6E56] text-[9px] font-medium text-white">
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-medium text-primary-foreground">
             {activeFilterCount}
           </span>
         )}
@@ -97,7 +97,7 @@ export function CooperativesFilterPanel({
                       checked={checked}
                       disabled={disabled}
                       onChange={() => toggleCity(name)}
-                      className="h-3.5 w-3.5 cursor-pointer accent-[#0F6E56]"
+                      className="h-3.5 w-3.5 cursor-pointer accent-primary"
                     />
                     <span className={cn('text-[13px]', checked ? 'font-medium text-foreground' : 'text-foreground/80')}>
                       {name}
@@ -122,7 +122,7 @@ export function CooperativesFilterPanel({
                 name="coop-rating"
                 checked={filters.minRating === value}
                 onChange={() => onFiltersChange({ minRating: value })}
-                className="h-3.5 w-3.5 cursor-pointer accent-[#0F6E56]"
+                className="h-3.5 w-3.5 cursor-pointer accent-primary"
               />
               {stars > 0 ? (
                 <span className="flex items-center gap-1.5 text-[13px] text-foreground/80">

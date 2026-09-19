@@ -1,24 +1,55 @@
 import { zodResolver } from '@hookform/resolvers/zod'
+import {
+  parseAsArrayOf,
+  parseAsFloat,
+  parseAsInteger,
+  parseAsString,
+  useQueryState,
+  useQueryStates,
+} from 'nuqs'
 import { useCallback, useMemo } from 'react'
 import { useForm } from 'react-hook-form'
-import { useSearchParams } from 'react-router-dom'
 
 import {
-  filtersToSearchParams,
   getDefaultFilters,
   type ScheduleFiltersSchema,
   scheduleFiltersSchema,
-  searchParamsToFilters,
 } from '@/lib/schemas/schedule-filters'
 
-/** hook para gerenciar filtros de horários com sincronização url */
-export function useScheduleFilters() {
-  const [searchParams, setSearchParams] = useSearchParams()
+// parsers para os filtros de busca na url
+const searchParsers = {
+  origin: parseAsString.withDefault(''),
+  destination: parseAsString.withDefault(''),
+  date: parseAsString.withDefault(''),
+  cooperative: parseAsString.withDefault(''),
+  dayOfWeek: parseAsArrayOf(parseAsString).withDefault([]),
+  priceMin: parseAsFloat,
+  priceMax: parseAsFloat,
+  minRating: parseAsFloat,
+}
 
-  // filtros da url (reativo)
-  const filtersFromUrl = useMemo(
-    () => searchParamsToFilters(searchParams),
-    [searchParams],
+/** hook para gerenciar filtros de horários com sincronização url via nuqs */
+export function useScheduleFilters() {
+  const [filtersInUrl, setFiltersInUrl] = useQueryStates(searchParsers, {
+    history: 'replace',
+  })
+
+  // param separado para resetar paginação ao mudar filtros
+  const [, setPage] = useQueryState('page', parseAsInteger)
+
+  // projeta o estado da url para o shape esperado pelo rhf e pelos hooks de query
+  const filtersFromUrl: ScheduleFiltersSchema = useMemo(
+    () => ({
+      origin: filtersInUrl.origin,
+      destination: filtersInUrl.destination,
+      date: filtersInUrl.date,
+      cooperative: filtersInUrl.cooperative,
+      dayOfWeek: filtersInUrl.dayOfWeek,
+      priceMin: filtersInUrl.priceMin ?? undefined,
+      priceMax: filtersInUrl.priceMax ?? undefined,
+      minRating: filtersInUrl.minRating ?? undefined,
+    }),
+    [filtersInUrl],
   )
 
   const form = useForm({
@@ -39,20 +70,37 @@ export function useScheduleFilters() {
 
   const handleFilter = useCallback(
     (data: ScheduleFiltersSchema) => {
-      const params = filtersToSearchParams(data)
-      params.delete('page')
-      setSearchParams(params, { replace: true })
+      void setFiltersInUrl({
+        origin: data.origin || null,
+        destination: data.destination || null,
+        date: data.date || null,
+        cooperative: data.cooperative || null,
+        dayOfWeek: data.dayOfWeek?.length ? data.dayOfWeek : null,
+        priceMin: data.priceMin ?? null,
+        priceMax: data.priceMax ?? null,
+        minRating: data.minRating ?? null,
+      })
+      // reseta paginação ao aplicar novos filtros
+      void setPage(null)
     },
-    [setSearchParams],
+    [setFiltersInUrl, setPage],
   )
 
   const handleClearFilters = useCallback(() => {
     const defaultFilters = getDefaultFilters()
     reset(defaultFilters)
-    const params = filtersToSearchParams(defaultFilters)
-    params.delete('page')
-    setSearchParams(params, { replace: true })
-  }, [reset, setSearchParams])
+    void setFiltersInUrl({
+      origin: null,
+      destination: null,
+      date: null,
+      cooperative: null,
+      dayOfWeek: null,
+      priceMin: null,
+      priceMax: null,
+      minRating: null,
+    })
+    void setPage(null)
+  }, [reset, setFiltersInUrl, setPage])
 
   const updateField = useCallback(
     (field: keyof ScheduleFiltersSchema, value: unknown) => {
@@ -64,7 +112,6 @@ export function useScheduleFilters() {
     [setValue],
   )
 
-  // valores computados (usememo ao invés de getters)
   const activeFiltersCount = useMemo(() => {
     const defaultValues = getDefaultFilters()
     let count = 0
@@ -75,11 +122,7 @@ export function useScheduleFilters() {
 
       if (Array.isArray(value)) {
         if (JSON.stringify(value) !== JSON.stringify(defaultValue)) count++
-      } else if (
-        value !== defaultValue &&
-        value !== undefined &&
-        value !== ''
-      ) {
+      } else if (value !== defaultValue && value !== undefined && value !== '') {
         count++
       }
     })
@@ -88,12 +131,7 @@ export function useScheduleFilters() {
   }, [filtersFromUrl])
 
   const hasBasicFilters = useMemo(
-    () =>
-      Boolean(
-        filtersFromUrl.origin ||
-        filtersFromUrl.destination ||
-        filtersFromUrl.date,
-      ),
+    () => Boolean(filtersFromUrl.origin || filtersFromUrl.destination || filtersFromUrl.date),
     [filtersFromUrl],
   )
 
@@ -101,11 +139,10 @@ export function useScheduleFilters() {
     const defaultFilters = getDefaultFilters()
     return Boolean(
       filtersFromUrl.cooperative ||
-      JSON.stringify(filtersFromUrl.dayOfWeek) !==
-        JSON.stringify(defaultFilters.dayOfWeek) ||
-      filtersFromUrl.priceMin !== undefined ||
-      filtersFromUrl.priceMax !== undefined ||
-      filtersFromUrl.minRating !== undefined,
+        JSON.stringify(filtersFromUrl.dayOfWeek) !== JSON.stringify(defaultFilters.dayOfWeek) ||
+        filtersFromUrl.priceMin !== undefined ||
+        filtersFromUrl.priceMax !== undefined ||
+        filtersFromUrl.minRating !== undefined,
     )
   }, [filtersFromUrl])
 

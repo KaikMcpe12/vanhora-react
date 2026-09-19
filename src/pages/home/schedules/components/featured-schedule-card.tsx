@@ -6,16 +6,16 @@ import { CooperativeAvatar } from '@/components/cooperative-avatar'
 import { InlineRating } from '@/components/inline-rating'
 import { RelativeTimeDisplay } from '@/components/relative-time-display'
 import { RouteLine } from '@/components/route-line'
-import { RouteTimeline, type RouteStop } from '@/components/route-timeline'
-import { Dialog } from '@/components/ui/dialog'
+import { type RouteStop,RouteTimeline } from '@/components/route-timeline'
 import { ScheduleDialog } from '@/components/schedule-dialog'
+import { Dialog } from '@/components/ui/dialog'
 import { useFavorites } from '@/hooks/use-favorites'
 import type { Schedule } from '@/lib/types/schedule'
+import { cn } from '@/lib/utils'
 import {
   getCooperativeColor,
   getVisualStatus,
 } from '@/lib/utils/schedule-status'
-import { cn } from '@/lib/utils'
 
 interface FeaturedScheduleCardProps {
   schedule: Schedule
@@ -72,7 +72,7 @@ export function FeaturedScheduleCard({
         }
       }}
       className={cn(
-        'cursor-pointer bg-card rounded-[16px] border-[1.5px] border-[#0F6E56] overflow-hidden transition-opacity duration-200',
+        'cursor-pointer bg-card rounded-[16px] border-[1.5px] border-primary overflow-hidden transition-opacity duration-200',
         isCancelled && 'opacity-75',
         className,
       )}
@@ -104,8 +104,8 @@ export function FeaturedScheduleCard({
               strokeWidth={1.75}
               className={cn(
                 'transition-colors duration-150',
-                isFavorite
-                  ? 'fill-[#D4537E] text-[#D4537E]'
+                  isFavorite
+                  ? 'fill-heart text-heart'
                   : 'fill-none text-muted-foreground hover:text-foreground',
               )}
             />

@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { mockUsersApi } from '@/lib/api/mock-users-api'
+import { queryKeys } from '@/lib/query-keys'
 import { type CreateUserInput } from '@/lib/schemas/user-schema'
 
 import { UserForm } from './user-form'
@@ -31,7 +32,7 @@ export function AddUserModal({
   const { mutate: createUser, isPending } = useMutation({
     mutationFn: (data: CreateUserInput) => mockUsersApi.createUser(data),
     onSuccess: (user) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
       toast.success(`Usuário "${user.name}" criado com sucesso`)
       onClose()
     },

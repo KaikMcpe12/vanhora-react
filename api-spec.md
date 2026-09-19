@@ -1563,6 +1563,18 @@ lista cooperativas no contexto admin.
 - `/admin/cooperatives`
 - `CooperativePicker` — em formulários de criação/edição de usuários e rotas
 
+**detalhe da cooperativa (página master-detail `/admin/cooperatives`):** ao selecionar uma
+cooperativa, o admin vê um painel com abas Geral/Rotas/Motoristas/Atrasos. Não há um endpoint
+agregado dedicado — o front consome os endpoints já existentes, filtrados por cooperativa:
+- **Geral:** `GET /api/cooperatives/:id` (detalhe público — inclui `recent_history.on_time_rate`,
+  usado como "Taxa de pontualidade", e `routes` para "Principais rotas").
+- **Rotas:** `GET /api/admin/routes?cooperative_id={id}`
+- **Motoristas:** `GET /api/admin/users?cooperative_id={id}&role=driver`
+- **Atrasos:** `GET /api/admin/delays?cooperative_id={id}`
+
+Alternativa futura (opcional): expor `GET /api/admin/cooperatives/:id` agregando essas seções em
+uma única resposta, evitando múltiplas chamadas.
+
 ---
 
 #### `POST /api/admin/cooperatives`
@@ -1711,6 +1723,7 @@ lista atrasos registrados com filtros.
 **query params:**
 - `route_id` (UUID, opcional)
 - `schedule_id` (UUID, opcional)
+- `cooperative_id` (UUID, opcional) — apenas admin pode filtrar por cooperativa arbitrária; para role `cooperative` o escopo já é o próprio. Consumido pela aba **Atrasos** do detalhe de cooperativa em `/admin/cooperatives`.
 - `severity` (string, opcional) — `low` | `medium` | `high`
 - `date_from` (string `YYYY-MM-DD`, opcional)
 - `date_to` (string `YYYY-MM-DD`, opcional)

@@ -6,19 +6,21 @@ import {
   Clock,
   Pencil,
   Plus,
+  Route,
   Star,
   X,
 } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { useOutletContext } from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { toast } from 'sonner'
 
 import {
   AdminEmptyState,
   AdminFilterBar,
   AdminKPICard,
-  AdminStatusBadge,
   StatusFilterChips,
 } from '@/components/admin'
+import { StatusChip } from '@/components/status-chip'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -26,11 +28,18 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   ADMIN_SCHEDULE_SUMMARY,
   MOCK_ADMIN_ROUTES,
 } from '@/lib/data/mock-admin-schedules'
+import { SCHEDULE_STATUS_META } from '@/lib/status/status-meta'
 import type {
   AdminRoute,
   AdminSchedule,
@@ -49,6 +58,11 @@ import { DelayModal } from './delay-modal'
 import type { RouteExceptionContext } from './exception-modal'
 import { ExceptionModal } from './exception-modal'
 import { ScheduleActionsMenu } from './schedule-actions-menu'
+import {
+  ScheduleFormDialog,
+  type ScheduleFormMode,
+  type ScheduleFormValues,
+} from './schedule-form-dialog'
 import type { StatusVariant } from './schedule-status-modal'
 import { ScheduleStatusModal } from './schedule-status-modal'
 
@@ -99,7 +113,6 @@ const ALL_OP_STATUSES: OperationalStatus[] = [
   'suspended',
 ]
 
-
 function DayChips({ activeDays }: { activeDays: DayOfWeek[] }) {
   return (
     <div className="flex items-center gap-0.5">
@@ -115,7 +128,7 @@ function DayChips({ activeDays }: { activeDays: DayOfWeek[] }) {
         ) : (
           <span
             key={day}
-            className="inline-flex h-5 w-5 items-center justify-center text-[10px] text-muted-foreground"
+            className="text-muted-foreground inline-flex h-5 w-5 items-center justify-center text-[10px]"
           >
             {DAY_CIRCLE_LABEL[day]}
           </span>
@@ -125,22 +138,20 @@ function DayChips({ activeDays }: { activeDays: DayOfWeek[] }) {
   )
 }
 
-function getOperationalBadge(status: OperationalStatus): {
-  variant: 'success' | 'attention' | 'critical' | 'neutral'
+function InfoCard({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode
   label: string
-} {
-  if (status === 'in_operation') return { variant: 'success', label: 'Em operação' }
-  if (status === 'delayed') return { variant: 'attention', label: 'Atrasado' }
-  if (status === 'cancelled') return { variant: 'critical', label: 'Cancelado' }
-  return { variant: 'neutral', label: 'Suspenso' }
-}
-
-function InfoCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  value: string
+}) {
   return (
     <div className="flex flex-1 flex-col gap-1 rounded-lg border bg-slate-50 px-3 py-2.5">
       <div className="flex items-center gap-1.5">
         {icon}
-        <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+        <span className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
           {label}
         </span>
       </div>
@@ -194,12 +205,13 @@ function ScheduleExpandedPanel({
                 <AlertCircle className="h-3 w-3" />
                 {EXCEPTION_TYPE_LABEL[nextException.type]}
               </span>
-              {nextException.type === 'rescheduled' && nextException.newDepartureTime && (
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
-                  <Clock className="h-3 w-3" />
-                  {nextException.newDepartureTime}
-                </span>
-              )}
+              {nextException.type === 'rescheduled' &&
+                nextException.newDepartureTime && (
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-1 text-[11px] font-semibold text-blue-700">
+                    <Clock className="h-3 w-3" />
+                    {nextException.newDepartureTime}
+                  </span>
+                )}
               {nextException.reason && (
                 <Popover>
                   <PopoverTrigger asChild>
@@ -220,24 +232,30 @@ function ScheduleExpandedPanel({
                         </Badge>
                       </div>
                       <div className="space-y-0.5">
-                        <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+                        <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                           Data
                         </p>
-                        <p className="text-foreground text-sm">{nextException.date}</p>
+                        <p className="text-foreground text-sm">
+                          {nextException.date}
+                        </p>
                       </div>
                       {nextException.newDepartureTime && (
                         <div className="space-y-0.5">
-                          <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+                          <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                             Novo horário
                           </p>
-                          <p className="text-foreground text-sm">{nextException.newDepartureTime}</p>
+                          <p className="text-foreground text-sm">
+                            {nextException.newDepartureTime}
+                          </p>
                         </div>
                       )}
                       <div className="space-y-0.5">
-                        <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+                        <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                           Motivo
                         </p>
-                        <p className="text-foreground text-sm">{nextException.reason}</p>
+                        <p className="text-foreground text-sm">
+                          {nextException.reason}
+                        </p>
                       </div>
                     </div>
                   </PopoverContent>
@@ -245,7 +263,9 @@ function ScheduleExpandedPanel({
               )}
             </>
           ) : (
-            <span className="text-muted-foreground text-xs">Nenhuma exceção próxima</span>
+            <span className="text-muted-foreground text-xs">
+              Nenhuma exceção próxima
+            </span>
           )}
         </div>
         <Button
@@ -262,12 +282,15 @@ function ScheduleExpandedPanel({
       {/* row 3 — stops + rating */}
       <div className="flex flex-col gap-2 sm:flex-row">
         <div className="flex flex-1 flex-col gap-1 rounded-lg border bg-slate-50 px-3 py-2.5">
-          <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+          <span className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
             Paradas da rota
           </span>
           <div className="mt-0.5 flex flex-col gap-0.5">
             {stops.map((stop) => (
-              <span key={stop.city} className="text-foreground text-xs font-medium">
+              <span
+                key={stop.city}
+                className="text-foreground text-xs font-medium"
+              >
                 {stop.time} • {stop.city}
               </span>
             ))}
@@ -276,7 +299,7 @@ function ScheduleExpandedPanel({
 
         {rating && (
           <div className="flex flex-1 flex-col gap-1 rounded-lg border bg-slate-50 px-3 py-2.5">
-            <span className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+            <span className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
               Avaliação do horário
             </span>
             <div className="flex items-center gap-1.5">
@@ -286,7 +309,9 @@ function ScheduleExpandedPanel({
               </span>
             </div>
             {rating.lastAt && (
-              <span className="text-muted-foreground text-[11px]">Ultima: {rating.lastAt}</span>
+              <span className="text-muted-foreground text-[11px]">
+                Ultima: {rating.lastAt}
+              </span>
             )}
           </div>
         )}
@@ -298,9 +323,13 @@ function ScheduleExpandedPanel({
 function ScheduleRowItem({
   schedule,
   routeStops,
+  onEdit,
+  onDuplicate,
 }: {
   schedule: AdminSchedule
   routeStops: RouteStop[]
+  onEdit: () => void
+  onDuplicate: () => void
 }) {
   const [expanded, setExpanded] = useState(false)
   const [delayOpen, setDelayOpen] = useState(false)
@@ -308,7 +337,9 @@ function ScheduleRowItem({
   const [statusVariant, setStatusVariant] = useState<StatusVariant>('suspend')
   const [statusOpen, setStatusOpen] = useState(false)
 
-  const isDimmed = schedule.recordStatus === 'cancelled' || schedule.recordStatus === 'suspended'
+  const isDimmed =
+    schedule.recordStatus === 'cancelled' ||
+    schedule.recordStatus === 'suspended'
 
   const openStatus = (variant: StatusVariant) => {
     setStatusVariant(variant)
@@ -335,8 +366,8 @@ function ScheduleRowItem({
           {/* departure time */}
           <span
             className={cn(
-              'w-16 shrink-0 text-3xl font-bold leading-none',
-              isDimmed ? 'text-muted-foreground' : 'text-[#005ab4]',
+              'w-16 shrink-0 text-3xl leading-none font-bold',
+              isDimmed ? 'text-muted-foreground' : 'text-info',
             )}
           >
             {schedule.departureTime}
@@ -347,7 +378,7 @@ function ScheduleRowItem({
           {/* day circles + status badge — desktop only, right-aligned */}
           <div className="hidden items-center gap-3 md:flex">
             <DayChips activeDays={schedule.activeDays} />
-            <AdminStatusBadge {...getOperationalBadge(schedule.operationalStatus)} />
+            <StatusChip {...SCHEDULE_STATUS_META[schedule.operationalStatus]} />
           </div>
 
           {/* menu + chevron — stop propagation */}
@@ -358,6 +389,8 @@ function ScheduleRowItem({
           >
             <ScheduleActionsMenu
               schedule={schedule}
+              onEdit={onEdit}
+              onDuplicate={onDuplicate}
               onRegisterDelay={() => setDelayOpen(true)}
               onSuspend={() => openStatus('suspend')}
               onCancel={() => openStatus('cancel')}
@@ -377,12 +410,14 @@ function ScheduleRowItem({
         {/* mobile: second row with day chips + status */}
         <div className="mt-2 flex flex-wrap items-center gap-2 md:hidden">
           <DayChips activeDays={schedule.activeDays} />
-          <AdminStatusBadge {...getOperationalBadge(schedule.operationalStatus)} />
+          <StatusChip {...SCHEDULE_STATUS_META[schedule.operationalStatus]} />
         </div>
 
         {/* notes */}
         {schedule.notes && (
-          <p className="text-muted-foreground mt-1.5 text-[11px]">{schedule.notes}</p>
+          <p className="text-muted-foreground mt-1.5 text-[11px]">
+            {schedule.notes}
+          </p>
         )}
       </div>
 
@@ -394,8 +429,16 @@ function ScheduleRowItem({
         />
       )}
 
-      <DelayModal open={delayOpen} onOpenChange={setDelayOpen} schedule={schedule} />
-      <ExceptionModal open={exceptionOpen} onOpenChange={setExceptionOpen} schedule={schedule} />
+      <DelayModal
+        open={delayOpen}
+        onOpenChange={setDelayOpen}
+        schedule={schedule}
+      />
+      <ExceptionModal
+        open={exceptionOpen}
+        onOpenChange={setExceptionOpen}
+        schedule={schedule}
+      />
       <ScheduleStatusModal
         open={statusOpen}
         onOpenChange={setStatusOpen}
@@ -409,7 +452,7 @@ function ScheduleRowItem({
 function TemporaryScheduleRow({ tmp }: { tmp: ScheduleTemporary }) {
   return (
     <div className="flex items-center gap-3 border-b px-4 py-2.5 last:border-b-0">
-      <span className="w-16 shrink-0 text-xl font-bold leading-none text-amber-700">
+      <span className="w-16 shrink-0 text-xl leading-none font-bold text-amber-700">
         {tmp.departureTime}
       </span>
       <div className="min-w-0 flex-1">
@@ -429,7 +472,15 @@ function TemporaryScheduleRow({ tmp }: { tmp: ScheduleTemporary }) {
   )
 }
 
-function ScheduleRouteSection({ route }: { route: AdminRoute }) {
+function ScheduleRouteSection({
+  route,
+  onEditSchedule,
+  onDuplicateSchedule,
+}: {
+  route: AdminRoute
+  onEditSchedule: (schedule: AdminSchedule) => void
+  onDuplicateSchedule: (schedule: AdminSchedule) => void
+}) {
   const [collapsed, setCollapsed] = useState(
     () => typeof window !== 'undefined' && window.innerWidth < 768,
   )
@@ -446,11 +497,11 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
   return (
     <article className="bg-card overflow-hidden rounded-xl border">
       {/* route header */}
-      <div className="px-4 pb-3 pt-4">
+      <div className="px-4 pt-4 pb-3">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             {/* line 1: code + cooperative */}
-            <h2 className="text-foreground flex flex-wrap items-baseline gap-x-2 text-lg font-bold leading-tight">
+            <h2 className="text-foreground flex flex-wrap items-baseline gap-x-2 text-lg leading-tight font-bold">
               Rota {route.code}
               <span className="text-muted-foreground text-sm font-normal">
                 {route.cooperativeName}
@@ -494,7 +545,10 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
             >
               {totalSchedules} hor.
               <ChevronDown
-                className={cn('h-3.5 w-3.5 transition-transform', !collapsed && 'rotate-180')}
+                className={cn(
+                  'h-3.5 w-3.5 transition-transform',
+                  !collapsed && 'rotate-180',
+                )}
               />
             </button>
           </div>
@@ -504,13 +558,21 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
       {/* schedule rows — animated collapse on mobile, always visible on desktop */}
       <div
         className={cn(
-          'border-t grid transition-all duration-200 ease-in-out',
-          collapsed ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]' : 'grid-rows-[1fr]',
+          'grid border-t transition-all duration-200 ease-in-out',
+          collapsed
+            ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]'
+            : 'grid-rows-[1fr]',
         )}
       >
         <div className="overflow-hidden">
           {route.schedules.map((schedule) => (
-            <ScheduleRowItem key={schedule.id} schedule={schedule} routeStops={route.stops} />
+            <ScheduleRowItem
+              key={schedule.id}
+              schedule={schedule}
+              routeStops={route.stops}
+              onEdit={() => onEditSchedule(schedule)}
+              onDuplicate={() => onDuplicateSchedule(schedule)}
+            />
           ))}
         </div>
       </div>
@@ -519,13 +581,15 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
       {route.temporarySchedules && route.temporarySchedules.length > 0 && (
         <div
           className={cn(
-            'border-t grid transition-all duration-200 ease-in-out',
-            collapsed ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]' : 'grid-rows-[1fr]',
+            'grid border-t transition-all duration-200 ease-in-out',
+            collapsed
+              ? 'grid-rows-[0fr] md:![grid-template-rows:1fr]'
+              : 'grid-rows-[1fr]',
           )}
         >
           <div className="overflow-hidden">
-            <div className="px-4 pb-1 pt-2.5">
-              <p className="text-muted-foreground text-[11px] font-semibold uppercase tracking-wide">
+            <div className="px-4 pt-2.5 pb-1">
+              <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                 Serviços extras
               </p>
             </div>
@@ -555,38 +619,154 @@ function ScheduleRouteSection({ route }: { route: AdminRoute }) {
 export function SchedulesPage() {
   useOutletContext<AppPortalOutletContext>()
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const routeParam = searchParams.get('route') ?? ''
+
   const [pendingQuery, setPendingQuery] = useState('')
   const [committedQuery, setCommittedQuery] = useState('')
-  const [statusFilters, setStatusFilters] = useState<OperationalStatus[]>(ALL_OP_STATUSES)
+  const [statusFilters, setStatusFilters] =
+    useState<OperationalStatus[]>(ALL_OP_STATUSES)
   const [onlyExceptions, setOnlyExceptions] = useState(false)
-  const [cooperativeFilter, setCooperativeFilter] = useState('')
+  const [cooperativeFilter, setCooperativeFilter] = useState(
+    () => searchParams.get('cooperative') ?? '',
+  )
   const [dateFilter, setDateFilter] = useState('')
   const [datePopoverOpen, setDatePopoverOpen] = useState(false)
 
+  const clearRouteFilter = () => {
+    searchParams.delete('route')
+    setSearchParams(searchParams)
+  }
+
+  const [routes, setRoutes] = useState<AdminRoute[]>(MOCK_ADMIN_ROUTES)
+
+  // Schedule create/edit/duplicate form state.
+  const [scheduleForm, setScheduleForm] = useState<{
+    mode: ScheduleFormMode
+    routeId?: string
+    editingScheduleId?: string
+    initialValues?: ScheduleFormValues
+  } | null>(null)
+
+  const openNewSchedule = () => setScheduleForm({ mode: 'create' })
+
+  const openEditSchedule = (route: AdminRoute, schedule: AdminSchedule) =>
+    setScheduleForm({
+      mode: 'edit',
+      routeId: route.id,
+      editingScheduleId: schedule.id,
+      initialValues: {
+        departureTime: schedule.departureTime,
+        activeDays: schedule.activeDays,
+        notes: schedule.notes ?? '',
+      },
+    })
+
+  const openDuplicateSchedule = (route: AdminRoute, schedule: AdminSchedule) =>
+    setScheduleForm({
+      mode: 'duplicate',
+      routeId: route.id,
+      initialValues: {
+        departureTime: '',
+        activeDays: schedule.activeDays,
+        notes: schedule.notes ?? '',
+      },
+    })
+
+  const handleScheduleSubmit = (
+    routeId: string,
+    values: ScheduleFormValues,
+    mode: ScheduleFormMode,
+  ) => {
+    const editingId = scheduleForm?.editingScheduleId
+    setRoutes((prev) =>
+      prev.map((r) => {
+        if (r.id !== routeId) return r
+        if (mode === 'edit' && editingId) {
+          return {
+            ...r,
+            schedules: r.schedules.map((s) =>
+              s.id === editingId
+                ? {
+                    ...s,
+                    departureTime: values.departureTime,
+                    dayOfWeek: values.activeDays[0] ?? s.dayOfWeek,
+                    activeDays: values.activeDays,
+                    notes: values.notes || undefined,
+                  }
+                : s,
+            ),
+          }
+        }
+        const newSchedule: AdminSchedule = {
+          id: `sch-${Date.now()}`,
+          departureTime: values.departureTime,
+          dayOfWeek: values.activeDays[0] ?? 'seg',
+          activeDays: values.activeDays,
+          cooperativeName: r.cooperativeName,
+          origin: r.origin,
+          destination: r.destination,
+          routeCode: r.code,
+          recordStatus: 'active',
+          operationalStatus: 'in_operation',
+          notes: values.notes || undefined,
+        }
+        return {
+          ...r,
+          schedules: [...r.schedules, newSchedule].sort((a, b) =>
+            a.departureTime.localeCompare(b.departureTime),
+          ),
+        }
+      }),
+    )
+    toast.success(
+      mode === 'edit' ? 'Horário atualizado' : 'Horário criado com sucesso',
+    )
+  }
 
   const filteredRoutes = useMemo(() => {
     const q = committedQuery.trim().toLowerCase()
 
-    return MOCK_ADMIN_ROUTES.filter((route) => {
-      if (cooperativeFilter && route.cooperativeName !== cooperativeFilter) return false
-      return true
-    }).map((route) => {
-      const filteredSchedules = route.schedules.filter((s) => {
-        if (!statusFilters.includes(s.operationalStatus)) return false
-        if (onlyExceptions && !s.nextException) return false
-        if (q) {
-          const hay = [route.code, route.origin, route.destination, route.cooperativeName]
-            .join(' ')
-            .toLowerCase()
-          if (!hay.includes(q)) return false
-        }
+    return routes
+      .filter((route) => {
+        if (cooperativeFilter && route.cooperativeName !== cooperativeFilter)
+          return false
+        if (routeParam && route.code !== routeParam) return false
         return true
       })
-      return { ...route, schedules: filteredSchedules }
-    }).filter((r) => r.schedules.length > 0)
-  }, [committedQuery, cooperativeFilter, statusFilters, onlyExceptions])
+      .map((route) => {
+        const filteredSchedules = route.schedules.filter((s) => {
+          if (!statusFilters.includes(s.operationalStatus)) return false
+          if (onlyExceptions && !s.nextException) return false
+          if (q) {
+            const hay = [
+              route.code,
+              route.origin,
+              route.destination,
+              route.cooperativeName,
+            ]
+              .join(' ')
+              .toLowerCase()
+            if (!hay.includes(q)) return false
+          }
+          return true
+        })
+        return { ...route, schedules: filteredSchedules }
+      })
+      .filter((r) => r.schedules.length > 0)
+  }, [
+    routes,
+    committedQuery,
+    cooperativeFilter,
+    statusFilters,
+    onlyExceptions,
+    routeParam,
+  ])
 
-  const totalSchedules = filteredRoutes.reduce((acc, r) => acc + r.schedules.length, 0)
+  const totalSchedules = filteredRoutes.reduce(
+    (acc, r) => acc + r.schedules.length,
+    0,
+  )
 
   const clearFilters = () => {
     setPendingQuery('')
@@ -595,7 +775,22 @@ export function SchedulesPage() {
     setOnlyExceptions(false)
     setCooperativeFilter('')
     setDateFilter('')
+    // Também limpa os filtros vindos da URL (rota/cooperativa), que são lidos
+    // ao vivo de searchParams e persistiriam após o reset de estado.
+    if (searchParams.has('route') || searchParams.has('cooperative')) {
+      searchParams.delete('route')
+      searchParams.delete('cooperative')
+      setSearchParams(searchParams)
+    }
   }
+
+  const hasActiveFilters =
+    committedQuery.trim() !== '' ||
+    cooperativeFilter !== '' ||
+    dateFilter !== '' ||
+    onlyExceptions ||
+    routeParam !== '' ||
+    statusFilters.length !== ALL_OP_STATUSES.length
 
   const dateTriggerLabel = dateFilter
     ? new Date(dateFilter + 'T00:00:00').toLocaleDateString('pt-BR')
@@ -606,19 +801,24 @@ export function SchedulesPage() {
       <div className="grid gap-4 sm:grid-cols-3">
         <AdminKPICard
           label="Horários ativos hoje"
-          value={ADMIN_SCHEDULE_SUMMARY.activeSchedulesToday.toLocaleString('pt-BR')}
+          value={ADMIN_SCHEDULE_SUMMARY.activeSchedulesToday.toLocaleString(
+            'pt-BR',
+          )}
           helper="grade consolidada por rotas e cooperativas"
+          icon={Clock}
         />
         <AdminKPICard
           label="Exceções abertas"
           value={ADMIN_SCHEDULE_SUMMARY.openExceptions}
           helper="atrasos e cancelamentos pendentes"
           severity="attention"
+          icon={AlertCircle}
         />
         <AdminKPICard
           label="Rotas monitoradas"
           value={ADMIN_SCHEDULE_SUMMARY.monitoredRoutes}
           helper="com agrupamento por rota"
+          icon={Route}
         />
       </div>
 
@@ -640,9 +840,13 @@ export function SchedulesPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas</SelectItem>
-                {Array.from(new Set(MOCK_ADMIN_ROUTES.map((r) => r.cooperativeName))).map((name) => (
-                  <SelectItem key={name} value={name}>{name}</SelectItem>
-                ))}
+                {Array.from(new Set(routes.map((r) => r.cooperativeName))).map(
+                  (name) => (
+                    <SelectItem key={name} value={name}>
+                      {name}
+                    </SelectItem>
+                  ),
+                )}
               </SelectContent>
             </Select>
 
@@ -651,27 +855,36 @@ export function SchedulesPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className={cn('h-8 gap-2 text-xs', dateFilter && 'border-primary text-primary')}
+                  className={cn(
+                    'h-8 gap-2 text-xs',
+                    dateFilter && 'border-primary text-primary',
+                  )}
                 >
                   {dateTriggerLabel}
                   {dateFilter && (
                     <X
                       className="h-3 w-3"
-                      onClick={(e) => { e.stopPropagation(); setDateFilter('') }}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setDateFilter('')
+                      }}
                     />
                   )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-3" align="start">
                 <div className="space-y-2">
-                  <p className="text-muted-foreground text-xs font-semibold uppercase tracking-wide">
+                  <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                     Filtrar por data
                   </p>
                   <input
                     type="date"
                     value={dateFilter}
-                    onChange={(e) => { setDateFilter(e.target.value); setDatePopoverOpen(false) }}
-                    className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none focus-visible:ring-1"
+                    onChange={(e) => {
+                      setDateFilter(e.target.value)
+                      setDatePopoverOpen(false)
+                    }}
+                    className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-1 focus-visible:outline-none"
                   />
                 </div>
               </PopoverContent>
@@ -687,15 +900,42 @@ export function SchedulesPage() {
               value={statusFilters}
               onChange={(v) => setStatusFilters(v as OperationalStatus[])}
             />
+
+            {hasActiveFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground h-8 gap-1.5 text-xs"
+                onClick={clearFilters}
+              >
+                <X className="h-3.5 w-3.5" />
+                Limpar filtros
+              </Button>
+            )}
           </div>
         }
         actions={
-          <Button size="sm" className="gap-1.5" onClick={() => {}}>
+          <Button size="sm" className="gap-1.5" onClick={openNewSchedule}>
             <Plus className="h-3.5 w-3.5" />
             Novo Horário
           </Button>
         }
       />
+
+      {routeParam && (
+        <div className="flex items-center gap-2">
+          <span className="text-muted-foreground text-[12px]">
+            Filtrando pela rota:
+          </span>
+          <button
+            onClick={clearRouteFilter}
+            className="border-primary/30 bg-primary/10 text-primary hover:bg-primary/20 inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[12px] font-medium transition-colors"
+          >
+            {routeParam}
+            <X className="h-3 w-3" />
+          </button>
+        </div>
+      )}
 
       {filteredRoutes.length === 0 ? (
         <AdminEmptyState
@@ -707,7 +947,14 @@ export function SchedulesPage() {
       ) : (
         <section className="space-y-4">
           {filteredRoutes.map((route) => (
-            <ScheduleRouteSection key={route.id} route={route} />
+            <ScheduleRouteSection
+              key={route.id}
+              route={route}
+              onEditSchedule={(schedule) => openEditSchedule(route, schedule)}
+              onDuplicateSchedule={(schedule) =>
+                openDuplicateSchedule(route, schedule)
+              }
+            />
           ))}
         </section>
       )}
@@ -716,7 +963,7 @@ export function SchedulesPage() {
       {filteredRoutes.length > 0 && (
         <div className="flex items-center justify-between">
           <p className="text-muted-foreground text-sm">
-            Mostrando {filteredRoutes.length} de {MOCK_ADMIN_ROUTES.length} rotas &bull;{' '}
+            Mostrando {filteredRoutes.length} de {routes.length} rotas &bull;{' '}
             {totalSchedules} horario{totalSchedules !== 1 ? 's' : ''}
           </p>
           <Button variant="outline" size="sm" className="gap-2 rounded-full">
@@ -724,6 +971,20 @@ export function SchedulesPage() {
             <ChevronDown className="h-3.5 w-3.5" />
           </Button>
         </div>
+      )}
+
+      {scheduleForm && (
+        <ScheduleFormDialog
+          open
+          onOpenChange={(open) => {
+            if (!open) setScheduleForm(null)
+          }}
+          mode={scheduleForm.mode}
+          routes={routes}
+          routeId={scheduleForm.routeId}
+          initialValues={scheduleForm.initialValues}
+          onSubmit={handleScheduleSubmit}
+        />
       )}
     </section>
   )

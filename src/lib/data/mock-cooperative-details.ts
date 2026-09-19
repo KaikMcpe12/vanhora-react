@@ -1,10 +1,9 @@
 // TODO: replace with GET /api/cooperatives and GET /api/cooperatives/:id
 // see api-spec.md sections 2.4 and 3.5
-import { MOCK_COOPERATIVES } from './mock-cooperatives'
-import { CITIES_WITH_IDS } from './mock-cities'
 import { COOPERATIVE_COLORS } from '@/lib/utils/schedule-status'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { CITIES_WITH_IDS } from './mock-cities'
+import { MOCK_COOPERATIVES } from './mock-cooperatives'
 
 export type CooperativeCityServed = {
   id: string
@@ -62,8 +61,6 @@ export type CooperativeDetail = {
   operatingStats: CooperativeOperatingStats
   recentHistory: CooperativeRecentHistory
 }
-
-// ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function formatDuration(hours: number): string {
   const h = Math.floor(hours)
@@ -153,8 +150,6 @@ function makeRoute(
   }
 }
 
-// ─── Route extras: next departure + per-route rating ─────────────────────────
-
 type RouteExtra = { departureTime: string; minutesUntil: number; average: number; count: number }
 
 const ROUTE_EXTRAS: Record<string, RouteExtra> = {
@@ -211,8 +206,6 @@ function applyExtras(routes: CooperativeRoute[]): CooperativeRoute[] {
   })
 }
 
-// ─── Descriptions ─────────────────────────────────────────────────────────────
-
 const DESCRIPTION_DATA: Record<string, string> = {
   'São Benedito':
     'Cooperativa com sede em São Benedito, atua nas rotas do litoral noroeste do Ceará há mais de três décadas. Referência em transporte no eixo Sobral–Camocim.',
@@ -235,8 +228,6 @@ const DESCRIPTION_DATA: Record<string, string> = {
   'Via Cariri':
     'Cooperativa especializada no Cariri cearense, com alta frequência nas rotas intraregionais entre Juazeiro do Norte, Crato, Barbalha e Nova Olinda.',
 }
-
-// ─── Recent history ───────────────────────────────────────────────────────────
 
 const HISTORY_DATA: Record<string, CooperativeRecentHistory> = {
   'São Benedito': {
@@ -344,8 +335,6 @@ const HISTORY_DATA: Record<string, CooperativeRecentHistory> = {
   },
 }
 
-// ─── Contact + routes source data ────────────────────────────────────────────
-
 const CONTACT_DATA: Record<string, { phone: string; website: string }> = {
   'São Benedito':       { phone: '(88) 3621-1234', website: 'saobenedito.coop.br' },
   'Nordeste':           { phone: '(85) 3234-5678', website: 'coopnordeste.com.br' },
@@ -411,8 +400,6 @@ const ROUTES_DATA: Record<string, CooperativeRoute[]> = {
     makeRoute('vc-cra-nol', 'Crato', 'Nova Olinda', 35, 15, 6),
   ],
 }
-
-// ─── Assembled mock data ──────────────────────────────────────────────────────
 
 export const MOCK_COOPERATIVE_DETAILS: CooperativeDetail[] = MOCK_COOPERATIVES.map((coop) => {
   const contact = CONTACT_DATA[coop.name] ?? { phone: '(85) 3000-0000', website: 'vanhora.com.br' }

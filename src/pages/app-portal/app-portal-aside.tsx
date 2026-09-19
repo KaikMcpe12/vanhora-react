@@ -38,13 +38,15 @@ export function AppPortalAside({
 
   return (
     <div className="bg-card flex h-full flex-col">
-      <div className="border-border flex items-center gap-3 border-b px-5 py-4">
-        <img src={Logo} alt="VanHora" className="h-9 w-9" />
+      <div className="border-border flex items-center gap-3 border-b px-5 py-[18px]">
+        <span className="bg-primary/10 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl">
+          <img src={Logo} alt="VanHora" className="h-8 w-8" />
+        </span>
         <div className="min-w-0">
-          <p className="text-foreground truncate text-sm font-semibold tracking-tight">
+          <p className="text-foreground truncate text-base font-bold tracking-tight">
             VanHora
           </p>
-          <p className="text-muted-foreground truncate text-xs">
+          <p className="text-muted-foreground truncate text-[11px] font-medium uppercase tracking-[0.6px]">
             Painel administrativo
           </p>
         </div>

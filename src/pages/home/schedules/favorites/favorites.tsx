@@ -11,13 +11,13 @@ import { getCooperativeColor } from '@/lib/utils/schedule-status'
 
 import { FavoritesEmptyState } from './components/favorites-empty-state'
 import { FavoritesFeed } from './components/favorites-feed'
-import { FavoritesHeader } from './components/favorites-header'
 import {
-  FavoritesFilterPanel,
   type AvailableCoop,
   type AvailableRoute,
+  FavoritesFilterPanel,
   type FavoritesFilters,
 } from './components/favorites-filter-panel'
+import { FavoritesHeader } from './components/favorites-header'
 
 function deriveAvailableRoutes(schedules: Schedule[]): AvailableRoute[] {
   const map = new Map<string, { label: string; count: number }>()
@@ -125,8 +125,11 @@ export function Favorites() {
 
       {isMobile && (
         <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
-          <SheetContent side="left" className="w-72 overflow-y-auto">
-            <SheetHeader className="mb-6">
+          <SheetContent
+            side="bottom"
+            className="max-h-[80vh] overflow-y-auto rounded-t-2xl px-5 pb-[max(20px,env(safe-area-inset-bottom))] pt-5"
+          >
+            <SheetHeader className="mb-5">
               <SheetTitle>Filtros</SheetTitle>
             </SheetHeader>
             {filterPanel}

@@ -2,9 +2,9 @@ import { isToday } from 'date-fns'
 import { CalendarOff, ChevronRight, ClockAlert, Map, MapPinOff, SlidersHorizontal } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 
+import { EmptyState } from '@/components/empty-state'
 import { ScheduleCard } from '@/components/schedule-card'
 import { ScheduleCardSkeleton } from '@/components/schedule-card-skeleton'
-import { EmptyState } from '@/components/empty-state'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
 import { useGroupedSchedules } from '@/hooks/use-grouped-schedules'
@@ -13,8 +13,8 @@ import { useScheduleFilters } from '@/hooks/use-schedule-filters'
 import { useUserCity } from '@/hooks/use-user-city'
 import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
 import { addRecentDestination } from '@/lib/recent-destinations'
-import { getCooperativeColor } from '@/lib/utils/schedule-status'
 import { cn } from '@/lib/utils'
+import { getCooperativeColor } from '@/lib/utils/schedule-status'
 
 import { FeaturedScheduleCard } from './components/featured-schedule-card'
 import { ScheduleSection } from './components/schedule-section'
@@ -154,14 +154,14 @@ export function Schedules() {
             'flex shrink-0 cursor-pointer items-center gap-1.5 rounded-full border px-3 py-[5px]',
             'text-[12px] font-medium transition-all duration-150',
             totalFiltersBadge > 0
-              ? 'border-[#0F6E56] bg-[rgba(15,110,86,0.06)] text-[#0F6E56]'
+              ? 'border-primary bg-primary/6 text-primary'
               : 'border-border/70 text-muted-foreground hover:border-border hover:text-foreground',
           )}
         >
           <SlidersHorizontal size={13} strokeWidth={1.75} />
           <span>Filtros e ordenação</span>
           {totalFiltersBadge > 0 && (
-            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-[#0F6E56] px-1 text-[10px] font-semibold text-white">
+            <span className="flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-semibold text-primary-foreground">
               {totalFiltersBadge}
             </span>
           )}

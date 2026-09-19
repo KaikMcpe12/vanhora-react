@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_CITIES,
   type AdminCity,
+  MOCK_ADMIN_CITIES,
 } from '@/lib/data/mock-admin-cities'
+import { queryKeys } from '@/lib/query-keys'
 
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -103,14 +104,14 @@ export const mockCitiesApi = {
 
 export function useAdminCities(filters: ListCitiesFilters = {}) {
   return useQuery({
-    queryKey: ['admin', 'cities', filters],
+    queryKey: queryKeys.admin.cities.list(filters),
     queryFn: () => mockCitiesApi.listCities(filters),
   })
 }
 
 export function useCityStats() {
   return useQuery({
-    queryKey: ['admin', 'cities', 'stats'],
+    queryKey: queryKeys.admin.cities.stats(),
     queryFn: () => mockCitiesApi.getCityStats(),
   })
 }
@@ -120,7 +121,7 @@ export function useCreateCity() {
   return useMutation({
     mutationFn: (payload: { name: string; state: string }) =>
       mockCitiesApi.createCity(payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'cities'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.cities.all() }),
   })
 }
 
@@ -134,7 +135,7 @@ export function useUpdateCity() {
       id: string
       payload: Partial<{ name: string; state: string }>
     }) => mockCitiesApi.updateCity(id, payload),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'cities'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.cities.all() }),
   })
 }
 
@@ -148,6 +149,6 @@ export function useToggleCityStatus() {
       id: string
       newStatus: 'active' | 'inactive'
     }) => mockCitiesApi.toggleCityStatus(id, newStatus),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['admin', 'cities'] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.cities.all() }),
   })
 }

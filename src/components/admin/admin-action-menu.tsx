@@ -8,7 +8,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { cn } from '@/lib/utils'
 
 export interface AdminActionMenuItem {
   label: string
@@ -54,11 +53,8 @@ export function AdminActionMenu({
               key={item.label}
               onClick={item.onClick}
               disabled={item.disabled}
-              className={cn(
-                'gap-2 text-[13px]',
-                item.variant === 'danger' &&
-                  'text-destructive focus:text-destructive',
-              )}
+              variant={item.variant === 'danger' ? 'destructive' : 'default'}
+              className="gap-2 text-[13px]"
             >
               {Icon && <Icon className="h-3.5 w-3.5" />}
               {item.label}

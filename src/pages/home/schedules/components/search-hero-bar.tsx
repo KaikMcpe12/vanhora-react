@@ -4,8 +4,6 @@ import { ArrowLeftRight, Calendar, Check, MapPin, Search } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 
-import { useUserCity } from '@/hooks/use-user-city'
-
 import {
   Command,
   CommandEmpty,
@@ -19,6 +17,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useUserCity } from '@/hooks/use-user-city'
 import { CITIES_WITH_IDS, getCityNameById } from '@/lib/data/mock-cities'
 import { cn } from '@/lib/utils'
 
@@ -193,7 +192,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
           <Popover open={dOriginOpen} onOpenChange={setDOriginOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'flex-1')}>
-                <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+                <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
                 <div className="min-w-0 text-left">
                   <FieldLabel>De onde</FieldLabel>
                   <span className={cn('block truncate text-[14px] leading-tight',
@@ -213,13 +212,13 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
               <button
                 type="button"
                 onClick={handleSwap}
-                className="group flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border/70 bg-card transition-all hover:border-[#0F6E56]"
+                className="group flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-border/70 bg-card transition-all hover:border-primary"
                 aria-label="Inverter origem e destino"
               >
                 <ArrowLeftRight
                   size={13}
                   strokeWidth={1.75}
-                  className="text-muted-foreground transition-all duration-300 group-hover:rotate-180 group-hover:text-[#0F6E56]"
+                  className="text-muted-foreground transition-all duration-300 group-hover:rotate-180 group-hover:text-primary"
                 />
               </button>
             </div>
@@ -228,7 +227,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
           <Popover open={dDestOpen} onOpenChange={setDDestOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'flex-1')}>
-                <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+                <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
                 <div className="min-w-0 text-left">
                   <FieldLabel>Para onde</FieldLabel>
                   <span className={cn('block truncate text-[14px] leading-tight',
@@ -248,7 +247,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
           <Popover open={dDateOpen} onOpenChange={setDDateOpen}>
             <PopoverTrigger asChild>
               <button type="button" className={cn(fieldDesktop, 'w-44 shrink-0')}>
-                <Calendar size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+                <Calendar size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
                 <div className="min-w-0 text-left">
                   <FieldLabel>Quando</FieldLabel>
                   <span className="block truncate text-[14px] font-medium leading-tight text-foreground">
@@ -263,7 +262,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
                 defaultValue={date || today}
                 min={today}
                 onChange={(e) => handleDDateSelect(e.target.value)}
-                className="rounded-lg border border-border bg-card px-3 py-2 text-[14px] text-foreground focus:outline-none focus:ring-2 focus:ring-[#0F6E56]/40"
+                className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 autoFocus
               />
             </PopoverContent>
@@ -275,7 +274,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
           onClick={() => originId && onSearch?.()}
           className={cn(
             'flex h-[60px] w-[60px] shrink-0 cursor-pointer items-center justify-center rounded-full text-white transition-colors',
-            originId ? 'bg-[#0F6E56] hover:bg-[#0a5a45]' : 'cursor-not-allowed bg-muted-foreground/40',
+            originId ? 'bg-primary hover:bg-primary/80' : 'cursor-not-allowed bg-muted-foreground/40',
           )}
           aria-label="Buscar horários"
         >
@@ -287,7 +286,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
         <Popover open={mOriginOpen} onOpenChange={setMOriginOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
-              <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+              <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <FieldLabel>De onde</FieldLabel>
                 <span className={cn('block truncate text-[14px] leading-tight',
@@ -316,7 +315,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
         <Popover open={mDestOpen} onOpenChange={setMDestOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
-              <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+              <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <FieldLabel>Para onde</FieldLabel>
                 <span className={cn('block truncate text-[14px] leading-tight',
@@ -334,7 +333,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
         <Popover open={mDateOpen} onOpenChange={setMDateOpen}>
           <PopoverTrigger asChild>
             <button type="button" className={fieldMobile}>
-              <Calendar size={16} strokeWidth={1.75} className="shrink-0 text-[#0F6E56]" />
+              <Calendar size={16} strokeWidth={1.75} className="shrink-0 text-primary" />
               <div className="min-w-0 flex-1">
                 <FieldLabel>Quando</FieldLabel>
                 <span className="block truncate text-[14px] font-medium leading-tight text-foreground">
@@ -349,7 +348,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
               defaultValue={date || today}
               min={today}
               onChange={(e) => handleMDateSelect(e.target.value)}
-              className="rounded-lg border border-border bg-card px-3 py-2 text-[14px] text-foreground focus:outline-none"
+              className="rounded-lg border border-border bg-card px-3 py-2 text-sm text-foreground focus-visible:outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
               autoFocus
             />
           </PopoverContent>
@@ -360,7 +359,7 @@ export function SearchHeroBar({ className, onSearch }: SearchHeroBarProps) {
           onClick={() => originId && onSearch?.()}
           className={cn(
             'h-12 w-full rounded-xl text-[14px] font-medium text-white transition-colors',
-            originId ? 'cursor-pointer bg-[#0F6E56] hover:bg-[#0a5a45]' : 'cursor-not-allowed bg-muted-foreground/40',
+            originId ? 'cursor-pointer bg-primary hover:bg-primary/80' : 'cursor-not-allowed bg-muted-foreground/40',
           )}
         >
           {destinationId ? `Ver horários para ${destinationName}` : 'Ver horários disponíveis'}

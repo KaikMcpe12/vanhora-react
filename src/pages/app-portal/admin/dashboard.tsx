@@ -1,11 +1,15 @@
 import {
   AlertTriangle,
+  Building2,
   CalendarClock,
   Check,
   CheckCircle,
   CircleAlert,
+  Clock,
   ExternalLink,
   RefreshCcw,
+  Route,
+  Star,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
@@ -14,15 +18,17 @@ import {
   AdminEmptyState,
   AdminKPICard,
   AdminSectionTitle,
-  AdminStatusBadge,
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { SeverityBadge } from '@/components/delays/severity-badge'
+import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useAdminDashboardStats } from '@/lib/api/mock-dashboard-api'
 import type { DelayRecord, DepartureRecord } from '@/lib/data/mock-dashboard'
+import { DRIVER_SCHEDULE_STATUS_META } from '@/lib/status/status-meta'
 import { cn } from '@/lib/utils'
 
 interface DashboardCriticalAlertProps {
@@ -68,7 +74,7 @@ function DashboardCriticalAlert({
           >
             {title}
           </p>
-          <p className="mt-1 text-[13px] leading-relaxed text-muted-foreground">
+          <p className="text-muted-foreground mt-1 text-[13px] leading-relaxed">
             {description}
           </p>
         </div>
@@ -101,22 +107,14 @@ function KpiSkeleton() {
   )
 }
 
-function getSeverityBadge(severity: 'low' | 'medium' | 'high') {
-  if (severity === 'high') return { variant: 'critical' as const, label: 'Alta' }
-  if (severity === 'medium') return { variant: 'attention' as const, label: 'Média' }
-  return { variant: 'info' as const, label: 'Baixa' }
-}
-
 function getDepartureBadge(
   status: DepartureRecord['status'],
   delayMinutes?: number,
 ) {
-  if (status === 'on_time') return { variant: 'success' as const, label: 'No horário' }
-  if (status === 'cancelled') return { variant: 'critical' as const, label: 'Cancelado' }
-  return {
-    variant: 'attention' as const,
-    label: delayMinutes ? `Atrasado ${delayMinutes}m` : 'Atrasado',
-  }
+  const meta = DRIVER_SCHEDULE_STATUS_META[status]
+  if (status === 'delayed' && delayMinutes)
+    return { ...meta, label: `Atrasado ${delayMinutes}m` }
+  return meta
 }
 
 export function AdminDashboardPage() {
@@ -145,7 +143,7 @@ export function AdminDashboardPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="font-medium text-foreground">
+        <span className="text-foreground font-medium">
           {d.routeCode} ({d.routeName})
         </span>
       ),
@@ -168,37 +166,38 @@ export function AdminDashboardPage() {
     {
       key: 'reason',
       label: 'Motivo',
-      render: (d) => (
-        <span className="text-muted-foreground">{d.reason}</span>
-      ),
+      render: (d) => <span className="text-muted-foreground">{d.reason}</span>,
     },
     {
       key: 'severity',
       label: 'Severidade',
-      render: (d) => {
-        const badge = getSeverityBadge(d.severity)
-        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
-      },
+      render: (d) => <SeverityBadge severity={d.severity} />,
     },
     {
       key: 'actions',
       label: '',
       align: 'right',
-      render: (_d) => (
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Abrir detalhes',
-              icon: ExternalLink,
-              onClick: () => navigate('/admin/delays'),
-            },
-            {
-              label: 'Marcar como resolvido',
-              icon: Check,
-              onClick: () => {},
-            },
-          ]}
-        />
+      render: (d) => (
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Abrir detalhes',
+                icon: ExternalLink,
+                // deep-link direto para o dialog do atraso na página de atrasos
+                onClick: () => navigate(`/admin/delays?delayId=${d.id}`),
+              },
+              {
+                label: 'Marcar como resolvido',
+                icon: Check,
+                onClick: () => {},
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ]
@@ -208,7 +207,7 @@ export function AdminDashboardPage() {
       key: 'route',
       label: 'Rota',
       render: (d) => (
-        <span className="font-medium text-foreground">
+        <span className="text-foreground font-medium">
           {d.routeCode} ({d.routeName})
         </span>
       ),
@@ -237,7 +236,7 @@ export function AdminDashboardPage() {
       label: 'Status',
       render: (d) => {
         const badge = getDepartureBadge(d.status, d.delayMinutes)
-        return <AdminStatusBadge variant={badge.variant} label={badge.label} />
+        return <StatusChip {...badge} />
       },
     },
     {
@@ -245,15 +244,20 @@ export function AdminDashboardPage() {
       label: '',
       align: 'right',
       render: (_d) => (
-        <AdminActionMenu
-          items={[
-            {
-              label: 'Ver detalhes',
-              icon: ExternalLink,
-              onClick: () => navigate('/admin/schedules'),
-            },
-          ]}
-        />
+        <div
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={(e) => e.stopPropagation()}
+        >
+          <AdminActionMenu
+            items={[
+              {
+                label: 'Ver detalhes',
+                icon: ExternalLink,
+                onClick: () => navigate('/admin/schedules'),
+              },
+            ]}
+          />
+        </div>
       ),
     },
   ]
@@ -285,16 +289,19 @@ export function AdminDashboardPage() {
               label="Cooperativas Ativas"
               value={stats!.operationKpis.activeCooperatives.value}
               trend={stats!.operationKpis.activeCooperatives.trend}
+              icon={Building2}
             />
             <AdminKPICard
               label="Rotas Ativas"
               value={stats!.operationKpis.activeRoutes.value}
               trend={stats!.operationKpis.activeRoutes.trend}
+              icon={Route}
             />
             <AdminKPICard
               label="Horários de Hoje"
               value={stats!.operationKpis.todaySchedules.value}
               trend={stats!.operationKpis.todaySchedules.trend}
+              icon={CalendarClock}
             />
           </div>
         )}
@@ -314,18 +321,21 @@ export function AdminDashboardPage() {
               value={stats!.qualityKpis.delays24h.value}
               trend={stats!.qualityKpis.delays24h.trend}
               severity={stats!.qualityKpis.delays24h.severity}
+              icon={Clock}
             />
             <AdminKPICard
               label="Avaliação Média Geral"
               value={stats!.qualityKpis.averageRating.value}
               trend={stats!.qualityKpis.averageRating.trend}
               severity={stats!.qualityKpis.averageRating.severity}
+              icon={Star}
             />
             <AdminKPICard
               label="Atrasos Críticos (24h)"
               value={stats!.qualityKpis.criticalDelays24h.value}
               trend={stats!.qualityKpis.criticalDelays24h.trend}
               severity={stats!.qualityKpis.criticalDelays24h.severity}
+              icon={CircleAlert}
             />
           </div>
         )}
@@ -352,6 +362,7 @@ export function AdminDashboardPage() {
           data={stats?.recentDelays ?? []}
           keyExtractor={(r) => r.id}
           isLoading={isLoading}
+          onRowClick={(d) => navigate(`/admin/delays?delayId=${d.id}`)}
           emptyState={
             <AdminEmptyState
               icon={CheckCircle}
@@ -383,6 +394,7 @@ export function AdminDashboardPage() {
           data={stats?.upcomingDepartures ?? []}
           keyExtractor={(r) => r.id}
           isLoading={isLoading}
+          onRowClick={() => navigate('/admin/schedules')}
           emptyState={
             <AdminEmptyState
               icon={CalendarClock}

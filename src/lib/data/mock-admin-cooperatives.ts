@@ -16,7 +16,7 @@ export interface AdminCooperative {
 
 export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
   {
-    id: 'coop-metro',
+    id: '11111111-1111-4111-8111-111111111111',
     name: 'Metro Transportes',
     phone: '(85) 3234-5678',
     site: 'https://metrotransportes.com.br',
@@ -30,7 +30,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-01-10T00:00:00Z',
   },
   {
-    id: 'coop-saofrancisco',
+    id: '22222222-2222-4222-8222-222222222222',
     name: 'Expresso São Francisco',
     phone: '(88) 3511-2233',
     site: 'https://expressosfco.com.br',
@@ -44,7 +44,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-01-15T00:00:00Z',
   },
   {
-    id: 'coop-vale',
+    id: '33333333-3333-4333-8333-333333333333',
     name: 'Cooperativa Vale',
     phone: '(88) 3411-9900',
     brandColor: '#2E7D32',
@@ -57,7 +57,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-02-01T00:00:00Z',
   },
   {
-    id: 'coop-nordeste',
+    id: '44444444-4444-4444-8444-444444444444',
     name: 'Cooperativa Nordeste',
     phone: '(85) 3456-7890',
     site: 'https://coop-nordeste.com.br',
@@ -71,7 +71,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-02-15T00:00:00Z',
   },
   {
-    id: 'coop-sertao',
+    id: '55555555-5555-4555-8555-555555555555',
     name: 'Sertão Transportes',
     phone: '(88) 3680-4321',
     brandColor: '#C62828',
@@ -84,7 +84,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-03-01T00:00:00Z',
   },
   {
-    id: 'coop-progresso',
+    id: '66666666-6666-4666-8666-666666666666',
     name: 'Progresso',
     phone: '(85) 3255-0011',
     brandColor: '#00695C',
@@ -97,7 +97,7 @@ export const MOCK_ADMIN_COOPERATIVES: AdminCooperative[] = [
     createdAt: '2025-03-15T00:00:00Z',
   },
   {
-    id: 'coop-fretcar',
+    id: '77777777-7777-4777-8777-777777777777',
     name: 'Fretcar',
     phone: '(85) 3099-7654',
     brandColor: '#1565C0',

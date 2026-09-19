@@ -112,7 +112,7 @@ export const scheduleFiltersSchema = z
 
 export type ScheduleFiltersSchema = z.infer<typeof scheduleFiltersSchema>
 
-/** valores padrão para resetar filtros */
+/** valores padrão — usados pelo rhf ao resetar e pelo hook de filtros */
 export function getDefaultFilters(): ScheduleFiltersSchema {
   const today = new Date()
 
@@ -128,55 +128,4 @@ export function getDefaultFilters(): ScheduleFiltersSchema {
   }
 }
 
-/** converte schedulefilterschema para urlsearchparams */
-export function filtersToSearchParams(
-  filters: ScheduleFiltersSchema,
-): URLSearchParams {
-  const params = new URLSearchParams()
 
-  Object.entries(filters).forEach(([key, value]) => {
-    if (value !== undefined && value !== null && value !== '') {
-      if (Array.isArray(value)) {
-        if (value.length > 0) {
-          params.set(key, value.join(','))
-        }
-      } else {
-        params.set(key, String(value))
-      }
-    }
-  })
-
-  return params
-}
-
-/** converte urlsearchparams para schedulefiltersschema */
-export function searchParamsToFilters(
-  searchParams: URLSearchParams,
-): ScheduleFiltersSchema {
-  const rawData = {
-    origin: searchParams.get('origin') || '',
-    destination: searchParams.get('destination') || '',
-    date: searchParams.get('date') || '',
-    cooperative: searchParams.get('cooperative') || '',
-    dayOfWeek: searchParams.get('dayOfWeek')?.split(',').filter(Boolean) || [],
-    priceMin: searchParams.get('priceMin')
-      ? Number(searchParams.get('priceMin'))
-      : undefined,
-    priceMax: searchParams.get('priceMax')
-      ? Number(searchParams.get('priceMax'))
-      : undefined,
-    minRating: searchParams.get('minRating')
-      ? Number(searchParams.get('minRating'))
-      : undefined,
-  }
-
-  const result = scheduleFiltersSchema.safeParse(rawData)
-
-  if (result.success) {
-    return result.data
-  }
-
-  // se houver erro na validação, retorna valores padrão
-  console.warn('Erro ao parsear filtros da URL:', result.error)
-  return getDefaultFilters()
-}

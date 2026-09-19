@@ -1,9 +1,9 @@
-import type { Schedule } from '@/lib/types/schedule'
 import {
   type DisplayFilters,
   PERIOD_RANGES,
   type ScheduleSort,
 } from '@/lib/types/filters'
+import type { Schedule } from '@/lib/types/schedule'
 
 export function parseDurationToMinutes(duration: string): number {
   const h = duration.match(/(\d+)h/)

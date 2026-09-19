@@ -1,6 +1,9 @@
-import { Lock, Mail } from 'lucide-react'
-import { FaGithub, FaGoogle } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Loader2, Lock, Mail } from 'lucide-react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import {
@@ -9,92 +12,131 @@ import {
   InputGroupInput,
 } from '@/components/ui/input-group'
 import { Label } from '@/components/ui/label'
+import { getBasePathByRole, useSession } from '@/lib/auth/session'
+
+const signInSchema = z.object({
+  email: z.string().email('E-mail inválido'),
+  password: z.string().min(1, 'Senha é obrigatória'),
+})
+
+type SignInInput = z.infer<typeof signInSchema>
 
 export function SignIn() {
+  const { signIn } = useSession()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const from = (location.state as { from?: string } | null)?.from
+
+  const [authError, setAuthError] = useState<string | null>(null)
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+  } = useForm<SignInInput>({
+    resolver: zodResolver(signInSchema),
+  })
+
+  async function onSubmit(data: SignInInput) {
+    setAuthError(null)
+    try {
+      const user = await signIn(data.email, data.password)
+      navigate(from ?? getBasePathByRole(user.role), { replace: true })
+    } catch (err) {
+      setAuthError(
+        err instanceof Error ? err.message : 'Ocorreu um erro. Tente novamente.',
+      )
+    }
+  }
+
   return (
-    <div className="bg-card w-full max-w-md rounded-xl p-8 shadow-lg">
+    <div className="bg-card w-full max-w-md rounded-xl border border-border p-8">
       <div className="mb-8 text-center">
         <h1 className="text-card-foreground mb-2 text-3xl font-bold">
-          Bem vindo
+          Bem-vindo
         </h1>
         <p className="text-muted-foreground">
           Entre com suas credenciais para acessar
         </p>
       </div>
 
-      <div className="mb-6 grid grid-cols-2 gap-3">
-        <Button
-          type="button"
-          variant="outline"
-          className="flex w-full items-center justify-center gap-2 font-medium"
-          onClick={() => {}}
-        >
-          <FaGoogle />
-          Google
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          className="flex w-full items-center justify-center gap-2 font-medium"
-          onClick={() => {}}
-        >
-          <FaGithub />
-          GitHub
-        </Button>
-      </div>
+      <form className="space-y-5" onSubmit={handleSubmit(onSubmit)} noValidate>
+        {/* Erro de autenticação */}
+        {authError && (
+          <div
+            role="alert"
+            className="rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          >
+            {authError}
+          </div>
+        )}
 
-      <div className="relative mb-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="border-border w-full border-t" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card text-muted-foreground px-3 font-medium tracking-wider">
-            ou continue com email
-          </span>
-        </div>
-      </div>
-
-      <form className="space-y-6">
-        <div className="space-y-3">
+        <div className="space-y-2">
           <Label htmlFor="email" className="font-semibold">
-            Email
+            E-mail
           </Label>
           <InputGroup>
             <InputGroupInput
               id="email"
               type="email"
-              placeholder="name@company.com"
+              placeholder="nome@empresa.com"
+              autoComplete="email"
+              aria-invalid={!!errors.email}
+              {...register('email')}
             />
             <InputGroupAddon>
               <Mail className="h-4 w-4" />
             </InputGroupAddon>
           </InputGroup>
+          {errors.email && (
+            <p className="text-xs text-destructive">{errors.email.message}</p>
+          )}
         </div>
-        <div className="space-y-3">
-          <Label htmlFor="password" className="font-semibold">
-            Senha
-          </Label>
+
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="font-semibold">
+              Senha
+            </Label>
+            <Link
+              to="#"
+              className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
+              tabIndex={-1}
+            >
+              Esqueceu sua senha?
+            </Link>
+          </div>
           <InputGroup>
             <InputGroupInput
               id="password"
               type="password"
               placeholder="••••••••"
+              autoComplete="current-password"
+              aria-invalid={!!errors.password}
+              {...register('password')}
             />
             <InputGroupAddon>
               <Lock className="h-4 w-4" />
             </InputGroupAddon>
           </InputGroup>
+          {errors.password && (
+            <p className="text-xs text-destructive">{errors.password.message}</p>
+          )}
         </div>
-        <div className="text-right">
-          <Link
-            to="#"
-            className="text-primary hover:text-primary/80 text-sm font-medium transition-colors"
-          >
-            Esqueceu sua senha?
-          </Link>
-        </div>
-        <Button type="submit" className="w-full p-6 font-semibold text-white">
-          Entrar
+
+        <Button
+          type="submit"
+          className="w-full p-6 font-semibold text-white"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Entrando…
+            </>
+          ) : (
+            'Entrar'
+          )}
         </Button>
       </form>
     </div>

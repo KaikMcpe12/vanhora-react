@@ -1,6 +1,6 @@
 import { Calendar, Clock, Zap } from 'lucide-react'
+import { parseAsStringLiteral, useQueryState } from 'nuqs'
 import { useMemo } from 'react'
-import { useSearchParams } from 'react-router-dom'
 
 import { getCurrentActiveRange, getTimeRanges } from '@/lib/utils/time-ranges'
 
@@ -8,33 +8,31 @@ import { useScheduleFilters } from './use-schedule-filters'
 
 export type TabType = 'leaving-now' | 'upcoming' | 'past'
 
+const TAB_TYPES = ['leaving-now', 'upcoming', 'past'] as const
+
 /** hook para gerenciar estado das tabs de horários sincronizado com url */
 export function useScheduleTabs() {
-  const [searchParams, setSearchParams] = useSearchParams()
   const { filtersFromUrl } = useScheduleFilters()
 
-  // tab padrão baseada no horário atual
-  const defaultTab = useMemo(() => {
+  // tab padrão baseada no horário atual (não muda durante a sessão)
+  const defaultTab = useMemo((): TabType => {
     const range = getCurrentActiveRange()
     return range === 'leavingNow' ? 'leaving-now' : range
   }, [])
 
-  // url como fonte de verdade (sem estado local)
-  const activeTab = (searchParams.get('tab') as TabType) || defaultTab
+  const tabParser = useMemo(
+    () =>
+      parseAsStringLiteral(TAB_TYPES)
+        .withDefault(defaultTab)
+        .withOptions({ history: 'replace' }),
+    [defaultTab],
+  )
 
-  const setActiveTab = (tab: TabType) => {
-    setSearchParams(
-      (prev) => {
-        prev.set('tab', tab)
-        return prev
-      },
-      { replace: true },
-    )
-  }
+  const [activeTab, setActiveTab] = useQueryState('tab', tabParser)
 
   const timeRanges = useMemo(() => getTimeRanges(), [])
 
-  // combina filtros base com time ranges para cada tab
+  // combina filtros de busca com time ranges para cada tab
   const allTabFilters = useMemo(() => {
     return {
       'leaving-now': { ...filtersFromUrl, ...timeRanges.leavingNow },

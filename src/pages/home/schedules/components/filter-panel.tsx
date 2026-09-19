@@ -1,11 +1,9 @@
+import type { LucideIcon } from 'lucide-react'
 import { ChevronDown, ChevronUp, Filter, Moon, MoonStar, Star, Sun, Sunrise, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
 import { Slider } from '@/components/ui/slider'
 import { useDisplayFilters } from '@/hooks/use-display-filters'
-import type { Schedule } from '@/lib/types/schedule'
-import type { LucideIcon } from 'lucide-react'
-
 import {
   type Period,
   PERIOD_LABELS,
@@ -13,6 +11,7 @@ import {
   PERIOD_RANGES,
   type RatingFilter,
 } from '@/lib/types/filters'
+import type { Schedule } from '@/lib/types/schedule'
 
 const PERIOD_ICONS: Record<Period, LucideIcon> = {
   dawn: Moon,
@@ -20,11 +19,11 @@ const PERIOD_ICONS: Record<Period, LucideIcon> = {
   afternoon: Sun,
   evening: MoonStar,
 }
+import { cn } from '@/lib/utils'
 import {
   applyDisplayFilters,
   parseDurationToMinutes,
 } from '@/lib/utils/apply-display-filters'
-import { cn } from '@/lib/utils'
 
 function formatDuration(mins: number): string {
   const h = Math.floor(mins / 60)
@@ -65,7 +64,7 @@ function StarDisplay({ filled, total = 5 }: { filled: number; total?: number }) 
           size={12}
           className={cn(
             i < filled
-              ? 'fill-[#EF9F27] text-[#EF9F27]'
+              ? 'fill-warning text-warning'
               : 'fill-muted/40 text-muted-foreground/30',
           )}
           strokeWidth={1.5}
@@ -210,8 +209,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
         </span>
         {activeFilterCount > 0 && (
           <span
-            className="flex items-center gap-1 text-[11px] font-medium"
-            style={{ color: '#0F6E56' }}
+            className="flex items-center gap-1 text-[11px] font-medium text-primary"
           >
             <Filter size={11} strokeWidth={2} />
             {activeFilterCount} aplicados
@@ -234,7 +232,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
                 className={cn(
                   'flex flex-col items-center rounded-lg border px-2.5 py-1.5 text-[11px] font-medium transition-all',
                   active
-                    ? 'border-transparent bg-[#0F6E56] text-white'
+                    ? 'border-transparent bg-primary text-primary-foreground'
                     : 'border-border/70 text-muted-foreground hover:border-border hover:text-foreground',
                 )}
               >
@@ -258,7 +256,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
           step={1}
           value={priceRange}
           onValueChange={handlePriceChange}
-          className={cn('my-3', priceIsActive && '[&_[data-slot=slider-range]]:bg-[#0F6E56]')}
+          className={cn('my-3', priceIsActive && '[&_[data-slot=slider-range]]:bg-primary')}
         />
         <div className="flex items-center justify-between text-[12px] text-muted-foreground">
           <span>R$ {priceRange[0]}</span>
@@ -287,7 +285,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
                     checked={checked}
                     disabled={disabled}
                     onChange={() => toggleCooperative(name)}
-                    className="h-3.5 w-3.5 cursor-pointer accent-[#0F6E56]"
+                    className="h-3.5 w-3.5 cursor-pointer accent-primary"
                   />
                   <span className={cn('truncate', checked && 'font-medium text-foreground')}>
                     {name}
@@ -337,7 +335,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
                   name="minRating"
                   checked={checked}
                   onChange={() => setFilters({ minRating: value as RatingFilter })}
-                  className="h-3.5 w-3.5 cursor-pointer accent-[#0F6E56]"
+                  className="h-3.5 w-3.5 cursor-pointer accent-primary"
                 />
                 {stars > 0 ? (
                   <span className="flex items-center gap-1.5">
@@ -391,7 +389,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
                 className={cn(
                   'my-3',
                   filters.durationMaxMinutes != null &&
-                    '[&_[data-slot=slider-range]]:bg-[#0F6E56]',
+                    '[&_[data-slot=slider-range]]:bg-primary',
                 )}
               />
               <p className="text-center text-[12px] text-muted-foreground">
@@ -421,7 +419,7 @@ export function FilterPanel({ rawSchedules, className }: FilterPanelProps) {
                             checked={checked}
                             disabled={disabled}
                             onChange={() => toggleStopCity(city)}
-                            className="h-3.5 w-3.5 cursor-pointer accent-[#0F6E56]"
+                            className="h-3.5 w-3.5 cursor-pointer accent-primary"
                           />
                           <span
                             className={cn(

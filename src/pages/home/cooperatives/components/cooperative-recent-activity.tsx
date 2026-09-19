@@ -1,9 +1,9 @@
 import type { CooperativeRecentHistory } from '@/lib/data/mock-cooperative-details'
 
 function onTimeColor(rate: number): string {
-  if (rate >= 0.85) return '#0F6E56'
-  if (rate >= 0.70) return 'var(--vh-amber-text)'
-  return '#A32D2D'
+  if (rate >= 0.85) return 'var(--color-success)'
+  if (rate >= 0.70) return 'var(--color-warning)'
+  return 'var(--color-danger)'
 }
 
 function formatDatePt(dateStr: string): string {
@@ -44,7 +44,7 @@ export function CooperativeRecentActivity({ history }: CooperativeRecentActivity
               <p className="mt-2 flex gap-4 text-[12px]">
                 <span className="text-muted-foreground">● {dist.low} leves</span>
                 <span style={{ color: 'var(--vh-amber-text)' }}>● {dist.medium} médios</span>
-                <span style={{ color: '#A32D2D' }}>● {dist.high} graves</span>
+                <span style={{ color: 'var(--color-danger)' }}>● {dist.high} graves</span>
               </p>
             </>
           ) : (

@@ -1,7 +1,8 @@
+import { formatDuration } from '@/lib/utils/format'
+
+import { MOCK_ROUTES } from './mock-cities'
 import type { CooperativeRecentHistory, CooperativeRoute } from './mock-cooperative-details'
 import { MOCK_COOPERATIVE_DETAILS } from './mock-cooperative-details'
-import { MOCK_ROUTES } from './mock-cities'
-import { formatDuration } from '@/lib/utils/format'
 
 export type RouteStop = {
   city: string

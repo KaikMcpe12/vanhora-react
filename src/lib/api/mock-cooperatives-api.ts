@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
-  MOCK_ADMIN_COOPERATIVES,
   type AdminCooperative,
+  MOCK_ADMIN_COOPERATIVES,
 } from '@/lib/data/mock-admin-cooperatives'
+import { queryKeys } from '@/lib/query-keys'
 
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -13,6 +14,12 @@ interface ListCooperativesFilters {
   status?: string
   page?: number
   pageSize?: number
+}
+
+export interface CooperativeOption {
+  id: string
+  name: string
+  brandColor: string
 }
 
 export interface CreateCooperativePayload {
@@ -54,13 +61,22 @@ export const mockCooperativesApi = {
     return { data, total, avgRating: Math.round(avgRating * 10) / 10 }
   },
 
+  async getCooperativeOptions(): Promise<CooperativeOption[]> {
+    await delay(API_DELAY)
+    // exclui inativas — não devem ser opção de atribuição/filtro
+    return MOCK_ADMIN_COOPERATIVES.filter((c) => c.status !== 'inactive').map(
+      (c) => ({ id: c.id, name: c.name, brandColor: c.brandColor }),
+    )
+  },
+
   async createCooperative(
     payload: CreateCooperativePayload,
   ): Promise<AdminCooperative> {
     await delay(API_DELAY)
 
     const newCoop: AdminCooperative = {
-      id: `coop-${Date.now()}`,
+      // novas cooperativas recebem UUID v4 real (contrato api-spec.md §1.2)
+      id: crypto.randomUUID(),
       name: payload.name,
       phone: payload.phone,
       site: payload.site,
@@ -126,14 +142,23 @@ export const mockCooperativesApi = {
 
 export function useAdminCooperatives(filters: ListCooperativesFilters = {}) {
   return useQuery({
-    queryKey: ['admin', 'cooperatives', filters],
+    queryKey: queryKeys.admin.cooperatives.list(filters),
     queryFn: () => mockCooperativesApi.listCooperatives(filters),
+  })
+}
+
+/** Fonte única de opções de cooperativa (React Query, sem loading fake). */
+export function useCooperativeOptions() {
+  return useQuery({
+    queryKey: queryKeys.admin.cooperatives.options(),
+    queryFn: () => mockCooperativesApi.getCooperativeOptions(),
+    staleTime: 5 * 60_000,
   })
 }
 
 export function useCooperativeStats() {
   return useQuery({
-    queryKey: ['admin', 'cooperatives', 'stats'],
+    queryKey: queryKeys.admin.cooperatives.stats(),
     queryFn: () => mockCooperativesApi.getCooperativeStats(),
   })
 }
@@ -144,7 +169,9 @@ export function useCreateCooperative() {
     mutationFn: (payload: CreateCooperativePayload) =>
       mockCooperativesApi.createCooperative(payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }
 
@@ -159,7 +186,9 @@ export function useUpdateCooperative() {
       payload: Partial<CreateCooperativePayload>
     }) => mockCooperativesApi.updateCooperative(id, payload),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }
 
@@ -174,6 +203,8 @@ export function useToggleCooperativeStatus() {
       newStatus: AdminCooperative['status']
     }) => mockCooperativesApi.toggleCooperativeStatus(id, newStatus),
     onSuccess: () =>
-      queryClient.invalidateQueries({ queryKey: ['admin', 'cooperatives'] }),
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.admin.cooperatives.all(),
+      }),
   })
 }

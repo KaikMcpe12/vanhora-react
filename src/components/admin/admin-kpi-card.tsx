@@ -1,14 +1,21 @@
-import { TrendingDown, TrendingUp } from 'lucide-react'
+import { type LucideIcon,TrendingDown, TrendingUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
 type TrendDirection = 'up' | 'down' | 'neutral'
 type KPISeverity = 'default' | 'attention' | 'critical'
 
+const severityChip: Record<KPISeverity, string> = {
+  default: 'bg-primary/10 text-primary',
+  attention: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+  critical: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300',
+}
+
 interface AdminKPICardProps {
   label: string
   value: string | number
   helper?: string
+  icon?: LucideIcon
   trend?: {
     value: string
     direction: TrendDirection
@@ -42,6 +49,7 @@ export function AdminKPICard({
   label,
   value,
   helper,
+  icon: Icon,
   trend,
   severity = 'default',
   onClick,
@@ -57,9 +65,21 @@ export function AdminKPICard({
           'cursor-pointer hover:border-border/80 hover:bg-accent/20',
       )}
     >
-      <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
-        {label}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+          {label}
+        </p>
+        {Icon && (
+          <span
+            className={cn(
+              'flex h-9 w-9 shrink-0 items-center justify-center rounded-lg',
+              severityChip[severity],
+            )}
+          >
+            <Icon className="h-[18px] w-[18px]" />
+          </span>
+        )}
+      </div>
 
       <p className="mt-2 text-[32px] font-medium leading-none tracking-tight text-foreground">
         {value}

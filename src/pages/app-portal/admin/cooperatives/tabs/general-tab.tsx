@@ -259,7 +259,7 @@ function PerformanceCard({ detail }: { detail: AdminCooperativeDetail }) {
         </p>
       </div>
 
-      <div className="border-border space-y-2.5 border-t pt-3">
+      <div className="border-border space-y-3 border-t pt-3">
         {totalDelays === 0 ? (
           <div className="flex items-center gap-2 text-[13px] text-emerald-600 dark:text-emerald-400">
             <Check className="h-4 w-4" />
@@ -270,28 +270,36 @@ function PerformanceCard({ detail }: { detail: AdminCooperativeDetail }) {
             <p className="text-foreground text-[13px]">
               {totalDelays} atrasos · média de {delays.averageDelayMinutes} min
             </p>
-            <div className="bg-muted flex h-2 overflow-hidden rounded-full">
-              {segments.map(
-                (s) =>
-                  s.count > 0 && (
-                    <div
-                      key={s.key}
-                      className={s.className}
-                      style={{ width: `${(s.count / totalDelays) * 100}%` }}
-                    />
-                  ),
-              )}
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px]">
-              {segments.map((s) => (
-                <span
-                  key={s.key}
-                  className="text-muted-foreground inline-flex items-center gap-1.5"
-                >
-                  <span className={cn('h-2 w-2 rounded-full', s.className)} />
-                  {s.count} {s.label.toLowerCase()}
-                </span>
-              ))}
+            <div className="space-y-2">
+              {segments.map((s) => {
+                const percent = Math.round((s.count / totalDelays) * 100)
+                return (
+                  <div key={s.key} className="flex items-center gap-3">
+                    <span className="text-muted-foreground inline-flex w-16 shrink-0 items-center gap-1.5 text-[12px]">
+                      <span
+                        aria-hidden
+                        className={cn('h-2 w-2 rounded-full', s.className)}
+                      />
+                      {s.label}
+                    </span>
+                    <div className="bg-muted h-2 flex-1 overflow-hidden rounded-full">
+                      <div
+                        className={cn('h-full rounded-full', s.className)}
+                        style={{ width: `${(s.count / totalDelays) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-16 shrink-0 text-right text-[12px] tabular-nums">
+                      <span className="text-foreground font-medium">
+                        {s.count}
+                      </span>
+                      <span className="text-muted-foreground">
+                        {' · '}
+                        {percent}%
+                      </span>
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           </>
         )}

@@ -12,7 +12,6 @@ import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import type { AdminCooperative } from '@/lib/data/mock-admin-cooperatives'
-import { cn } from '@/lib/utils'
 
 import {
   getCooperativeDelays,
@@ -118,7 +117,6 @@ export function CooperativeDetailPanel({
             >
           {tabs.map((t) => {
             const Icon = t.icon
-            const isActive = activeTab === t.value
             return (
               <TabsTrigger
                 key={t.value}
@@ -127,15 +125,8 @@ export function CooperativeDetailPanel({
               >
                 <Icon className="h-4 w-4" />
                 {t.label}
-                {t.count !== undefined && (
-                  <span
-                    className={cn(
-                      'ml-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold',
-                      isActive
-                        ? 'bg-primary/10 text-primary'
-                        : 'bg-muted text-muted-foreground',
-                    )}
-                  >
+                {t.count !== undefined && t.count > 0 && (
+                  <span className="ml-0.5 text-[11px] font-medium tabular-nums opacity-70">
                     {t.count}
                   </span>
                 )}

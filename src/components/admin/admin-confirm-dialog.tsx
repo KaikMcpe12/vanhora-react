@@ -118,7 +118,15 @@ export function AdminConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={handleOpenChange}>
-      <AlertDialogContent className="gap-0 overflow-hidden p-0 sm:max-w-md">
+      <AlertDialogContent
+        className={cn(
+          'gap-0 overflow-hidden p-0 sm:max-w-md',
+          // Com faixa colorida no header, remover a borda de 1px do modal
+          // elimina a linha clara que aparecia entre o backdrop e a faixa
+          // (o shadow-lg do AlertDialogContent segue definindo o edge).
+          hasBand && 'border-0',
+        )}
+      >
         {/* header — colored band for danger/warning, plain for neutral */}
         <div
           className={cn(

@@ -109,7 +109,7 @@ export function AdminCooperativesPage() {
   }
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+    <div className="grid grid-cols-1 gap-6 lg:grid-cols-[320px_1fr]">
       {/* Master — list */}
       <aside className={cn('flex-col gap-3', coopId ? 'hidden lg:flex' : 'flex')}>
         <div className="flex items-center justify-between gap-2">

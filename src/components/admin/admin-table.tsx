@@ -71,7 +71,9 @@ export function AdminTable<T>({
 
   return (
     <div className="border-border overflow-hidden rounded-xl border">
-      <Table>
+      {/* scroll wrapper — em viewports estreitas as colunas não são cortadas: a tabela rola horizontalmente. */}
+      <div className="overflow-x-auto">
+        <Table>
         <TableHeader>
           <TableRow className="bg-accent/30 hover:bg-accent/30">
             {columns.map((col) => {
@@ -176,6 +178,7 @@ export function AdminTable<T>({
           )}
         </TableBody>
       </Table>
+      </div>
     </div>
   )
 }

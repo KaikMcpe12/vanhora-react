@@ -98,18 +98,24 @@ export function CooperativeDetailPanel({
           size="sm"
           className="shrink-0 gap-1.5 rounded-full"
           onClick={onEdit}
+          aria-label="Editar cooperativa"
         >
           <Pencil className="h-3.5 w-3.5" />
-          Editar
+          <span className="hidden sm:inline">Editar</span>
         </Button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs — wrapper com scroll horizontal + scrollbar oculta (evita as
+          setinhas verticais nativas do GTK/Linux, causadas pelo underline
+          `after:-bottom-1.25` do TabsTrigger estourando o overflow-y).
+          Fade à direita indica que há conteúdo escondido no mobile. */}
       <Tabs value={activeTab} onValueChange={onTabChange}>
-        <TabsList
-          variant="line"
-          className="border-border w-full justify-start gap-1 overflow-x-auto border-b"
-        >
+        <div className="relative">
+          <div className="overflow-x-auto pb-1.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <TabsList
+              variant="line"
+              className="border-border w-max min-w-full justify-start gap-1 border-b"
+            >
           {tabs.map((t) => {
             const Icon = t.icon
             const isActive = activeTab === t.value
@@ -136,7 +142,12 @@ export function CooperativeDetailPanel({
               </TabsTrigger>
             )
           })}
-        </TabsList>
+            </TabsList>
+          </div>
+          {/* Fade à direita quando há overflow — visível só no mobile (onde a
+              lista de abas realmente estoura). Não bloqueia clique. */}
+          <div className="from-background to-background/0 pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l md:hidden" />
+        </div>
 
         <TabsContent value="geral" className="pt-5">
           <GeneralTab

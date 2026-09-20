@@ -33,6 +33,15 @@ interface AdminTableProps<T> {
   onRowClick?: (item: T) => void
   sortState?: { key: string; direction: 'asc' | 'desc' }
   onSort?: (key: string) => void
+  /**
+   * Atributos extras por linha (id, data-*, className). Usado por páginas com
+   * deep-link `?highlight=<uuid>` para marcar a linha alvo do scroll/pulse.
+   */
+  getRowAttrs?: (item: T) => {
+    id?: string
+    className?: string
+    'data-highlight'?: string
+  }
 }
 
 function SortIcon({
@@ -62,6 +71,7 @@ export function AdminTable<T>({
   onRowClick,
   sortState,
   onSort,
+  getRowAttrs,
 }: AdminTableProps<T>) {
   const alignClass: Record<string, string> = {
     left: 'text-left',
@@ -139,9 +149,13 @@ export function AdminTable<T>({
               </TableCell>
             </TableRow>
           ) : (
-            data.map((item) => (
+            data.map((item) => {
+              const rowAttrs = getRowAttrs?.(item)
+              return (
               <TableRow
                 key={keyExtractor(item)}
+                id={rowAttrs?.id}
+                data-highlight={rowAttrs?.['data-highlight']}
                 onClick={onRowClick ? () => onRowClick(item) : undefined}
                 role={onRowClick ? 'button' : undefined}
                 tabIndex={onRowClick ? 0 : undefined}
@@ -159,6 +173,7 @@ export function AdminTable<T>({
                   'text-[13px]',
                   onRowClick &&
                     'hover:bg-accent/30 focus-visible:bg-accent/30 focus-visible:ring-ring/50 cursor-pointer focus-visible:ring-2 focus-visible:outline-none focus-visible:ring-inset',
+                  rowAttrs?.className,
                 )}
               >
                 {columns.map((col) => (
@@ -174,7 +189,8 @@ export function AdminTable<T>({
                   </TableCell>
                 ))}
               </TableRow>
-            ))
+              )
+            })
           )}
         </TableBody>
       </Table>

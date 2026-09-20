@@ -313,4 +313,17 @@
   .animate-bottom-nav-appear {
     animation: bottom-nav-appear 200ms ease-out;
   }
+
+  /* Pulse temporário aplicado por deep-link `?highlight=<uuid>` em linhas de
+     tabela (PR10/PR11/PR12). Usa outline para não afetar layout do <tr>. */
+  @keyframes admin-row-highlight {
+    0%, 100% { outline: 0 solid rgba(59, 130, 246, 0); outline-offset: 0; }
+    20%, 60% { outline: 3px solid rgba(59, 130, 246, 0.5); outline-offset: -3px; }
+  }
+  [data-highlight="true"] {
+    animation: admin-row-highlight 1.6s ease-out 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    [data-highlight="true"] { animation: none; }
+  }
 }

@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
+import { MOCK_USERS } from '@/lib/data/mock-users'
 import { queryKeys } from '@/lib/query-keys'
 import type { RouteFormValues } from '@/lib/schemas/route-schema'
 
@@ -17,13 +19,14 @@ export interface AdminRouteRow {
   id: string
   name: string
   code: string
+  cooperativeId: string
   cooperativeName: string
-  cooperativeId?: string
   origin: string
   destination: string
   status: RouteRowStatus
   price: number
   activeDays: string[]
+  driverId?: string
   driverName?: string
   scheduleCount: number
   stops: RouteStop[]
@@ -38,13 +41,14 @@ const ROUTES_STORE: AdminRouteRow[] = [
     id: 'route-expresso-norte',
     name: 'Expresso Norte',
     code: 'R-204',
-    cooperativeName: 'Metro Transportes',
     cooperativeId: '11111111-1111-4111-8111-111111111111',
+    cooperativeName: 'Metro Transportes',
     origin: 'Terminal Central',
     destination: 'Zona Industrial',
     status: 'active',
     price: 30,
     activeDays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
+    driverId: 'user-driver-1',
     driverName: 'João Silva',
     scheduleCount: 3,
     stops: [
@@ -57,8 +61,8 @@ const ROUTES_STORE: AdminRouteRow[] = [
     id: 'route-linha-sul',
     name: 'Linha Sul Express',
     code: 'R-319',
-    cooperativeName: 'Expresso São Francisco',
     cooperativeId: '22222222-2222-4222-8222-222222222222',
+    cooperativeName: 'Expresso São Francisco',
     origin: 'Praça da Sé',
     destination: 'Aeroporto Int.',
     status: 'suspended',
@@ -74,14 +78,15 @@ const ROUTES_STORE: AdminRouteRow[] = [
     id: 'route-trans-leste',
     name: 'Trans Leste',
     code: 'R-402',
-    cooperativeName: 'Metro Transportes',
     cooperativeId: '11111111-1111-4111-8111-111111111111',
+    cooperativeName: 'Metro Transportes',
     origin: 'Vila Maria',
     destination: 'Centro Empresarial',
     status: 'active',
     price: 35,
     activeDays: ['seg', 'ter', 'qua', 'qui', 'sex', 'sab'],
-    driverName: 'Marcos Oliveira',
+    driverId: 'user-driver-2',
+    driverName: 'Marcus Antônio',
     scheduleCount: 4,
     stops: [
       { city: 'Vila Maria', time: '07:00' },
@@ -92,8 +97,8 @@ const ROUTES_STORE: AdminRouteRow[] = [
     id: 'route-noturna-a',
     name: 'Rota Noturna A',
     code: 'N-07',
-    cooperativeName: 'Cooperativa Vale',
     cooperativeId: '33333333-3333-4333-8333-333333333333',
+    cooperativeName: 'Cooperativa Vale',
     origin: 'Campus Univ.',
     destination: 'Estação Metro',
     status: 'inactive',
@@ -110,12 +115,13 @@ const ROUTES_STORE: AdminRouteRow[] = [
 export interface RouteFormPayload {
   name: string
   code: string
+  cooperativeId: string
   cooperativeName: string
-  cooperativeId?: string
   origin: string
   destination: string
   price: number
   activeDays: string[]
+  driverId?: string
   driverName?: string
   status: RouteRowStatus
   stops: RouteStop[]
@@ -124,14 +130,37 @@ export interface RouteFormPayload {
 interface ListRoutesFilters {
   search?: string
   status?: string
-  cooperative?: string
+  /** UUID da cooperativa. Filtro server-side (mock). */
+  cooperativeId?: string
+  /** UUID do motorista. Filtro server-side (mock). */
+  driverId?: string
 }
 
-/** Normaliza os valores do form para o payload da API (limpa strings vazias). */
+/**
+ * Normaliza os valores do form (id-based) para o payload da API. Resolve
+ * `cooperativeName` e `driverName` denormalizados a partir dos ids, para o mock
+ * conseguir renderizar sem novos joins. Quando o backend real existir, ele
+ * denormaliza no server e o client só envia os ids.
+ */
 export function routeValuesToPayload(values: RouteFormValues): RouteFormPayload {
+  const coop = MOCK_ADMIN_COOPERATIVES.find((c) => c.id === values.cooperativeId)
+  const driver = values.driverName
+    ? MOCK_USERS.find(
+        (u) => u.role === 'driver' && u.name === values.driverName,
+      )
+    : undefined
   return {
-    ...values,
+    name: values.name,
+    code: values.code,
+    cooperativeId: values.cooperativeId,
+    cooperativeName: coop?.name ?? '',
+    origin: values.origin,
+    destination: values.destination,
+    price: values.price,
+    activeDays: values.activeDays,
+    driverId: driver?.id,
     driverName: values.driverName || undefined,
+    status: values.status,
     stops: values.stops.map((s) => ({ city: s.city, time: s.time || undefined })),
   }
 }
@@ -139,10 +168,13 @@ export function routeValuesToPayload(values: RouteFormValues): RouteFormPayload 
 export const mockRoutesApi = {
   async listRoutes(filters: ListRoutesFilters = {}): Promise<AdminRouteRow[]> {
     await delay(API_DELAY)
-    const { search = '', status = '', cooperative = '' } = filters
+    const { search = '', status = '', cooperativeId = '', driverId = '' } = filters
     let filtered = [...ROUTES_STORE]
-    if (cooperative) {
-      filtered = filtered.filter((r) => r.cooperativeName === cooperative)
+    if (cooperativeId) {
+      filtered = filtered.filter((r) => r.cooperativeId === cooperativeId)
+    }
+    if (driverId) {
+      filtered = filtered.filter((r) => r.driverId === driverId)
     }
     if (status) {
       filtered = filtered.filter((r) => r.status === status)

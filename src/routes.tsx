@@ -17,15 +17,29 @@ export interface RouteHandle {
 }
 
 /**
- * Redireciona URLs legadas em PT-BR para os equivalentes em inglês.
+ * Redireciona URLs legadas em PT-BR e as antigas páginas de rota (/new,
+ * /:id/edit — extintas no PR10) para o novo padrão baseado em drawer:
+ *   /routes/nova         → /routes?new=1
+ *   /routes/new          → /routes?new=1
+ *   /routes/:id/editar   → /routes?edit=:id
+ *   /routes/:id/edit     → /routes?edit=:id
  * Remover após sunset (6 meses sem hits ou quando analytics confirmar desuso).
- * /routes/nova     → /routes/new
- * /routes/:id/editar → /routes/:id/edit
  */
 function LegacyRedirect() {
   const { pathname, search } = useLocation()
-  const newPath = pathname.replace('/nova', '/new').replace('/editar', '/edit')
-  return <Navigate to={newPath + search} replace />
+  const editMatch = pathname.match(/\/routes\/([^/]+)\/(editar|edit)$/)
+  if (editMatch) {
+    const [, id] = editMatch
+    const base = pathname.replace(/\/routes\/[^/]+\/(editar|edit)$/, '/routes')
+    const nextSearch = search ? `${search}&edit=${id}` : `?edit=${id}`
+    return <Navigate to={base + nextSearch} replace />
+  }
+  if (/\/routes\/(nova|new)$/.test(pathname)) {
+    const base = pathname.replace(/\/routes\/(nova|new)$/, '/routes')
+    const nextSearch = search ? `${search}&new=1` : '?new=1'
+    return <Navigate to={base + nextSearch} replace />
+  }
+  return <Navigate to={pathname + search} replace />
 }
 import { AppPortalLayout } from './pages/_layouts/app-portal'
 import { AuthLayout } from './pages/_layouts/auth'
@@ -50,8 +64,6 @@ import { DriverProfilePage } from './pages/app-portal/driver/me'
 import { DriverMyRoutesPage } from './pages/app-portal/driver/my-routes'
 import { DriverMySchedulesPage } from './pages/app-portal/driver/my-schedules'
 import { DriverReportDelayPage } from './pages/app-portal/driver/report-delay'
-import { RouteCreatePage } from './pages/app-portal/routes/route-create-page'
-import { RouteEditPage } from './pages/app-portal/routes/route-edit-page'
 import { SignIn } from './pages/auth/sign-in'
 import { About } from './pages/home/about/about'
 import { Author } from './pages/home/author/author'
@@ -157,17 +169,10 @@ export const router = createBrowserRouter([
         handle: { crumb: 'Rotas' } satisfies RouteHandle,
         children: [
           { index: true, element: <AdminRoutesPage /> },
-          {
-            path: 'new',
-            element: <RouteCreatePage />,
-            handle: { crumb: 'Nova Rota' } satisfies RouteHandle,
-          },
-          {
-            path: ':id/edit',
-            element: <RouteEditPage />,
-            handle: { crumb: 'Editar Rota' } satisfies RouteHandle,
-          },
-          // Redirects legados — remover após sunset
+          // Rotas /new e /:id/edit foram consolidadas no drawer da lista (PR10).
+          // Todas as variantes redirecionam para ?new=1 ou ?edit=:id.
+          { path: 'new', element: <LegacyRedirect /> },
+          { path: ':id/edit', element: <LegacyRedirect /> },
           { path: 'nova', element: <LegacyRedirect /> },
           { path: ':id/editar', element: <LegacyRedirect /> },
         ],
@@ -224,17 +229,9 @@ export const router = createBrowserRouter([
         handle: { crumb: 'Rotas' } satisfies RouteHandle,
         children: [
           { index: true, element: <CooperativeRoutesPage /> },
-          {
-            path: 'new',
-            element: <RouteCreatePage />,
-            handle: { crumb: 'Nova Rota' } satisfies RouteHandle,
-          },
-          {
-            path: ':id/edit',
-            element: <RouteEditPage />,
-            handle: { crumb: 'Editar Rota' } satisfies RouteHandle,
-          },
-          // Redirects legados — remover após sunset
+          // Rotas /new e /:id/edit foram consolidadas no drawer da lista (PR10).
+          { path: 'new', element: <LegacyRedirect /> },
+          { path: ':id/edit', element: <LegacyRedirect /> },
           { path: 'nova', element: <LegacyRedirect /> },
           { path: ':id/editar', element: <LegacyRedirect /> },
         ],

@@ -15,8 +15,7 @@ export const routeFormSchema = z
   .object({
     name: z.string().min(3, 'Nome deve ter no mínimo 3 caracteres'),
     code: z.string(),
-    cooperativeName: z.string().min(1, 'Selecione a cooperativa'),
-    cooperativeId: z.string().optional(),
+    cooperativeId: z.string().uuid('Selecione a cooperativa'),
     origin: z.string().min(1, 'Informe a origem'),
     destination: z.string().min(1, 'Informe o destino'),
     price: z.number().min(0, 'Preço inválido'),

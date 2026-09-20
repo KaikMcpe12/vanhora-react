@@ -1,18 +1,26 @@
 import {
   AlertTriangle,
   Building2,
+  CalendarDays,
   CheckCircle2,
   CircleCheck,
   CircleDashed,
   CloudRain,
+  Copy,
   Edit,
   Eye,
   Info,
+  LayoutGrid,
   MousePointerClick,
+  Pencil,
+  PlayCircle,
   Plus,
+  PowerOff,
   Route as RouteIcon,
+  Rows3,
   TrafficCone,
   Trash2,
+  UserRound,
   Users,
   Wrench,
   XCircle,
@@ -59,6 +67,7 @@ import {
   USER_ROLE_META,
   USER_STATUS_META,
 } from '@/lib/status/status-meta'
+import { cn } from '@/lib/utils'
 import { CooperativeDetailPanel } from '@/pages/app-portal/admin/cooperatives/cooperative-detail-panel'
 import { GeneralTab } from '@/pages/app-portal/admin/cooperatives/tabs/general-tab'
 
@@ -866,6 +875,291 @@ export function AdminComponentsPreviewPage() {
           </div>
         </div>
       </PreviewSection>
+
+      <PreviewSection title="Rotas admin (PR10)">
+        <RoutesPr10Preview />
+      </PreviewSection>
+    </div>
+  )
+}
+
+// ── Rotas admin (PR10) ──────────────────────────────────────────────────────
+
+const previewRoutes = [
+  {
+    id: 'preview-route-1',
+    name: 'Expresso Norte',
+    code: 'R-204',
+    cooperative: 'Metro Transportes',
+    brandColor: '#1A5FA8',
+    origin: 'Terminal Central',
+    destination: 'Zona Industrial',
+    status: 'active' as const,
+    price: 30,
+    driverName: 'João Silva',
+  },
+  {
+    id: 'preview-route-2',
+    name: 'Linha Sul Express',
+    code: 'R-319',
+    cooperative: 'Expresso São Francisco',
+    brandColor: '#B91C1C',
+    origin: 'Praça da Sé',
+    destination: 'Aeroporto Int.',
+    status: 'suspended' as const,
+    price: 45,
+    driverName: undefined,
+  },
+  {
+    id: 'preview-route-3',
+    name: 'Rota Noturna A',
+    code: 'N-07',
+    cooperative: 'Cooperativa Vale',
+    brandColor: '#047857',
+    origin: 'Campus Univ.',
+    destination: 'Estação Metro',
+    status: 'inactive' as const,
+    price: 25,
+    driverName: 'Marcus Antônio',
+  },
+]
+
+const STATUS_BORDER_PREVIEW: Record<'active' | 'suspended' | 'inactive', string> = {
+  active: 'border-l-emerald-500',
+  suspended: 'border-l-amber-500',
+  inactive: 'border-l-slate-400',
+}
+
+function RoutesPr10Preview() {
+  const [view, setView] = useState<'grid' | 'table'>('grid')
+
+  return (
+    <div className="space-y-6">
+      {/* Toggle Grid/Tabela em isolamento */}
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">
+          Toggle Grid ↔ Tabela (persistido em <code>?view=</code>).
+        </p>
+        <div
+          role="tablist"
+          aria-label="Alternar visualização"
+          className="border-border bg-background inline-flex items-center gap-0.5 rounded-md border p-0.5"
+        >
+          <button
+            role="tab"
+            aria-selected={view === 'grid'}
+            aria-label="Grade"
+            onClick={() => setView('grid')}
+            className={cn(
+              'inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 text-xs font-medium transition-colors',
+              'focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
+              view === 'grid'
+                ? 'bg-accent text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <LayoutGrid className="h-4 w-4" />
+          </button>
+          <button
+            role="tab"
+            aria-selected={view === 'table'}
+            aria-label="Tabela"
+            onClick={() => setView('table')}
+            className={cn(
+              'inline-flex min-h-11 min-w-11 items-center justify-center rounded px-2 text-xs font-medium transition-colors',
+              'focus-visible:ring-ring/50 focus-visible:ring-2 focus-visible:outline-none',
+              view === 'table'
+                ? 'bg-accent text-foreground'
+                : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            <Rows3 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Grid — 3 status lado a lado */}
+      {view === 'grid' ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {previewRoutes.map((r) => (
+            <article
+              key={r.id}
+              className={cn(
+                'bg-card border-border flex h-full flex-col gap-4 rounded-xl border border-l-4 p-5',
+                STATUS_BORDER_PREVIEW[r.status],
+                r.status === 'inactive' && 'opacity-70',
+              )}
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0 space-y-2">
+                  <StatusChip {...ROUTE_STATUS_META[r.status]} />
+                  <div className="min-w-0">
+                    <h3 className="text-foreground truncate text-base font-semibold">
+                      {r.name}
+                    </h3>
+                    <p className="text-muted-foreground font-mono text-[11px]">
+                      {r.code}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <span className="text-foreground text-[13px] font-semibold tabular-nums">
+                    R$ {r.price.toFixed(2)}
+                  </span>
+                  <AdminActionMenu
+                    items={[
+                      { label: 'Editar', icon: Pencil, onClick: () => {} },
+                      { label: 'Duplicar', icon: Copy, onClick: () => {} },
+                      {
+                        label: 'Horários',
+                        icon: CalendarDays,
+                        onClick: () => {},
+                      },
+                      { divider: true, label: '', onClick: () => {} },
+                      r.status === 'active'
+                        ? {
+                            label: 'Suspender',
+                            icon: PowerOff,
+                            onClick: () => {},
+                            variant: 'danger',
+                          }
+                        : {
+                            label: 'Reativar',
+                            icon: PlayCircle,
+                            onClick: () => {},
+                          },
+                    ]}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2 text-sm">
+                <div className="flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: r.brandColor }}
+                  />
+                  <span className="text-muted-foreground truncate text-[12px]">
+                    {r.cooperative}
+                  </span>
+                </div>
+                <div className="grid grid-cols-[auto_1fr] gap-x-3">
+                  <div className="flex flex-col items-center">
+                    <span className="mt-[5px] h-2 w-2 rounded-full bg-emerald-500" />
+                    <span className="bg-border my-0.5 h-4 w-px" />
+                    <span className="mb-[5px] h-2 w-2 rounded-full bg-red-500" />
+                  </div>
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="text-foreground truncate leading-6">
+                      {r.origin}
+                    </p>
+                    <p className="text-muted-foreground truncate leading-6">
+                      {r.destination}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <UserRound className="text-muted-foreground h-4 w-4 shrink-0" />
+                  <span
+                    className={cn(
+                      'truncate text-sm',
+                      r.driverName
+                        ? 'text-foreground'
+                        : 'text-muted-foreground italic',
+                    )}
+                  >
+                    {r.driverName ?? 'Sem motorista'}
+                  </span>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      ) : (
+        <AdminTable
+          columns={[
+            {
+              key: 'code',
+              label: 'Código',
+              width: '110px',
+              render: (r) => (
+                <span className="font-mono text-[13px]">{r.code}</span>
+              ),
+            },
+            {
+              key: 'name',
+              label: 'Rota',
+              render: (r) => (
+                <div>
+                  <p className="text-foreground font-medium">{r.name}</p>
+                  <p className="text-muted-foreground text-[11px]">
+                    {r.origin} → {r.destination}
+                  </p>
+                </div>
+              ),
+            },
+            {
+              key: 'cooperative',
+              label: 'Cooperativa',
+              hideOnMobile: true,
+              render: (r) => (
+                <span className="text-foreground inline-flex items-center gap-2 text-[13px]">
+                  <span
+                    aria-hidden
+                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                    style={{ backgroundColor: r.brandColor }}
+                  />
+                  {r.cooperative}
+                </span>
+              ),
+            },
+            {
+              key: 'price',
+              label: 'Preço',
+              width: '110px',
+              align: 'right',
+              render: (r) => (
+                <span className="font-medium tabular-nums">
+                  R$ {r.price.toFixed(2)}
+                </span>
+              ),
+            },
+            {
+              key: 'status',
+              label: 'Status',
+              width: '130px',
+              render: (r) => <StatusChip {...ROUTE_STATUS_META[r.status]} />,
+            },
+          ]}
+          data={previewRoutes}
+          keyExtractor={(r) => r.id}
+        />
+      )}
+
+      {/* Nota sobre duplicar */}
+      <div className="border-border bg-muted/30 space-y-2 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <Copy className="h-4 w-4" />
+          Ação Duplicar rota
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          Clonar uma rota existente abre o drawer em modo criação com todos os
+          campos pré-preenchidos, exceto:
+        </p>
+        <ul className="text-muted-foreground list-disc pl-6 text-[12px]">
+          <li>
+            <code className="font-mono">code</code> — sugerido como{' '}
+            <code className="font-mono">&lt;source.code&gt;-COPY</code>{' '}
+            (truncado a 12 chars, sufixos <code className="font-mono">-2</code>,{' '}
+            <code className="font-mono">-3</code>… se colide). Editável.
+          </li>
+          <li>
+            <code className="font-mono">status</code> — força{' '}
+            <code className="font-mono">inactive</code> para evitar que a cópia
+            entre em operação por acidente.
+          </li>
+        </ul>
+      </div>
     </div>
   )
 }

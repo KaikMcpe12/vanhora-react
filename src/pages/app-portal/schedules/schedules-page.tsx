@@ -10,8 +10,12 @@ import {
   Star,
   X,
 } from 'lucide-react'
-import { useMemo, useState } from 'react'
-import { useOutletContext, useSearchParams } from 'react-router-dom'
+import { motion, useReducedMotion } from 'motion/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import {
+  useOutletContext,
+  useSearchParams,
+} from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -20,6 +24,8 @@ import {
   AdminKPICard,
   StatusFilterChips,
 } from '@/components/admin'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
+import { WeekdayPicker } from '@/components/pickers/weekday-picker'
 import { StatusChip } from '@/components/status-chip'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -28,13 +34,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { useTableFilters } from '@/hooks/use-table-filters'
+import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import {
   ADMIN_SCHEDULE_SUMMARY,
   MOCK_ADMIN_ROUTES,
@@ -46,6 +47,7 @@ import type {
   DayOfWeek,
   OperationalStatus,
   RouteStop,
+  ScheduleException,
   ScheduleTemporary,
 } from '@/lib/types/admin-schedule'
 import { cn } from '@/lib/utils'
@@ -94,7 +96,7 @@ const SHORT_DAY: Record<DayOfWeek, string> = {
   dom: 'Dom',
 }
 
-const EXCEPTION_TYPE_LABEL = {
+const EXCEPTION_TYPE_LABEL: Record<ScheduleException['type'], string> = {
   cancelled: 'Cancelado',
   suspended: 'Suspenso',
   rescheduled: 'Reagendado',
@@ -112,6 +114,18 @@ const ALL_OP_STATUSES: OperationalStatus[] = [
   'cancelled',
   'suspended',
 ]
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// Filtros persistidos na URL. Chaves cruas (sem namespace) porque a página
+// tem só uma "tabela" agrupada por rota.
+interface Filters extends Record<string, unknown> {
+  search: string
+  status: string[]
+  cooperativeId: string
+  days: string[]
+  date: string
+}
 
 function DayChips({ activeDays }: { activeDays: DayOfWeek[] }) {
   return (
@@ -215,7 +229,7 @@ function ScheduleExpandedPanel({
               {nextException.reason && (
                 <Popover>
                   <PopoverTrigger asChild>
-                    <button className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-200">
+                    <button className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-full border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-semibold text-slate-600 hover:bg-slate-200">
                       <CircleAlert className="h-3 w-3" />
                       {nextException.reason}
                     </button>
@@ -271,7 +285,7 @@ function ScheduleExpandedPanel({
         <Button
           variant="outline"
           size="sm"
-          className="w-full gap-1.5 rounded-full text-xs sm:w-auto sm:shrink-0"
+          className="min-h-11 w-full gap-1.5 rounded-full text-xs sm:w-auto sm:shrink-0"
           onClick={onAddException}
         >
           <Plus className="h-3.5 w-3.5" />
@@ -323,11 +337,15 @@ function ScheduleExpandedPanel({
 function ScheduleRowItem({
   schedule,
   routeStops,
+  highlighted,
+  reduce,
   onEdit,
   onDuplicate,
 }: {
   schedule: AdminSchedule
   routeStops: RouteStop[]
+  highlighted: boolean
+  reduce: boolean
   onEdit: () => void
   onDuplicate: () => void
 }) {
@@ -348,15 +366,33 @@ function ScheduleRowItem({
 
   return (
     <>
-      <div
+      <motion.div
+        id={`schedule-${schedule.id}`}
         role="button"
         tabIndex={0}
         onClick={() => setExpanded((v) => !v)}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') setExpanded((v) => !v)
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setExpanded((v) => !v)
+          }
         }}
+        animate={
+          highlighted && !reduce
+            ? {
+                boxShadow: [
+                  '0 0 0 0 rgba(59,130,246,0.0)',
+                  '0 0 0 4px rgba(59,130,246,0.35)',
+                  '0 0 0 0 rgba(59,130,246,0.0)',
+                  '0 0 0 4px rgba(59,130,246,0.35)',
+                  '0 0 0 0 rgba(59,130,246,0.0)',
+                ],
+              }
+            : { boxShadow: '0 0 0 0 rgba(59,130,246,0)' }
+        }
+        transition={{ duration: highlighted && !reduce ? 1.6 : 0.18 }}
         className={cn(
-          'cursor-pointer border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-slate-50',
+          'cursor-pointer border-b px-4 py-3 transition-colors last:border-b-0 hover:bg-slate-50 focus-visible:bg-slate-50 focus-visible:outline-none',
           isDimmed && 'opacity-60',
           expanded && 'bg-slate-50',
         )}
@@ -419,7 +455,7 @@ function ScheduleRowItem({
             {schedule.notes}
           </p>
         )}
-      </div>
+      </motion.div>
 
       {expanded && (
         <ScheduleExpandedPanel
@@ -451,33 +487,129 @@ function ScheduleRowItem({
 
 function TemporaryScheduleRow({ tmp }: { tmp: ScheduleTemporary }) {
   return (
-    <div className="flex items-center gap-3 border-b px-4 py-2.5 last:border-b-0">
+    <div className="flex items-center gap-3 border-b border-l-[3px] border-l-amber-400 bg-amber-50/30 px-4 py-2.5 last:border-b-0">
       <span className="w-16 shrink-0 text-xl leading-none font-bold text-amber-700">
         {tmp.departureTime}
       </span>
       <div className="min-w-0 flex-1">
         {tmp.reason && (
-          <p className="text-foreground truncate text-xs">{tmp.reason}</p>
+          <p className="text-foreground truncate text-xs font-medium">
+            {tmp.reason}
+          </p>
         )}
         <p className="text-muted-foreground text-[11px]">{tmp.date}</p>
       </div>
-      <Badge
-        variant="outline"
-        className="gap-1 rounded-full border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800"
-      >
-        <Clock className="h-3 w-3" />
-        Serviço extra
-      </Badge>
+      <StatusChip
+        tone="warning"
+        icon={Clock}
+        label="Serviço extra"
+      />
     </div>
+  )
+}
+
+function ExceptionsBadge({ route }: { route: AdminRoute }) {
+  const count = route.openExceptionsCount
+  if (count <= 0) return null
+
+  const items = route.openExceptions ?? []
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-label={`${count} ${count > 1 ? 'exceções abertas' : 'exceção aberta'} — abrir lista`}
+          className="inline-flex min-h-9 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+        >
+          <AlertCircle className="h-3 w-3" />
+          {count} {count > 1 ? 'exceções abertas' : 'exceção aberta'}
+          {route.nextExceptionDate && ` — próxima ${route.nextExceptionDate}`}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 p-0" align="start">
+        <motion.div
+          initial={{ opacity: 0, y: -4 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.14 }}
+        >
+          <div className="border-b px-3 py-2">
+            <p className="text-foreground text-[13px] font-semibold">
+              Exceções da rota {route.code}
+            </p>
+            <p className="text-muted-foreground text-[11px]">
+              {count} {count > 1 ? 'ocorrências' : 'ocorrência'} — clique para
+              detalhes
+            </p>
+          </div>
+          {items.length === 0 ? (
+            <p className="text-muted-foreground px-3 py-4 text-[12px]">
+              Sem detalhes disponíveis. Contagem: {count}.
+            </p>
+          ) : (
+            <ul className="max-h-72 overflow-auto">
+              {items.map((exc, i) => (
+                <li
+                  key={`${exc.date}-${exc.scheduleId ?? i}`}
+                  className="border-b px-3 py-2.5 last:border-b-0"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5">
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                          exc.type === 'cancelled' &&
+                            'border-red-300 bg-red-50 text-red-700',
+                          exc.type === 'suspended' &&
+                            'border-slate-300 bg-slate-50 text-slate-700',
+                          exc.type === 'rescheduled' &&
+                            'border-blue-300 bg-blue-50 text-blue-700',
+                        )}
+                      >
+                        <AlertCircle className="h-2.5 w-2.5" />
+                        {EXCEPTION_TYPE_LABEL[exc.type]}
+                      </Badge>
+                      {exc.departureTime && (
+                        <span className="text-muted-foreground text-[11px] font-medium">
+                          {exc.departureTime}
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-muted-foreground text-[11px]">
+                      {exc.date}
+                    </span>
+                  </div>
+                  {exc.reason && (
+                    <p className="text-foreground mt-1 text-[12px] leading-snug">
+                      {exc.reason}
+                    </p>
+                  )}
+                  {exc.type === 'rescheduled' && exc.newDepartureTime && (
+                    <p className="text-muted-foreground mt-0.5 text-[11px]">
+                      Novo horário: {exc.newDepartureTime}
+                    </p>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </motion.div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
 function ScheduleRouteSection({
   route,
+  highlightedScheduleId,
+  reduce,
   onEditSchedule,
   onDuplicateSchedule,
 }: {
   route: AdminRoute
+  highlightedScheduleId: string | null
+  reduce: boolean
   onEditSchedule: (schedule: AdminSchedule) => void
   onDuplicateSchedule: (schedule: AdminSchedule) => void
 }) {
@@ -508,20 +640,13 @@ function ScheduleRouteSection({
               </span>
             </h2>
 
-            {/* line 2: route + price + exception chip */}
+            {/* line 2: route + price + exceptions badge */}
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <span className="text-muted-foreground text-sm">
                 {route.origin} &rarr; {route.destination} &bull; R${' '}
                 {route.basePrice.toFixed(2)}
               </span>
-              {route.openExceptionsCount > 0 && (
-                <span className="inline-flex items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                  <AlertCircle className="h-3 w-3" />
-                  {route.openExceptionsCount}{' '}
-                  {route.openExceptionsCount > 1 ? 'exceções' : 'exceção'}
-                  {route.nextExceptionDate && ` — ${route.nextExceptionDate}`}
-                </span>
-              )}
+              <ExceptionsBadge route={route} />
             </div>
           </div>
 
@@ -530,7 +655,7 @@ function ScheduleRouteSection({
             <Button
               variant="outline"
               size="sm"
-              className="h-8 gap-1.5 rounded-full text-xs"
+              className="min-h-11 gap-1.5 rounded-full text-xs"
               onClick={() => setTempServiceOpen(true)}
             >
               <Plus className="h-3.5 w-3.5" />
@@ -539,7 +664,7 @@ function ScheduleRouteSection({
 
             {/* mobile collapse toggle */}
             <button
-              className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 md:hidden"
+              className="flex min-h-11 items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 md:hidden"
               onClick={() => setCollapsed((v) => !v)}
               aria-label={collapsed ? 'Expandir horários' : 'Recolher horários'}
             >
@@ -570,6 +695,8 @@ function ScheduleRouteSection({
               key={schedule.id}
               schedule={schedule}
               routeStops={route.stops}
+              highlighted={highlightedScheduleId === schedule.id}
+              reduce={reduce}
               onEdit={() => onEditSchedule(schedule)}
               onDuplicate={() => onDuplicateSchedule(schedule)}
             />
@@ -588,10 +715,14 @@ function ScheduleRouteSection({
           )}
         >
           <div className="overflow-hidden">
-            <div className="px-4 pt-2.5 pb-1">
+            <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+              <span className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
               <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
                 Serviços extras
               </p>
+              <span className="text-muted-foreground text-[11px]">
+                ({route.temporarySchedules.length})
+              </span>
             </div>
             {route.temporarySchedules.map((tmp) => (
               <TemporaryScheduleRow key={tmp.id} tmp={tmp} />
@@ -618,24 +749,52 @@ function ScheduleRouteSection({
 
 export function SchedulesPage() {
   useOutletContext<AppPortalOutletContext>()
-
+  const reduce = useReducedMotion() ?? false
   const [searchParams, setSearchParams] = useSearchParams()
   const routeParam = searchParams.get('route') ?? ''
 
-  const [pendingQuery, setPendingQuery] = useState('')
-  const [committedQuery, setCommittedQuery] = useState('')
-  const [statusFilters, setStatusFilters] =
-    useState<OperationalStatus[]>(ALL_OP_STATUSES)
-  const [onlyExceptions, setOnlyExceptions] = useState(false)
-  const [cooperativeFilter, setCooperativeFilter] = useState(
-    () => searchParams.get('cooperative') ?? '',
-  )
-  const [dateFilter, setDateFilter] = useState('')
-  const [datePopoverOpen, setDatePopoverOpen] = useState(false)
+  const { filters, setFilter, reset } = useTableFilters<Filters>({
+    defaults: {
+      search: '',
+      status: [],
+      cooperativeId: '',
+      days: [],
+      date: '',
+    },
+  })
+
+  // Compat: `?cooperative=<nome>` legado → reescreve para `?cooperativeId=<uuid>`
+  // sem recarregar. Não quebra links antigos. Remove após sunset.
+  useEffect(() => {
+    const legacy = searchParams.get('cooperative')
+    if (!legacy) return
+    const match = MOCK_ADMIN_COOPERATIVES.find((c) => c.name === legacy)
+    setSearchParams(
+      (p) => {
+        p.delete('cooperative')
+        if (match) p.set('cooperativeId', match.id)
+        return p
+      },
+      { replace: true },
+    )
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Sanitiza `?cooperativeId=` — se vier valor não-UUID, limpa.
+  useEffect(() => {
+    const raw = filters.cooperativeId
+    if (!raw || UUID_RE.test(raw)) return
+    setFilter('cooperativeId', '')
+  }, [filters.cooperativeId, setFilter])
 
   const clearRouteFilter = () => {
-    searchParams.delete('route')
-    setSearchParams(searchParams)
+    setSearchParams(
+      (p) => {
+        p.delete('route')
+        return p
+      },
+      { replace: true },
+    )
   }
 
   const [routes, setRoutes] = useState<AdminRoute[]>(MOCK_ADMIN_ROUTES)
@@ -667,6 +826,7 @@ export function SchedulesPage() {
       mode: 'duplicate',
       routeId: route.id,
       initialValues: {
+        // departureTime vazio: precisa ser único por rota+dia.
         departureTime: '',
         activeDays: schedule.activeDays,
         notes: schedule.notes ?? '',
@@ -703,6 +863,8 @@ export function SchedulesPage() {
           departureTime: values.departureTime,
           dayOfWeek: values.activeDays[0] ?? 'seg',
           activeDays: values.activeDays,
+          routeId: r.id,
+          cooperativeId: r.cooperativeId,
           cooperativeName: r.cooperativeName,
           origin: r.origin,
           destination: r.destination,
@@ -720,30 +882,49 @@ export function SchedulesPage() {
       }),
     )
     toast.success(
-      mode === 'edit' ? 'Horário atualizado' : 'Horário criado com sucesso',
+      mode === 'edit'
+        ? 'Horário atualizado'
+        : mode === 'duplicate'
+          ? 'Horário duplicado com sucesso'
+          : 'Horário criado com sucesso',
     )
   }
 
+  const activeStatuses =
+    filters.status.length === 0
+      ? ALL_OP_STATUSES
+      : (filters.status as OperationalStatus[])
+
+  const activeDays = filters.days as DayOfWeek[]
+
   const filteredRoutes = useMemo(() => {
-    const q = committedQuery.trim().toLowerCase()
+    const q = filters.search.trim().toLowerCase()
 
     return routes
       .filter((route) => {
-        if (cooperativeFilter && route.cooperativeName !== cooperativeFilter)
+        if (
+          filters.cooperativeId &&
+          route.cooperativeId !== filters.cooperativeId
+        )
           return false
         if (routeParam && route.code !== routeParam) return false
         return true
       })
       .map((route) => {
         const filteredSchedules = route.schedules.filter((s) => {
-          if (!statusFilters.includes(s.operationalStatus)) return false
-          if (onlyExceptions && !s.nextException) return false
+          if (!activeStatuses.includes(s.operationalStatus)) return false
+          if (
+            activeDays.length > 0 &&
+            !s.activeDays.some((d) => activeDays.includes(d))
+          )
+            return false
           if (q) {
             const hay = [
               route.code,
               route.origin,
               route.destination,
               route.cooperativeName,
+              s.routeCode,
             ]
               .join(' ')
               .toLowerCase()
@@ -756,10 +937,10 @@ export function SchedulesPage() {
       .filter((r) => r.schedules.length > 0)
   }, [
     routes,
-    committedQuery,
-    cooperativeFilter,
-    statusFilters,
-    onlyExceptions,
+    filters.search,
+    filters.cooperativeId,
+    activeStatuses,
+    activeDays,
     routeParam,
   ])
 
@@ -769,32 +950,69 @@ export function SchedulesPage() {
   )
 
   const clearFilters = () => {
-    setPendingQuery('')
-    setCommittedQuery('')
-    setStatusFilters(ALL_OP_STATUSES)
-    setOnlyExceptions(false)
-    setCooperativeFilter('')
-    setDateFilter('')
-    // Também limpa os filtros vindos da URL (rota/cooperativa), que são lidos
-    // ao vivo de searchParams e persistiriam após o reset de estado.
-    if (searchParams.has('route') || searchParams.has('cooperative')) {
-      searchParams.delete('route')
-      searchParams.delete('cooperative')
-      setSearchParams(searchParams)
+    reset()
+    if (searchParams.has('route')) {
+      setSearchParams(
+        (p) => {
+          p.delete('route')
+          return p
+        },
+        { replace: true },
+      )
     }
   }
 
   const hasActiveFilters =
-    committedQuery.trim() !== '' ||
-    cooperativeFilter !== '' ||
-    dateFilter !== '' ||
-    onlyExceptions ||
+    filters.search.trim() !== '' ||
+    filters.cooperativeId !== '' ||
+    filters.date !== '' ||
+    activeDays.length > 0 ||
     routeParam !== '' ||
-    statusFilters.length !== ALL_OP_STATUSES.length
+    filters.status.length > 0
 
-  const dateTriggerLabel = dateFilter
-    ? new Date(dateFilter + 'T00:00:00').toLocaleDateString('pt-BR')
+  const dateTriggerLabel = filters.date
+    ? new Date(filters.date + 'T00:00:00').toLocaleDateString('pt-BR')
     : 'Data'
+
+  // Deep-link ?schedule=<uuid>: scroll até o horário, pulse temporário, limpa
+  // o param sem reload. Silencia se o id não existir.
+  const scheduleParam = searchParams.get('schedule')
+  const [highlightId, setHighlightId] = useState<string | null>(null)
+  const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!scheduleParam) return
+    const target = routes.some((r) =>
+      r.schedules.some((s) => s.id === scheduleParam),
+    )
+    setSearchParams(
+      (p) => {
+        p.delete('schedule')
+        return p
+      },
+      { replace: true },
+    )
+    if (!target) return
+    setHighlightId(scheduleParam)
+    highlightTimer.current = setTimeout(() => setHighlightId(null), 1600)
+    return () => {
+      if (highlightTimer.current) clearTimeout(highlightTimer.current)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [scheduleParam, routes.length])
+
+  useEffect(() => {
+    if (!highlightId) return
+    const el = document.getElementById(`schedule-${highlightId}`)
+    if (!el) return
+    const raf = requestAnimationFrame(() => {
+      el.scrollIntoView({
+        behavior: reduce ? 'auto' : 'smooth',
+        block: 'center',
+      })
+    })
+    return () => cancelAnimationFrame(raf)
+  }, [highlightId, reduce])
 
   return (
     <section className="space-y-6">
@@ -823,50 +1041,34 @@ export function SchedulesPage() {
       </div>
 
       <AdminFilterBar
-        searchValue={pendingQuery}
-        onSearchChange={(v) => {
-          setPendingQuery(v)
-          setCommittedQuery(v)
-        }}
-        searchPlaceholder="Buscar por rota, origem, destino ou código"
+        searchValue={filters.search}
+        onSearchChange={(v) => setFilter('search', v)}
+        searchPlaceholder="Buscar por rota, origem, destino, código ou cooperativa"
         filters={
           <div className="flex flex-wrap items-center gap-2">
-            <Select
-              value={cooperativeFilter || 'all'}
-              onValueChange={(v) => setCooperativeFilter(v === 'all' ? '' : v)}
-            >
-              <SelectTrigger className="h-8 w-40 text-xs">
-                <SelectValue placeholder="Cooperativa" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                {Array.from(new Set(routes.map((r) => r.cooperativeName))).map(
-                  (name) => (
-                    <SelectItem key={name} value={name}>
-                      {name}
-                    </SelectItem>
-                  ),
-                )}
-              </SelectContent>
-            </Select>
+            <CooperativePicker
+              value={filters.cooperativeId}
+              onChange={(id) => setFilter('cooperativeId', id)}
+              triggerClassName="min-h-9 w-44 text-xs"
+            />
 
-            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+            <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
                   size="sm"
                   className={cn(
-                    'h-8 gap-2 text-xs',
-                    dateFilter && 'border-primary text-primary',
+                    'min-h-9 gap-2 text-xs',
+                    filters.date && 'border-primary text-primary',
                   )}
                 >
                   {dateTriggerLabel}
-                  {dateFilter && (
+                  {filters.date && (
                     <X
                       className="h-3 w-3"
                       onClick={(e) => {
                         e.stopPropagation()
-                        setDateFilter('')
+                        setFilter('date', '')
                       }}
                     />
                   )}
@@ -879,12 +1081,9 @@ export function SchedulesPage() {
                   </p>
                   <input
                     type="date"
-                    value={dateFilter}
-                    onChange={(e) => {
-                      setDateFilter(e.target.value)
-                      setDatePopoverOpen(false)
-                    }}
-                    className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:ring-1 focus-visible:outline-none"
+                    value={filters.date}
+                    onChange={(e) => setFilter('date', e.target.value)}
+                    className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none focus-visible:ring-1"
                   />
                 </div>
               </PopoverContent>
@@ -897,15 +1096,52 @@ export function SchedulesPage() {
                 { value: 'cancelled', label: 'Cancelado' },
                 { value: 'suspended', label: 'Suspenso' },
               ]}
-              value={statusFilters}
-              onChange={(v) => setStatusFilters(v as OperationalStatus[])}
+              value={filters.status}
+              onChange={(v) => setFilter('status', v)}
             />
+
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={cn(
+                    'min-h-9 gap-2 text-xs',
+                    activeDays.length > 0 && 'border-primary text-primary',
+                  )}
+                >
+                  {activeDays.length === 0
+                    ? 'Dias da semana'
+                    : `${activeDays.length} ${activeDays.length > 1 ? 'dias' : 'dia'}`}
+                  {activeDays.length > 0 && (
+                    <X
+                      className="h-3 w-3"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setFilter('days', [])
+                      }}
+                    />
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-3" align="start">
+                <p className="text-muted-foreground mb-2 text-xs font-semibold tracking-wide uppercase">
+                  Dias da semana
+                </p>
+                <WeekdayPicker
+                  value={activeDays}
+                  onChange={(days) => setFilter('days', days)}
+                  presets={false}
+                  mode="multi"
+                />
+              </PopoverContent>
+            </Popover>
 
             {hasActiveFilters && (
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground h-8 gap-1.5 text-xs"
+                className="text-muted-foreground min-h-9 gap-1.5 text-xs"
                 onClick={clearFilters}
               >
                 <X className="h-3.5 w-3.5" />
@@ -950,6 +1186,8 @@ export function SchedulesPage() {
             <ScheduleRouteSection
               key={route.id}
               route={route}
+              highlightedScheduleId={highlightId}
+              reduce={reduce}
               onEditSchedule={(schedule) => openEditSchedule(route, schedule)}
               onDuplicateSchedule={(schedule) =>
                 openDuplicateSchedule(route, schedule)
@@ -983,7 +1221,10 @@ export function SchedulesPage() {
           routes={routes}
           routeId={scheduleForm.routeId}
           initialValues={scheduleForm.initialValues}
-          onSubmit={handleScheduleSubmit}
+          onSubmit={(routeId, values, mode) => {
+            handleScheduleSubmit(routeId, values, mode)
+            setScheduleForm(null)
+          }}
         />
       )}
     </section>

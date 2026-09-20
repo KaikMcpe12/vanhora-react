@@ -43,6 +43,9 @@ const SCHEDULE_STATUS_LABEL: Record<DriverScheduleEntry['status'], string> = {
   cancelled: 'Cancelada',
 }
 
+// Contexto do wizard/quick. Caminho preferido: `routeId` + `cooperativeId`
+// (UUIDs, contrato api-spec.md §1.2). `routeCode` fica só como display/fallback
+// de compatibilidade — a partir do PR11 todos os call-sites conseguem passar id.
 export interface DelayFormContext {
   routeId?: string
   routeCode?: string

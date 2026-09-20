@@ -14,6 +14,8 @@ export interface ScheduleException {
   // required when type='rescheduled' (maps to schedules_exceptions.new_departure_time)
   newDepartureTime?: string
   reason?: string
+  scheduleId?: string
+  departureTime?: string
 }
 
 export interface ScheduleTemporary {
@@ -32,6 +34,10 @@ export interface AdminSchedule {
   dayOfWeek: DayOfWeek
   // aggregated day_of_week values across all schedule records with the same departure_time
   activeDays: DayOfWeek[]
+  // FKs preferidos para navegação/lookup (UUIDs, contrato api-spec.md §1.2).
+  // routeCode/cooperativeName seguem para display, mas não são fonte de verdade.
+  routeId: string
+  cooperativeId: string
   cooperativeName: string
   origin: string
   destination: string
@@ -46,6 +52,8 @@ export interface AdminSchedule {
 export interface AdminRoute {
   id: string
   code: string
+  // FK preferida (contrato api-spec.md §1.2).
+  cooperativeId: string
   cooperativeName: string
   origin: string
   destination: string
@@ -54,6 +62,9 @@ export interface AdminRoute {
   basePrice: number
   openExceptionsCount: number
   nextExceptionDate?: string
+  // Lista das exceções abertas — renderizadas no popover do badge de exceções.
+  // Ordenar por data crescente. Se ausente, cai para nextException dos schedules.
+  openExceptions?: ScheduleException[]
   // routes_stop — belongs to route, not to individual schedules
   stops: RouteStop[]
   schedules: AdminSchedule[]

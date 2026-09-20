@@ -58,6 +58,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
+import { MOCK_ADMIN_ROUTES as MOCK_ADMIN_ROUTES_PREVIEW } from '@/lib/data/mock-admin-schedules'
 import {
   DELAY_STATUS_META,
   DRIVER_SCHEDULE_STATUS_META,
@@ -70,6 +71,7 @@ import {
 import { cn } from '@/lib/utils'
 import { CooperativeDetailPanel } from '@/pages/app-portal/admin/cooperatives/cooperative-detail-panel'
 import { GeneralTab } from '@/pages/app-portal/admin/cooperatives/tabs/general-tab'
+import { ScheduleFormDialog } from '@/pages/app-portal/schedules/schedule-form-dialog'
 
 interface SampleRow {
   id: string
@@ -879,6 +881,10 @@ export function AdminComponentsPreviewPage() {
       <PreviewSection title="Rotas admin (PR10)">
         <RoutesPr10Preview />
       </PreviewSection>
+
+      <PreviewSection title="Horários admin (PR11)">
+        <SchedulesPr11Preview />
+      </PreviewSection>
     </div>
   )
 }
@@ -1160,6 +1166,228 @@ function RoutesPr10Preview() {
           </li>
         </ul>
       </div>
+    </div>
+  )
+}
+
+// ── Horários admin (PR11) ───────────────────────────────────────────────────
+
+function SchedulesPr11Preview() {
+  const [dupOpen, setDupOpen] = useState(false)
+
+  const exceptions = [
+    {
+      type: 'rescheduled' as const,
+      date: '18/04/2026',
+      departureTime: '07:15',
+      newDepartureTime: '09:15',
+      reason: 'Alta demanda — saída adiada',
+    },
+    {
+      type: 'cancelled' as const,
+      date: '21/04/2026',
+      departureTime: '06:30',
+      reason: 'Feriado municipal em Petrolina',
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Card de rota agrupada — layout do PR11 refinado */}
+      <div className="bg-card overflow-hidden rounded-xl border">
+        <div className="px-4 pt-4 pb-3">
+          <h2 className="text-foreground flex flex-wrap items-baseline gap-x-2 text-lg leading-tight font-bold">
+            Rota R-204
+            <span className="text-muted-foreground text-sm font-normal">
+              Metro Transportes
+            </span>
+          </h2>
+          <div className="mt-1 flex flex-wrap items-center gap-2">
+            <span className="text-muted-foreground text-sm">
+              Juazeiro → Petrolina · R$ 24,00
+            </span>
+            <span className="inline-flex min-h-9 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800">
+              <AlertTriangle className="h-3 w-3" />2 exceções abertas — próxima
+              18/04/2026
+            </span>
+          </div>
+        </div>
+
+        <div className="border-t">
+          {[
+            { time: '06:30', tone: 'success' as const, label: 'Em operação' },
+            { time: '07:15', tone: 'warning' as const, label: 'Atrasado' },
+          ].map((s) => (
+            <div
+              key={s.time}
+              className="flex items-center gap-3 border-b px-4 py-3 last:border-b-0"
+            >
+              <span className="text-info w-16 shrink-0 text-3xl leading-none font-bold">
+                {s.time}
+              </span>
+              <div className="flex-1" />
+              <StatusChip
+                tone={s.tone}
+                icon={s.tone === 'success' ? PlayCircle : AlertTriangle}
+                label={s.label}
+              />
+            </div>
+          ))}
+        </div>
+
+        {/* Bloco de horários temporários (serviço extra) diferenciado */}
+        <div className="border-t">
+          <div className="flex items-center gap-2 px-4 pt-2.5 pb-1">
+            <span className="inline-flex h-1.5 w-1.5 rounded-full bg-amber-500" />
+            <p className="text-muted-foreground text-[11px] font-semibold tracking-wide uppercase">
+              Serviços extras
+            </p>
+            <span className="text-muted-foreground text-[11px]">(1)</span>
+          </div>
+          <div className="flex items-center gap-3 border-l-[3px] border-l-amber-400 bg-amber-50/30 px-4 py-2.5">
+            <span className="w-16 shrink-0 text-xl leading-none font-bold text-amber-700">
+              10:00
+            </span>
+            <div className="min-w-0 flex-1">
+              <p className="text-foreground truncate text-xs font-medium">
+                Alta demanda feriado
+              </p>
+              <p className="text-muted-foreground text-[11px]">19/04/2026</p>
+            </div>
+            <StatusChip tone="warning" icon={PlayCircle} label="Serviço extra" />
+          </div>
+        </div>
+      </div>
+
+      {/* Nota sobre badge + popover */}
+      <div className="border-border bg-muted/30 space-y-2 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <AlertTriangle className="h-4 w-4" />
+          Badge de exceções abertas — popover inline
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          Clicar no badge <code className="font-mono">N exceções abertas</code>{' '}
+          abre um popover listando cada exceção com data + tipo + horário +
+          motivo. Não navega para outra página.
+        </p>
+        <div className="bg-card mt-2 rounded-lg border">
+          <div className="border-b px-3 py-2">
+            <p className="text-foreground text-[13px] font-semibold">
+              Exceções da rota R-204
+            </p>
+            <p className="text-muted-foreground text-[11px]">
+              2 ocorrências — clique para detalhes
+            </p>
+          </div>
+          <ul>
+            {exceptions.map((exc, i) => (
+              <li
+                key={i}
+                className="border-b px-3 py-2.5 last:border-b-0"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <span
+                      className={cn(
+                        'inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold',
+                        exc.type === 'cancelled' &&
+                          'border-red-300 bg-red-50 text-red-700',
+                        exc.type === 'rescheduled' &&
+                          'border-blue-300 bg-blue-50 text-blue-700',
+                      )}
+                    >
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      {exc.type === 'cancelled' ? 'Cancelado' : 'Reagendado'}
+                    </span>
+                    <span className="text-muted-foreground text-[11px] font-medium">
+                      {exc.departureTime}
+                    </span>
+                  </div>
+                  <span className="text-muted-foreground text-[11px]">
+                    {exc.date}
+                  </span>
+                </div>
+                <p className="text-foreground mt-1 text-[12px] leading-snug">
+                  {exc.reason}
+                </p>
+                {exc.newDepartureTime && (
+                  <p className="text-muted-foreground mt-0.5 text-[11px]">
+                    Novo horário: {exc.newDepartureTime}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+
+      {/* Nota sobre duplicar horário */}
+      <div className="border-border bg-muted/30 space-y-2 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <Copy className="h-4 w-4" />
+          Ação Duplicar horário
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          Clonar um horário abre o modal em modo criação pré-preenchido, exceto:
+        </p>
+        <ul className="text-muted-foreground list-disc pl-6 text-[12px]">
+          <li>
+            <code className="font-mono">departureTime</code> — vazio: precisa
+            ser único por rota+dia.
+          </li>
+          <li>
+            <code className="font-mono">activeDays</code> — copiados do origem
+            (multi).
+          </li>
+        </ul>
+        <Button
+          size="sm"
+          variant="outline"
+          className="gap-1.5"
+          onClick={() => setDupOpen(true)}
+        >
+          <Copy className="h-3.5 w-3.5" />
+          Abrir modal Duplicar horário
+        </Button>
+      </div>
+
+      {/* Nota sobre AdminSchedule enriquecido */}
+      <div className="border-border bg-muted/30 space-y-2 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <Info className="h-4 w-4" />
+          Modelo enriquecido — <code className="font-mono">AdminSchedule</code>
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          A partir do PR11 cada horário carrega{' '}
+          <code className="font-mono">routeId</code> e{' '}
+          <code className="font-mono">cooperativeId</code> (UUIDs) além do
+          display <code className="font-mono">routeCode</code>. Filtros e
+          navegação passam por id; o wizard de atraso quick recebe os ids
+          direto do contexto e não depende mais do fallback via{' '}
+          <code className="font-mono">routeCode</code>.
+        </p>
+      </div>
+
+      {dupOpen &&
+        (() => {
+          const route = MOCK_ADMIN_ROUTES_PREVIEW[0]
+          const source = route.schedules[0]
+          return (
+            <ScheduleFormDialog
+              open
+              onOpenChange={(v) => !v && setDupOpen(false)}
+              mode="duplicate"
+              routes={MOCK_ADMIN_ROUTES_PREVIEW}
+              routeId={route.id}
+              initialValues={{
+                departureTime: '',
+                activeDays: source.activeDays,
+                notes: source.notes ?? '',
+              }}
+              onSubmit={() => setDupOpen(false)}
+            />
+          )
+        })()}
     </div>
   )
 }

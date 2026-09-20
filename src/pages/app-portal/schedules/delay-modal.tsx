@@ -29,10 +29,11 @@ export function DelayModal({ open, onOpenChange, schedule }: DelayModalProps) {
         <DelayForm
           mode="quick"
           context={{
-            routeId: schedule.routeCode,
+            routeId: schedule.routeId,
             routeCode: schedule.routeCode,
             routeName: `${schedule.origin} → ${schedule.destination}`,
             scheduleId: schedule.id,
+            cooperativeId: schedule.cooperativeId,
             origin: schedule.origin,
             destination: schedule.destination,
             departureTime: schedule.departureTime,

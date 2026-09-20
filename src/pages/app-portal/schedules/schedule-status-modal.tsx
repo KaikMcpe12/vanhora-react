@@ -1,6 +1,7 @@
 import { PauseCircle, PlayCircle, XCircle } from 'lucide-react'
 import { useState } from 'react'
 
+import { AdminConfirmDialog } from '@/components/admin'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -23,7 +24,7 @@ interface ScheduleStatusModalProps {
 }
 
 const VARIANT_META: Record<
-  StatusVariant,
+  Exclude<StatusVariant, 'cancel'>,
   {
     title: string
     description: string
@@ -43,19 +44,10 @@ const VARIANT_META: Record<
     icon: PauseCircle,
     showReason: true,
   },
-  cancel: {
-    title: 'Cancelar horário',
-    description:
-      'Este horário será cancelado definitivamente. A rota continuará com os demais horários ativos.',
-    buttonLabel: 'Cancelar horário',
-    buttonClass:
-      'border border-red-200 bg-red-50 text-red-700 hover:bg-red-100',
-    icon: XCircle,
-    showReason: true,
-  },
   reactivate: {
     title: 'Reativar horário',
-    description: 'O horário voltará ao estado ativo e será incluído na grade operacional.',
+    description:
+      'O horário voltará ao estado ativo e será incluído na grade operacional.',
     buttonLabel: 'Reativar',
     buttonClass:
       'border border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100',
@@ -72,9 +64,40 @@ export function ScheduleStatusModal({
 }: ScheduleStatusModalProps) {
   const [reason, setReason] = useState('')
 
+  // 'cancel' é ação irreversível → usa AdminConfirmDialog typed (padrão PR9/PR10).
+  if (variant === 'cancel') {
+    const expected = `${schedule.routeCode} ${schedule.departureTime}`
+    return (
+      <AdminConfirmDialog
+        open={open}
+        onOpenChange={onOpenChange}
+        title="Cancelar horário"
+        description={`Esta ação cancela definitivamente o horário ${schedule.departureTime} da rota ${schedule.routeCode} (${schedule.origin} → ${schedule.destination}). A rota continuará com os demais horários ativos.`}
+        confirmLabel="Cancelar horário"
+        cancelLabel="Voltar"
+        variant="danger"
+        tone="danger"
+        icon={XCircle}
+        consequences={[
+          'Passageiros com bilhetes futuros precisam ser notificados manualmente.',
+          'Motoristas atribuídos serão liberados automaticamente.',
+          'A ação é irreversível — para restabelecer, será preciso recriar o horário.',
+        ]}
+        consequencesTitle="Ação irreversível"
+        requireTypedConfirmation={{
+          expectedText: expected,
+          label: `Digite "${expected}" para confirmar`,
+        }}
+        onConfirm={() => {
+          // TODO: submit to API
+        }}
+      />
+    )
+  }
+
   const meta = VARIANT_META[variant]
   const Icon = meta.icon
-  const canSubmit = !meta.showReason || true // reason is optional
+  const canSubmit = !meta.showReason || true
 
   const handleSubmit = () => {
     // TODO: submit to API
@@ -96,8 +119,8 @@ export function ScheduleStatusModal({
             {meta.title}
           </DialogTitle>
           <p className="text-muted-foreground text-sm">
-            {schedule.routeCode} &bull; {schedule.origin} &rarr; {schedule.destination} &bull;{' '}
-            {schedule.departureTime}
+            {schedule.routeCode} &bull; {schedule.origin} &rarr;{' '}
+            {schedule.destination} &bull; {schedule.departureTime}
           </p>
         </DialogHeader>
 
@@ -107,7 +130,10 @@ export function ScheduleStatusModal({
           {meta.showReason && (
             <div className="space-y-1.5">
               <Label htmlFor="status-reason">
-                Motivo <span className="text-muted-foreground font-normal">(opcional)</span>
+                Motivo{' '}
+                <span className="text-muted-foreground font-normal">
+                  (opcional)
+                </span>
               </Label>
               <Textarea
                 id="status-reason"

@@ -24,6 +24,12 @@ export interface UseTableFiltersConfig<F extends Record<string, unknown>> {
    * em si é síncrono — os filtros refletem imediatamente.
    */
   debounceMs?: number
+  /**
+   * Prefixo aplicado às keys de URL (`<namespace>_search`, `<namespace>_page`, …).
+   * Use quando houver ≥2 tabelas na mesma página para evitar colisão de `?page=`.
+   * Ausente = comportamento legado (chaves cruas, retrocompat com PR7/PR9).
+   */
+  namespace?: string
 }
 
 export interface UseTableFiltersReturn<F> {
@@ -46,35 +52,61 @@ function inferParser(value: unknown): AnyParser {
 
 /**
  * Estado de filtros de tabela sincronizado com a URL (nuqs). Paginação
- * 0-indexed via `?page=`. Qualquer mudança de filtro volta para a página 0.
- * Refresh do browser preserva tudo. Padroniza o que `delays.tsx` já fazia inline.
+ * 0-indexed via `?page=` (ou `?<namespace>_page=` quando `namespace` é passado).
+ * Qualquer mudança de filtro volta para a página 0. Refresh do browser preserva
+ * tudo. Padroniza o que `delays.tsx` já fazia inline.
  */
 export function useTableFilters<F extends Record<string, unknown>>({
   defaults,
   parsers,
+  namespace,
 }: UseTableFiltersConfig<F>): UseTableFiltersReturn<F> {
-  // parser map estável — defaults/parsers não mudam entre renders
-  const parserMap = useMemo(() => {
-    const map: Record<string, AnyParser> = {}
+  const prefix = namespace ? `${namespace}_` : ''
+  const pageKey = `${prefix}page`
+
+  // parser map estável — defaults/parsers/namespace não mudam entre renders.
+  // Aplica o prefixo às chaves de URL mas mantém o objeto de saída com chaves
+  // originais (via mapa de tradução `keyMap`).
+  const { parserMap, keyMap, reverseKeyMap } = useMemo(() => {
+    const p: Record<string, AnyParser> = {}
+    const k: Record<string, string> = {}
+    const r: Record<string, string> = {}
     for (const key of Object.keys(defaults)) {
-      map[key] = parsers?.[key as keyof F] ?? inferParser(defaults[key])
+      const urlKey = `${prefix}${key}`
+      p[urlKey] = parsers?.[key as keyof F] ?? inferParser(defaults[key])
+      k[key] = urlKey
+      r[urlKey] = key
     }
-    return map
+    return { parserMap: p, keyMap: k, reverseKeyMap: r }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const [rawFilters, setRawFilters] = useQueryStates(parserMap)
   const [page, setPageState] = useQueryState(
-    'page',
+    pageKey,
     parseAsInteger.withDefault(0),
   )
 
+  // Traduz chaves cruas (com prefixo) para as do consumidor.
+  const filters = useMemo(() => {
+    const out: Record<string, unknown> = {}
+    for (const [urlKey, value] of Object.entries(rawFilters)) {
+      out[reverseKeyMap[urlKey] ?? urlKey] = value
+    }
+    return out as F
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawFilters])
+
   const setFilters = useCallback(
     (partial: Partial<F>) => {
-      setRawFilters(partial as Record<string, unknown>)
+      const prefixed: Record<string, unknown> = {}
+      for (const [k, v] of Object.entries(partial)) {
+        prefixed[keyMap[k] ?? k] = v
+      }
+      setRawFilters(prefixed)
       setPageState(0) // qualquer mudança de filtro volta à primeira página
     },
-    [setRawFilters, setPageState],
+    [setRawFilters, setPageState, keyMap],
   )
 
   const setFilter = useCallback(
@@ -85,10 +117,14 @@ export function useTableFilters<F extends Record<string, unknown>>({
   )
 
   const reset = useCallback(() => {
-    setRawFilters(defaults as Record<string, unknown>)
+    const prefixedDefaults: Record<string, unknown> = {}
+    for (const [k, v] of Object.entries(defaults)) {
+      prefixedDefaults[keyMap[k] ?? k] = v
+    }
+    setRawFilters(prefixedDefaults)
     setPageState(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [setRawFilters, setPageState])
+  }, [setRawFilters, setPageState, keyMap])
 
   const setPage = useCallback(
     (n: number) => {
@@ -98,7 +134,7 @@ export function useTableFilters<F extends Record<string, unknown>>({
   )
 
   return {
-    filters: rawFilters as F,
+    filters,
     setFilter,
     setFilters,
     reset,

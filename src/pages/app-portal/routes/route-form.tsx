@@ -16,7 +16,6 @@ import {
 import { CSS } from '@dnd-kit/utilities'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  ArrowLeft,
   CalendarDays,
   Clock,
   GripVertical,
@@ -35,6 +34,7 @@ import {
 import { AdminStat } from '@/components/admin'
 import { CityPicker } from '@/components/city-picker'
 import { DriverPicker } from '@/components/driver-picker'
+import { CooperativePicker } from '@/components/pickers/cooperative-picker'
 import {
   type Weekday,
   WeekdayPicker,
@@ -53,7 +53,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { TimeField } from '@/components/ui/time-field'
 import type { RouteRowStatus } from '@/lib/api/mock-routes-api'
-import { MOCK_ADMIN_COOPERATIVES } from '@/lib/data/mock-admin-cooperatives'
 import {
   routeFormSchema,
   type RouteFormValues,
@@ -166,7 +165,7 @@ export function RouteForm({
   isSubmitting = false,
   onSubmit,
   onCancel,
-  routeCode,
+  routeCode: _routeCode,
   scheduleCount = 0,
   onManageSchedules,
 }: RouteFormProps) {
@@ -174,7 +173,6 @@ export function RouteForm({
     control,
     register,
     handleSubmit,
-    setValue,
     watch,
     formState: { errors },
   } = useForm<RouteFormValues>({
@@ -207,55 +205,6 @@ export function RouteForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="text-muted-foreground hover:text-foreground mb-1 inline-flex items-center gap-1 text-[12px] transition-colors"
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Rotas
-          </button>
-          <h1 className="text-foreground text-xl font-semibold">
-            {mode === 'edit' ? (
-              <>
-                Editar Rota: <span className="font-mono">{routeCode}</span>
-              </>
-            ) : (
-              'Nova Rota'
-            )}
-          </h1>
-          <p className="text-muted-foreground text-[13px]">
-            Configure as informações, paradas e horários desta rota.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={onCancel}
-            disabled={isSubmitting}
-          >
-            Descartar
-          </Button>
-          <Button
-            type="submit"
-            size="sm"
-            className="gap-1.5"
-            disabled={isSubmitting}
-          >
-            {isSubmitting
-              ? 'Salvando...'
-              : mode === 'edit'
-                ? 'Salvar alterações'
-                : 'Criar rota'}
-          </Button>
-        </div>
-      </div>
-
       <Tabs defaultValue="geral">
         <TabsList
           variant="line"
@@ -323,38 +272,20 @@ export function RouteForm({
               <div className="space-y-1.5">
                 <Label className="text-[13px]">Cooperativa *</Label>
                 <Controller
-                  name="cooperativeName"
+                  name="cooperativeId"
                   control={control}
                   render={({ field }) => (
-                    <Select
+                    <CooperativePicker
                       value={field.value}
-                      onValueChange={(v) => {
-                        field.onChange(v)
-                        const coop = MOCK_ADMIN_COOPERATIVES.find(
-                          (c) => c.name === v,
-                        )
-                        setValue('cooperativeId', coop?.id)
-                      }}
-                    >
-                      <SelectTrigger
-                        className="text-sm"
-                        aria-invalid={!!errors.cooperativeName}
-                      >
-                        <SelectValue placeholder="Selecione a cooperativa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {MOCK_ADMIN_COOPERATIVES.map((c) => (
-                          <SelectItem key={c.id} value={c.name}>
-                            {c.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                      onChange={field.onChange}
+                      allowAll={false}
+                      placeholder="Selecione a cooperativa"
+                    />
                   )}
                 />
-                {errors.cooperativeName && (
+                {errors.cooperativeId && (
                   <p className="text-destructive text-xs">
-                    {errors.cooperativeName.message}
+                    {errors.cooperativeId.message}
                   </p>
                 )}
               </div>
@@ -562,6 +493,31 @@ export function RouteForm({
           </div>
         </TabsContent>
       </Tabs>
+
+      <div className="border-border bg-background sticky bottom-0 -mx-4 mt-2 flex items-center justify-end gap-2 border-t px-4 py-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="min-h-11"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          Cancelar
+        </Button>
+        <Button
+          type="submit"
+          size="sm"
+          className="min-h-11 gap-1.5"
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? 'Salvando...'
+            : mode === 'edit'
+              ? 'Salvar alterações'
+              : 'Criar rota'}
+        </Button>
+      </div>
     </form>
   )
 }

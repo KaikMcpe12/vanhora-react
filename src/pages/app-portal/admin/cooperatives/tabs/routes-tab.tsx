@@ -111,9 +111,7 @@ export function RoutesTab({ cooperative }: { cooperative: AdminCooperative }) {
         action={{
           label: 'Cadastrar rota',
           onClick: () =>
-            navigate(
-              `/admin/routes/new?cooperative=${encodeURIComponent(cooperative.name)}`,
-            ),
+            navigate(`/admin/routes?new=1&cooperative=${cooperative.id}`),
           icon: Plus,
         }}
       />

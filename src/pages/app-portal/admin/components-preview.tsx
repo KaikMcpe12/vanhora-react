@@ -11,6 +11,7 @@ import {
   Eye,
   Info,
   LayoutGrid,
+  MapPin,
   MousePointerClick,
   Pencil,
   PlayCircle,
@@ -49,6 +50,15 @@ import {
 } from '@/components/pickers/weekday-picker'
 import { StatusChip } from '@/components/status-chip'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { SearchableSelect } from '@/components/ui/searchable-select'
 import {
   Select,
@@ -885,6 +895,10 @@ export function AdminComponentsPreviewPage() {
       <PreviewSection title="Horários admin (PR11)">
         <SchedulesPr11Preview />
       </PreviewSection>
+
+      <PreviewSection title="Cidades admin (PR12)">
+        <CitiesPr12Preview />
+      </PreviewSection>
     </div>
   )
 }
@@ -1388,6 +1402,246 @@ function SchedulesPr11Preview() {
             />
           )
         })()}
+    </div>
+  )
+}
+
+// ── Cidades admin (PR12) ────────────────────────────────────────────────────
+
+const CITIES_PREVIEW_DATA = [
+  { id: 'p-c1', name: 'Fortaleza', state: 'CE', status: 'active' as const, routeCount: 18, createdAt: '' },
+  { id: 'p-c2', name: 'Sobral', state: 'CE', status: 'active' as const, routeCount: 7, createdAt: '' },
+  { id: 'p-c3', name: 'Maracanaú', state: 'CE', status: 'inactive' as const, routeCount: 0, createdAt: '' },
+]
+
+type CityPreviewRow = (typeof CITIES_PREVIEW_DATA)[number]
+
+function CitiesPr12Preview() {
+  const [state, setState] = useState<'data' | 'empty' | 'loading'>('data')
+  const [blockedOpen, setBlockedOpen] = useState(false)
+  const [typedOpen, setTypedOpen] = useState(false)
+  const [dupName, setDupName] = useState('Fortaleza')
+  const [dupState, setDupState] = useState('CE')
+  const duplicate =
+    CITIES_PREVIEW_DATA.find(
+      (c) =>
+        c.name.trim().toLowerCase() === dupName.trim().toLowerCase() &&
+        c.state === dupState,
+    ) !== undefined && dupName.trim().length > 0
+
+  const cols: AdminTableColumn<CityPreviewRow>[] = [
+    {
+      key: 'name',
+      label: 'Nome',
+      sortable: true,
+      render: (c) => (
+        <span className="text-foreground font-medium">{c.name}</span>
+      ),
+    },
+    {
+      key: 'state',
+      label: 'Estado',
+      width: '80px',
+      render: (c) => (
+        <span className="text-muted-foreground font-mono text-[12px]">
+          {c.state}
+        </span>
+      ),
+    },
+    {
+      key: 'routeCount',
+      label: 'Rotas',
+      width: '100px',
+      align: 'right',
+      sortable: true,
+      render: (c) => <span className="text-[13px]">{c.routeCount}</span>,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      width: '110px',
+      render: (c) => <StatusChip {...ROUTE_STATUS_META[c.status]} />,
+    },
+  ]
+
+  return (
+    <div className="space-y-6">
+      {/* Toggle de estados da tabela */}
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">
+          Estados da <code>AdminTable</code> (dados / vazio / carregando).
+        </p>
+        <div
+          role="tablist"
+          className="border-border bg-background inline-flex items-center gap-0.5 rounded-md border p-0.5"
+        >
+          {(['data', 'empty', 'loading'] as const).map((s) => (
+            <button
+              key={s}
+              role="tab"
+              aria-selected={state === s}
+              onClick={() => setState(s)}
+              className={cn(
+                'min-h-9 rounded px-3 text-xs font-medium capitalize',
+                state === s
+                  ? 'bg-accent text-foreground'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              {s === 'data' ? 'Dados' : s === 'empty' ? 'Vazio' : 'Carregando'}
+            </button>
+          ))}
+        </div>
+
+        <AdminTable
+          columns={cols}
+          data={state === 'data' ? CITIES_PREVIEW_DATA : []}
+          keyExtractor={(c) => c.id}
+          isLoading={state === 'loading'}
+          emptyState={
+            state === 'empty' ? (
+              <AdminEmptyState
+                icon={MapPin}
+                title="Nenhuma cidade cadastrada"
+                description="Comece cadastrando as cidades atendidas pela plataforma."
+                action={{ label: 'Nova cidade', onClick: () => {}, icon: Plus }}
+              />
+            ) : undefined
+          }
+        />
+      </div>
+
+      {/* Validação de duplicata inline */}
+      <div className="border-border bg-muted/30 space-y-3 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <Info className="h-4 w-4" />
+          Validação de duplicata <code>(name, state)</code>
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          Zod <code>superRefine</code> consulta o mock e cobra 409{' '}
+          <code>CITY_CONFLICT</code>. Erro aparece inline (não toast).
+        </p>
+        <div className="grid gap-3 sm:grid-cols-[1fr_100px]">
+          <div className="space-y-1.5">
+            <Label className="text-[12px]">Nome</Label>
+            <Input
+              value={dupName}
+              onChange={(e) => setDupName(e.target.value)}
+              className="text-sm"
+              aria-invalid={duplicate}
+            />
+            {duplicate && (
+              <p className="text-destructive text-[12px]">
+                Já existe uma cidade com este nome em {dupState}.
+              </p>
+            )}
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-[12px]">Estado</Label>
+            <Select value={dupState} onValueChange={setDupState}>
+              <SelectTrigger className="text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {['CE', 'BA', 'PE', 'PI'].map((uf) => (
+                  <SelectItem key={uf} value={uf}>
+                    {uf}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </div>
+
+      {/* Modos do dialog de excluir */}
+      <div className="border-border bg-muted/30 space-y-3 rounded-xl border p-4">
+        <div className="text-foreground flex items-center gap-2 text-[13px] font-medium">
+          <Trash2 className="h-4 w-4" />
+          Excluir cidade — 2 modos
+        </div>
+        <p className="text-muted-foreground text-[12px]">
+          Com vínculo (<code>routeCount &gt; 0</code>): dialog{' '}
+          <strong>bloqueado</strong> com atalho "Ver rotas". Sem vínculo:{' '}
+          <code>AdminConfirmDialog</code> typed (digita o nome).
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setBlockedOpen(true)}
+          >
+            <XCircle className="h-3.5 w-3.5" />
+            Abrir bloqueado (Fortaleza, 18 rotas)
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={() => setTypedOpen(true)}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Abrir typed (Maracanaú, 0 rotas)
+          </Button>
+        </div>
+      </div>
+
+      <Dialog open={blockedOpen} onOpenChange={setBlockedOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[15px] font-medium">
+              Não é possível excluir "Fortaleza"
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 text-[13px]">
+            <p className="text-foreground">
+              Esta cidade está vinculada a <strong>18 rotas</strong>. Remova as
+              rotas antes de excluir a cidade.
+            </p>
+            <div className="border-border bg-muted/40 rounded-lg border border-l-4 border-l-amber-500 p-3">
+              <p className="text-foreground text-[12px] font-semibold">
+                Alternativa
+              </p>
+              <p className="text-muted-foreground mt-0.5 text-[12px]">
+                Se a cidade não deve mais aparecer em novas rotas, use{' '}
+                <strong>Desativar</strong> em vez de excluir.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setBlockedOpen(false)}>
+              Fechar
+            </Button>
+            <Button variant="default" onClick={() => setBlockedOpen(false)}>
+              Ver rotas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AdminConfirmDialog
+        open={typedOpen}
+        onOpenChange={setTypedOpen}
+        title="Excluir cidade"
+        description={
+          'Esta ação exclui permanentemente a cidade "Maracanaú". Não é possível desfazer.'
+        }
+        confirmLabel="Excluir cidade"
+        variant="danger"
+        tone="danger"
+        icon={Trash2}
+        consequences={[
+          'A cidade some das opções de novas rotas e cadastros.',
+          'Registros históricos que referenciam o nome permanecem, mas sem link.',
+          'Para restabelecer, será preciso recriar a cidade.',
+        ]}
+        requireTypedConfirmation={{
+          expectedText: 'Maracanaú',
+          label: 'Digite o nome da cidade para confirmar',
+        }}
+        onConfirm={() => setTypedOpen(false)}
+      />
     </div>
   )
 }

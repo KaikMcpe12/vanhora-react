@@ -9,6 +9,23 @@ import { queryKeys } from '@/lib/query-keys'
 const API_DELAY = 300
 const delay = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
+// Erros simulados que espelham o contrato do back (api-spec.md §3.6).
+export class CityConflictError extends Error {
+  code = 'CITY_CONFLICT' as const
+  constructor(name: string, state: string) {
+    super(`Já existe uma cidade com o nome "${name}" em ${state}.`)
+  }
+}
+
+export class CityInUseError extends Error {
+  code = 'CITY_IN_USE' as const
+  constructor(name: string, routeCount: number) {
+    super(
+      `A cidade "${name}" está vinculada a ${routeCount} rota${routeCount > 1 ? 's' : ''}.`,
+    )
+  }
+}
+
 interface ListCitiesFilters {
   search?: string
   status?: 'active' | 'inactive' | ''
@@ -47,8 +64,15 @@ export const mockCitiesApi = {
   }): Promise<AdminCity> {
     await delay(API_DELAY)
 
+    const norm = (s: string) => s.trim().toLowerCase()
+    const dup = MOCK_ADMIN_CITIES.find(
+      (c) =>
+        norm(c.name) === norm(payload.name) && c.state === payload.state,
+    )
+    if (dup) throw new CityConflictError(payload.name, payload.state)
+
     const newCity: AdminCity = {
-      id: `city-${Date.now()}`,
+      id: crypto.randomUUID(),
       name: payload.name,
       state: payload.state,
       status: 'active',
@@ -69,10 +93,35 @@ export const mockCitiesApi = {
     const city = MOCK_ADMIN_CITIES.find((c) => c.id === id)
     if (!city) throw new Error('Cidade não encontrada')
 
+    const nextName = payload.name ?? city.name
+    const nextState = payload.state ?? city.state
+    const norm = (s: string) => s.trim().toLowerCase()
+    const dup = MOCK_ADMIN_CITIES.find(
+      (c) =>
+        c.id !== id &&
+        norm(c.name) === norm(nextName) &&
+        c.state === nextState,
+    )
+    if (dup) throw new CityConflictError(nextName, nextState)
+
     if (payload.name !== undefined) city.name = payload.name
     if (payload.state !== undefined) city.state = payload.state
 
     return city
+  },
+
+  async deleteCity(id: string): Promise<void> {
+    await delay(API_DELAY)
+
+    const idx = MOCK_ADMIN_CITIES.findIndex((c) => c.id === id)
+    if (idx === -1) throw new Error('Cidade não encontrada')
+
+    const city = MOCK_ADMIN_CITIES[idx]
+    if (city.routeCount > 0) {
+      throw new CityInUseError(city.name, city.routeCount)
+    }
+
+    MOCK_ADMIN_CITIES.splice(idx, 1)
   },
 
   async toggleCityStatus(
@@ -150,5 +199,14 @@ export function useToggleCityStatus() {
       newStatus: 'active' | 'inactive'
     }) => mockCitiesApi.toggleCityStatus(id, newStatus),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.cities.all() }),
+  })
+}
+
+export function useDeleteCity() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => mockCitiesApi.deleteCity(id),
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.cities.all() }),
   })
 }

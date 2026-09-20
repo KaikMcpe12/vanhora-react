@@ -753,6 +753,10 @@ export function SchedulesPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const routeParam = searchParams.get('route') ?? ''
 
+  // `date` fica no schema (retrocompat com bookmarks `?date=`) mas ainda não
+  // é aplicado à filtragem — o mock não tem "ocorrência daquele dia" ainda.
+  // TODO(pr-ocorrencias): reintroduzir a UI quando `schedules_exceptions` +
+  // `schedules_temporary` puderem responder "houve algo neste dia?".
   const { filters, setFilter, reset } = useTableFilters<Filters>({
     defaults: {
       search: '',
@@ -965,34 +969,36 @@ export function SchedulesPage() {
   const hasActiveFilters =
     filters.search.trim() !== '' ||
     filters.cooperativeId !== '' ||
-    filters.date !== '' ||
     activeDays.length > 0 ||
     routeParam !== '' ||
     filters.status.length > 0
 
-  const dateTriggerLabel = filters.date
-    ? new Date(filters.date + 'T00:00:00').toLocaleDateString('pt-BR')
-    : 'Data'
-
-  // Deep-link ?schedule=<uuid>: scroll até o horário, pulse temporário, limpa
-  // o param sem reload. Silencia se o id não existir.
+  // Deep-link ?schedule=<uuid>: pulse + scroll no horário e limpa o param sem
+  // reload. Se o id existe no mock mas está oculto pelos filtros ativos,
+  // limpa os filtros primeiro (contrato "link sempre funciona" do PR9).
+  // Silencia apenas quando o id não existe no mock.
   const scheduleParam = searchParams.get('schedule')
   const [highlightId, setHighlightId] = useState<string | null>(null)
   const highlightTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (!scheduleParam) return
-    const target = routes.some((r) =>
+    const existsInMock = routes.some((r) =>
+      r.schedules.some((s) => s.id === scheduleParam),
+    )
+    const visibleInFiltered = filteredRoutes.some((r) =>
       r.schedules.some((s) => s.id === scheduleParam),
     )
     setSearchParams(
       (p) => {
         p.delete('schedule')
+        if (existsInMock && !visibleInFiltered) p.delete('route')
         return p
       },
       { replace: true },
     )
-    if (!target) return
+    if (!existsInMock) return
+    if (!visibleInFiltered) reset()
     setHighlightId(scheduleParam)
     highlightTimer.current = setTimeout(() => setHighlightId(null), 1600)
     return () => {
@@ -1052,42 +1058,7 @@ export function SchedulesPage() {
               triggerClassName="min-h-9 w-44 text-xs"
             />
 
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className={cn(
-                    'min-h-9 gap-2 text-xs',
-                    filters.date && 'border-primary text-primary',
-                  )}
-                >
-                  {dateTriggerLabel}
-                  {filters.date && (
-                    <X
-                      className="h-3 w-3"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setFilter('date', '')
-                      }}
-                    />
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-3" align="start">
-                <div className="space-y-2">
-                  <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
-                    Filtrar por data
-                  </p>
-                  <input
-                    type="date"
-                    value={filters.date}
-                    onChange={(e) => setFilter('date', e.target.value)}
-                    className="border-input bg-background focus-visible:ring-ring h-9 w-full rounded-md border px-3 text-sm focus-visible:outline-none focus-visible:ring-1"
-                  />
-                </div>
-              </PopoverContent>
-            </Popover>
+            {/* Filtro de data escondido — ver TODO(pr-ocorrencias) no defaults do useTableFilters. */}
 
             <StatusFilterChips
               options={[

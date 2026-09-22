@@ -1,4 +1,4 @@
-import { type LucideIcon,TrendingDown, TrendingUp } from 'lucide-react'
+import { type LucideIcon, TrendingDown, TrendingUp } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 
@@ -7,7 +7,8 @@ type KPISeverity = 'default' | 'attention' | 'critical'
 
 const severityChip: Record<KPISeverity, string> = {
   default: 'bg-primary/10 text-primary',
-  attention: 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
+  attention:
+    'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-300',
   critical: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300',
 }
 
@@ -56,17 +57,10 @@ export function AdminKPICard({
 }: AdminKPICardProps) {
   const trendColor = trend ? getTrendColor(trend.direction, severity) : ''
 
-  return (
-    <article
-      onClick={onClick}
-      className={cn(
-        'rounded-xl border border-border bg-card p-5 transition-colors duration-150',
-        onClick &&
-          'cursor-pointer hover:border-border/80 hover:bg-accent/20',
-      )}
-    >
+  const content = (
+    <>
       <div className="flex items-start justify-between gap-2">
-        <p className="text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
+        <p className="text-muted-foreground text-[11px] font-medium tracking-[0.6px] uppercase">
           {label}
         </p>
         {Icon && (
@@ -81,7 +75,7 @@ export function AdminKPICard({
         )}
       </div>
 
-      <p className="mt-2 text-[32px] font-medium leading-none tracking-tight text-foreground">
+      <p className="text-foreground mt-2 text-[32px] leading-none font-medium tracking-tight">
         {value}
       </p>
 
@@ -96,14 +90,34 @@ export function AdminKPICard({
           {trend.direction === 'down' && <TrendingDown className="h-3 w-3" />}
           <span>{trend.value}</span>
           {trend.contextLabel && (
-            <span className="font-normal text-muted-foreground">
+            <span className="text-muted-foreground font-normal">
               {trend.contextLabel}
             </span>
           )}
         </div>
       ) : helper ? (
-        <p className="mt-1.5 text-[12px] text-muted-foreground">{helper}</p>
+        <p className="text-muted-foreground mt-1.5 text-[12px]">{helper}</p>
       ) : null}
-    </article>
+    </>
   )
+
+  const baseClasses =
+    'block w-full rounded-xl border border-border bg-card p-5 text-left transition-colors duration-150'
+
+  if (onClick) {
+    return (
+      <button
+        type="button"
+        onClick={onClick}
+        className={cn(
+          baseClasses,
+          'focus-visible:ring-ring/50 hover:border-border/80 hover:bg-accent/20 cursor-pointer focus-visible:ring-2 focus-visible:outline-none',
+        )}
+      >
+        {content}
+      </button>
+    )
+  }
+
+  return <article className={baseClasses}>{content}</article>
 }

@@ -145,11 +145,13 @@ export function UsersPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
       if (user) {
         const action = user.status === 'active' ? 'reativado' : 'desativado'
-        toast.success(`Usuário "${user.name}" ${action} com sucesso`)
+        toast.success(`Usuário "${user.name}" ${action}.`)
       }
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar status: ${error.message}`)
+      toast.error(`Erro ao atualizar status: ${error.message}`, {
+        duration: 5000,
+      })
     },
   })
 
@@ -369,7 +371,11 @@ export function UsersPage() {
             action={
               hasActiveFilters
                 ? { label: 'Limpar filtros', onClick: clearFilters, icon: X }
-                : undefined
+                : {
+                    label: 'Adicionar usuário',
+                    onClick: () => setIsAddUserModalOpen(true),
+                    icon: UserPlus,
+                  }
             }
           />
         }
@@ -406,9 +412,7 @@ export function UsersPage() {
             userId: userToDeactivate.id,
             newStatus: 'inactive',
           })
-          toast.success(
-            `Usuário "${userToDeactivate.name}" desativado com sucesso`,
-          )
+          toast.success(`Usuário "${userToDeactivate.name}" desativado.`)
         }}
       />
 

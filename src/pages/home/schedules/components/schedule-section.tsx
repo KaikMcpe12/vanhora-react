@@ -31,7 +31,7 @@ export function ScheduleSection({
       <div className="flex items-center justify-between">
         <span className="flex items-center gap-2 text-[11px] font-medium uppercase tracking-[0.6px] text-muted-foreground">
           {badge && (
-            <span className="inline-flex items-center rounded-full bg-primary px-1.5 py-[2px] text-[9px] font-medium tracking-[0.3px] text-primary-foreground">
+            <span className="inline-flex items-center rounded-full bg-primary px-1.5 py-[2px] text-[10px] font-medium tracking-[0.3px] text-primary-foreground">
               {badge}
             </span>
           )}

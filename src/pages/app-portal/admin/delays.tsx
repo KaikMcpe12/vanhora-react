@@ -122,12 +122,12 @@ export function AdminDelaysPage() {
 
   async function handleResolve(id: string) {
     await resolveDelay.mutateAsync(id)
-    toast.success('Atraso marcado como resolvido')
+    toast.success('Atraso marcado como resolvido.')
   }
 
   async function handleReopen(id: string) {
     await reopenDelay.mutateAsync(id)
-    toast.success('Atraso reaberto')
+    toast.success('Atraso reaberto.')
   }
 
   function clearFilters() {
@@ -340,12 +340,12 @@ export function AdminDelaysPage() {
             title={
               hasFilters
                 ? 'Nenhum atraso nos filtros'
-                : 'Sem atrasos reportados'
+                : 'Nenhum atraso reportado ✓'
             }
             description={
               hasFilters
                 ? 'Ajuste os filtros para ver mais registros.'
-                : 'Nenhum atraso foi reportado no período selecionado. As rotas estão operando conforme previsto.'
+                : 'Ótimas notícias — todas as rotas estão operando conforme previsto no período selecionado.'
             }
             action={
               hasFilters

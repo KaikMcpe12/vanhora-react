@@ -38,7 +38,7 @@ export function EditUserModal({
     mutationFn: async (data: CreateUserInput) => {
       // For now, simulate updating the user in mock data
       // In a real app, this would call the backend API
-      toast.success(`Usuário "${data.name}" atualizado com sucesso`)
+      toast.success('Alterações salvas.')
       return data
     },
     onSuccess: () => {
@@ -46,7 +46,9 @@ export function EditUserModal({
       onClose()
     },
     onError: (error) => {
-      toast.error(`Erro ao atualizar usuário: ${error.message}`)
+      toast.error(`Erro ao atualizar usuário: ${error.message}`, {
+        duration: 5000,
+      })
     },
   })
 

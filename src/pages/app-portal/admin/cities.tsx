@@ -115,15 +115,16 @@ function CityFormDialog({ open, onOpenChange, city }: CityFormDialogProps) {
           id: city.id,
           payload: { name: name.trim(), state },
         })
-        toast.success(`Cidade "${name}" atualizada`)
+        toast.success('Alterações salvas.')
       } else {
         await createCity.mutateAsync({ name: name.trim(), state })
-        toast.success(`Cidade "${name}" criada`)
+        toast.success(`Cidade "${name}" criada com sucesso.`)
       }
       handleOpen(false)
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Ocorreu um erro inesperado',
+        err instanceof Error ? err.message : 'Ocorreu um erro inesperado.',
+        { duration: 5000 },
       )
     }
   }
@@ -431,7 +432,7 @@ export function AdminCitiesPage() {
             id: deactivateCity.id,
             newStatus: 'inactive',
           })
-          toast.success(`Cidade "${deactivateCity.name}" desativada`)
+          toast.success(`Cidade "${deactivateCity.name}" desativada.`)
           setDeactivateCity(null)
         }}
       />
@@ -451,7 +452,7 @@ export function AdminCitiesPage() {
             id: reactivateCity.id,
             newStatus: 'active',
           })
-          toast.success(`Cidade "${reactivateCity.name}" reativada`)
+          toast.success(`Cidade "${reactivateCity.name}" reativada.`)
           setReactivateCity(null)
         }}
       />

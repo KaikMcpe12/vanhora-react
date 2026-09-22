@@ -79,16 +79,17 @@ export function CooperativeFormDrawer({
     try {
       if (isEdit && cooperative) {
         await updateCoop.mutateAsync({ id: cooperative.id, payload })
-        toast.success(`Cooperativa "${values.name}" atualizada`)
+        toast.success('Alterações salvas.')
       } else {
         const created = await createCoop.mutateAsync(payload)
-        toast.success(`Cooperativa "${values.name}" criada`)
+        toast.success(`Cooperativa "${values.name}" criada com sucesso.`)
         onCreated?.(created)
       }
       onOpenChange(false)
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Ocorreu um erro inesperado',
+        err instanceof Error ? err.message : 'Ocorreu um erro inesperado.',
+        { duration: 5000 },
       )
     }
   })

@@ -127,10 +127,7 @@ export function RouteFormDrawer({
         if (!v) onClose()
       }}
     >
-      <SheetContent
-        side="right"
-        className="flex w-full flex-col sm:max-w-2xl"
-      >
+      <SheetContent side="right" className="flex w-full flex-col sm:max-w-2xl">
         <SheetHeader className="border-border border-b pb-3">
           <SheetTitle className="text-[15px] font-medium">
             {isEdit ? (
@@ -163,7 +160,9 @@ export function RouteFormDrawer({
               <Skeleton className="h-40 w-full" />
             </div>
           ) : isEdit && !editRoute ? (
-            <p className="text-muted-foreground text-sm">Rota não encontrada.</p>
+            <p className="text-muted-foreground text-sm">
+              Rota não encontrada.
+            </p>
           ) : (
             <RouteForm
               key={isEdit ? editRoute?.id : 'create'}
@@ -177,7 +176,8 @@ export function RouteFormDrawer({
                   toast.error(
                     err instanceof Error
                       ? err.message
-                      : 'Ocorreu um erro ao salvar a rota',
+                      : 'Ocorreu um erro ao salvar a rota.',
+                    { duration: 5000 },
                   )
                 }
               }}

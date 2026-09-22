@@ -12,10 +12,7 @@ import {
 } from 'lucide-react'
 import { motion, useReducedMotion } from 'motion/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
-import {
-  useOutletContext,
-  useSearchParams,
-} from 'react-router-dom'
+import { useOutletContext, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 
 import {
@@ -115,7 +112,8 @@ const ALL_OP_STATUSES: OperationalStatus[] = [
   'suspended',
 ]
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 // Filtros persistidos na URL. Chaves cruas (sem namespace) porque a página
 // tem só uma "tabela" agrupada por rota.
@@ -499,11 +497,7 @@ function TemporaryScheduleRow({ tmp }: { tmp: ScheduleTemporary }) {
         )}
         <p className="text-muted-foreground text-[11px]">{tmp.date}</p>
       </div>
-      <StatusChip
-        tone="warning"
-        icon={Clock}
-        label="Serviço extra"
-      />
+      <StatusChip tone="warning" icon={Clock} label="Serviço extra" />
     </div>
   )
 }
@@ -520,7 +514,7 @@ function ExceptionsBadge({ route }: { route: AdminRoute }) {
         <button
           type="button"
           aria-label={`${count} ${count > 1 ? 'exceções abertas' : 'exceção aberta'} — abrir lista`}
-          className="inline-flex min-h-9 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:ring-ring focus-visible:ring-2 focus-visible:outline-none"
+          className="focus-visible:ring-ring inline-flex min-h-9 items-center gap-1 rounded-full border border-amber-300 bg-amber-50 px-2.5 py-1 text-[11px] font-semibold text-amber-800 transition-colors hover:bg-amber-100 focus-visible:ring-2 focus-visible:outline-none"
         >
           <AlertCircle className="h-3 w-3" />
           {count} {count > 1 ? 'exceções abertas' : 'exceção aberta'}
@@ -887,10 +881,10 @@ export function SchedulesPage() {
     )
     toast.success(
       mode === 'edit'
-        ? 'Horário atualizado'
+        ? 'Alterações salvas.'
         : mode === 'duplicate'
-          ? 'Horário duplicado com sucesso'
-          : 'Horário criado com sucesso',
+          ? 'Horário duplicado com sucesso.'
+          : 'Horário criado com sucesso.',
     )
   }
 

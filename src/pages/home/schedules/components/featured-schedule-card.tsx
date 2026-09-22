@@ -149,7 +149,7 @@ export function FeaturedScheduleCard({
 
           {/* preço */}
           <div className="text-right shrink-0">
-            <span className="block text-[9px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
+            <span className="block text-[10px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
               a partir de
             </span>
             <span

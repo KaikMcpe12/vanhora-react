@@ -73,7 +73,7 @@ export function DriverProfilePage() {
 
   async function onSubmit(values: DriverProfileForm) {
     await updateProfile.mutateAsync(values)
-    toast.success('Perfil atualizado')
+    toast.success('Alterações salvas.')
     form.reset(values)
   }
 

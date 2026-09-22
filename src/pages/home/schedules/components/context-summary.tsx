@@ -63,7 +63,7 @@ export function ContextSummary({
           {/* cidades */}
           <div className="min-w-0 flex-1 space-y-2">
             <div>
-              <span className="block text-[9px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
                 De
               </span>
               <span className="block truncate text-[13px] font-medium leading-tight text-foreground">
@@ -71,7 +71,7 @@ export function ContextSummary({
               </span>
             </div>
             <div>
-              <span className="block text-[9px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
+              <span className="block text-[10px] font-semibold uppercase tracking-[0.5px] text-muted-foreground">
                 Para
               </span>
               {destinationName ? (

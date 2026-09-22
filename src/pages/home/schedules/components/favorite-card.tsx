@@ -106,7 +106,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
               </span>
 
               {isCancelled && (
-                <span className="shrink-0 rounded-full bg-red-500/10 px-1.5 py-0.5 text-[9px] font-semibold text-red-500">
+                <span className="shrink-0 rounded-full bg-red-500/10 px-1.5 py-0.5 text-[10px] font-semibold text-red-500">
                   Cancelado
                 </span>
               )}
@@ -151,7 +151,7 @@ export function FavoriteCard({ favorite, onRemove }: FavoriteCardProps) {
             </button>
 
             <div className="text-right">
-              <span className="text-muted-foreground block text-[9px] leading-none">
+              <span className="text-muted-foreground block text-[10px] leading-none">
                 a partir de
               </span>
               <span

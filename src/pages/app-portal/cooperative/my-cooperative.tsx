@@ -92,7 +92,7 @@ export function CooperativeMyCooperativePage() {
 
   async function onSubmit(values: CoopProfileForm) {
     await updateProfile.mutateAsync(values)
-    toast.success('Dados da cooperativa atualizados')
+    toast.success('Alterações salvas.')
   }
 
   return (

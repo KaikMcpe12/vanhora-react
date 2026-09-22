@@ -219,7 +219,7 @@ export function AdminCooperativesPage() {
                                   id: c.id,
                                   newStatus: 'active',
                                 })
-                                toast.success(`Cooperativa "${c.name}" reativada`)
+                                toast.success(`Cooperativa "${c.name}" reativada.`)
                               },
                             },
                           ]),
@@ -296,7 +296,7 @@ export function AdminCooperativesPage() {
             id: suspendCoop.id,
             newStatus: 'suspended',
           })
-          toast.success(`Cooperativa "${suspendCoop.name}" suspensa`)
+          toast.success(`Cooperativa "${suspendCoop.name}" suspensa.`)
           setSuspendCoop(null)
         }}
       />
@@ -328,7 +328,7 @@ export function AdminCooperativesPage() {
             id: deactivateCoop.id,
             newStatus: 'inactive',
           })
-          toast.success(`Cooperativa "${deactivateCoop.name}" excluída`)
+          toast.success(`Cooperativa "${deactivateCoop.name}" removida.`)
           if (coopId === deactivateCoop.id) clearSelection()
           setDeactivateCoop(null)
         }}

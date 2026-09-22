@@ -69,7 +69,7 @@ export function CooperativesFilterPanel({
         <Filter size={14} strokeWidth={1.75} className="text-muted-foreground" />
         <span className="text-[13px] font-medium text-foreground">Filtros</span>
         {activeFilterCount > 0 && (
-          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] font-medium text-primary-foreground">
+          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
             {activeFilterCount}
           </span>
         )}

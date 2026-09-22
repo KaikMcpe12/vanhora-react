@@ -115,18 +115,64 @@ const previewCoopGeneral = MOCK_ADMIN_COOPERATIVES.find(
 
 function PreviewSection({
   title,
+  description,
+  when,
   children,
 }: {
   title: string
+  description?: string
+  when?: { use?: string; avoid?: string }
   children: React.ReactNode
 }) {
   return (
     <section className="space-y-4">
-      <h2 className="text-foreground border-border border-b pb-2 text-base font-semibold">
+      <div className="border-border border-b pb-2">
+        <h3 className="text-foreground text-base font-semibold">{title}</h3>
+        {description && (
+          <p className="text-muted-foreground mt-1 text-[13px]">
+            {description}
+          </p>
+        )}
+      </div>
+      <div>{children}</div>
+      {when && (when.use || when.avoid) && (
+        <div className="border-border/60 bg-muted/30 grid gap-2 rounded-lg border px-3 py-2.5 text-[12px] sm:grid-cols-2">
+          {when.use && (
+            <p>
+              <span className="text-foreground font-semibold">
+                Quando usar:{' '}
+              </span>
+              <span className="text-muted-foreground">{when.use}</span>
+            </p>
+          )}
+          {when.avoid && (
+            <p>
+              <span className="text-foreground font-semibold">
+                Quando não usar:{' '}
+              </span>
+              <span className="text-muted-foreground">{when.avoid}</span>
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  )
+}
+
+function CategoryHeader({
+  title,
+  description,
+}: {
+  title: string
+  description: string
+}) {
+  return (
+    <div className="border-primary/60 border-l-4 pl-4">
+      <h2 className="text-foreground text-lg font-semibold tracking-tight">
         {title}
       </h2>
-      <div>{children}</div>
-    </section>
+      <p className="text-muted-foreground mt-1 text-[13px]">{description}</p>
+    </div>
   )
 }
 
@@ -246,12 +292,31 @@ export function AdminComponentsPreviewPage() {
           Componentes Admin
         </h1>
         <p className="text-muted-foreground mt-1 text-sm">
-          Referência visual dos componentes da biblioteca{' '}
-          <code className="font-mono text-xs">src/components/admin/</code>
+          Documentação viva da biblioteca em{' '}
+          <code className="font-mono text-xs">src/components/admin/</code>,{' '}
+          <code className="font-mono text-xs">src/components/forms/</code> e{' '}
+          <code className="font-mono text-xs">src/components/pickers/</code> —
+          organizada por categoria: <strong>Admin</strong>,{' '}
+          <strong>Base</strong>, <strong>Primitivos</strong>,{' '}
+          <strong>Domínio</strong> e páginas por PR. O contrato exibido aqui é a
+          fonte de verdade da API de cada componente.
         </p>
       </div>
 
-      <PreviewSection title="AdminKPICard">
+      <CategoryHeader
+        title="Admin"
+        description="Peças de layout de página admin: KPI, filtros, tabelas, ações contextuais e confirmações."
+      />
+
+      <PreviewSection
+        title="AdminKPICard"
+        description="Card de KPI: rótulo em uppercase, valor grande, tendência opcional (up/down/neutral) e três severidades (default / attention / critical). Quando clicável, renderiza como <button> com foco visível."
+        when={{
+          use: 'Métricas de topo de página, sempre em grid de 3 colunas.',
+          avoid:
+            'Valores livres/descritivos — para isso use AdminSectionTitle + texto.',
+        }}
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
           <AdminKPICard
             label="Cooperativas Ativas"
@@ -302,7 +367,10 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="AdminFilterBar">
+      <PreviewSection
+        title="AdminFilterBar"
+        description="Faixa horizontal de busca + slots de filtro + ações (CTA primário). Ancoragem visual da tabela abaixo."
+      >
         <AdminFilterBar
           searchValue={search}
           onSearchChange={setSearch}
@@ -328,7 +396,10 @@ export function AdminComponentsPreviewPage() {
         />
       </PreviewSection>
 
-      <PreviewSection title="AdminTable">
+      <PreviewSection
+        title="AdminTable"
+        description="Tabela flat: linhas clicáveis com Enter/Espaço, ordenação por coluna (opt-in), skeleton no loading, empty state customizável."
+      >
         <div className="space-y-3">
           <div className="flex gap-2">
             <Button
@@ -361,7 +432,10 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="AdminActionMenu">
+      <PreviewSection
+        title="AdminActionMenu"
+        description="Menu de contexto (⋮) para ações de linha. Alvo de toque ≥44×44px. Items suportam icon, divider e variant='danger'."
+      >
         <div className="flex items-center gap-8">
           <div className="space-y-2">
             <p className="text-muted-foreground text-xs">Padrão</p>
@@ -391,7 +465,14 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="AdminConfirmDialog">
+      <PreviewSection
+        title="AdminConfirmDialog"
+        description="Confirmação com variant (default/danger), lista opcional de consequências e confirmação por digitação para ações irreversíveis."
+        when={{
+          use: 'Antes de qualquer ação destrutiva (excluir, suspender, resetar).',
+          avoid: 'Ações reversíveis — para essas use um toast com undo.',
+        }}
+      >
         <div className="flex gap-3">
           <Button
             variant="outline"
@@ -432,7 +513,10 @@ export function AdminComponentsPreviewPage() {
         />
       </PreviewSection>
 
-      <PreviewSection title="AdminEmptyState">
+      <PreviewSection
+        title="AdminEmptyState"
+        description="Estado vazio com ícone, título, descrição e CTA opcional. Tom encorajador; celebrar quando 'vazio' é notícia boa (ex.: 'Nenhum atraso reportado ✓')."
+      >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <div className="border-border rounded-xl border">
             <AdminEmptyState
@@ -447,7 +531,10 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="AdminSectionTitle">
+      <PreviewSection
+        title="AdminSectionTitle"
+        description="Título de seção com descrição curta opcional. Substitui headings soltos e mantém a hierarquia visual da página."
+      >
         <div className="space-y-6">
           <AdminSectionTitle title="Últimos atrasos reportados" />
           <AdminSectionTitle
@@ -462,7 +549,15 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="Componentes-base (PR3)">
+      <CategoryHeader
+        title="Base"
+        description="Componentes de entrada de baixo nível usados no wizard de atraso e reaproveitados no admin. Pilar da UX visual + rápida (PR3)."
+      />
+
+      <PreviewSection
+        title="Componentes-base (PR3)"
+        description="MinuteStepper, ChoiceChips, SelectableCard, StepIndicator, StatusChip — as peças que substituíram inputs nativos. Todos com foco visível e alvos ≥44×44px."
+      >
         <div className="space-y-8">
           <div className="space-y-3">
             <p className="text-foreground text-sm font-medium">MinuteStepper</p>
@@ -634,7 +729,15 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="Infra de tabela (PR7)">
+      <CategoryHeader
+        title="Primitivos + Infra"
+        description="Peças de baixo nível (Combobox pesquisável) e infra transversal (paginação, filtros URL). Nascidas no PR7."
+      />
+
+      <PreviewSection
+        title="Infra de tabela (PR7)"
+        description="SearchableSelect, AdminPagination, useTableFilters (via nuqs) — o esqueleto que dá consistência às tabelas admin."
+      >
         <div className="space-y-8">
           <div className="space-y-2">
             <p className="text-foreground text-sm font-medium">
@@ -711,7 +814,15 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="Pickers de domínio (PR8)">
+      <CategoryHeader
+        title="Domínio"
+        description="Componentes que codificam regras do negócio VanHora: escolha de cooperativa, dias da semana, severidade de atraso."
+      />
+
+      <PreviewSection
+        title="Pickers de domínio (PR8)"
+        description="CooperativePicker (fonte única via useCooperativeOptions, com avatar + brand color), WeekdayPicker (segmented control, foco visível, presets). SeverityBadge segue como fonte única de severidade nas listagens."
+      >
         <div className="space-y-8">
           <div className="grid gap-6 sm:grid-cols-3">
             <div className="space-y-2">
@@ -784,7 +895,15 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="Cooperativas admin (PR9)">
+      <CategoryHeader
+        title="Páginas por PR"
+        description="Mini-galeria das páginas admin reformadas na Parte 2 — cada uma referencia o PR de origem para navegação histórica."
+      />
+
+      <PreviewSection
+        title="Cooperativas admin (PR9)"
+        description="Master-detail com 4 abas (Geral, Rotas, Motoristas, Atrasos), URL-state via nuqs (?cooperative=&tab=&q=), lente criativa (brand_color + padrão semanal + on_time_rate)."
+      >
         <div className="space-y-8">
           {/* Painel de detalhes com dados mock — master-detail, 4 abas */}
           <div className="space-y-2">
@@ -844,7 +963,11 @@ export function AdminComponentsPreviewPage() {
                   icon={Plus}
                   title="Nenhuma rota cadastrada"
                   description="Esta cooperativa ainda não possui rotas."
-                  action={{ label: 'Cadastrar rota', onClick: () => {}, icon: Plus }}
+                  action={{
+                    label: 'Cadastrar rota',
+                    onClick: () => {},
+                    icon: Plus,
+                  }}
                 />
               </div>
               <div className="border-border rounded-xl border p-4">
@@ -878,13 +1001,136 @@ export function AdminComponentsPreviewPage() {
         </div>
       </PreviewSection>
 
-      <PreviewSection title="Rotas admin (PR10)">
+      <PreviewSection
+        title="Rotas admin (PR10)"
+        description="/admin/routes reformada: toggle grid/tabela, filtros URL (nuqs), duplicar rota (fluxo simplificado)."
+      >
         <RoutesPr10Preview />
       </PreviewSection>
 
-      <PreviewSection title="Horários admin (PR11)">
+      <PreviewSection
+        title="Horários admin (PR11)"
+        description="/admin/schedules reformada: filtros URL, deep-link limpo, UX de exceções com preview inline (data + horários afetados)."
+      >
         <SchedulesPr11Preview />
       </PreviewSection>
+
+      <CategoryHeader
+        title="Sistema de design — resumo"
+        description="Regras que valem para todos os componentes acima. Se algo aqui parece novo, ele já está aplicado — este bloco é a fonte de verdade para revisões."
+      />
+
+      <section className="grid gap-4 md:grid-cols-2">
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Status semântico
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Tríade fixa:{' '}
+            <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+              emerald
+            </span>{' '}
+            (ativo/ok),{' '}
+            <span className="font-semibold text-amber-600 dark:text-amber-400">
+              amber
+            </span>{' '}
+            (atenção/suspenso),{' '}
+            <span className="font-semibold text-red-600 dark:text-red-400">
+              red
+            </span>{' '}
+            (crítico/inativo). Sempre <strong>cor + ícone + texto</strong> —
+            nunca só cor. Contrato do{' '}
+            <code className="font-mono">StatusChip</code> e do{' '}
+            <code className="font-mono">SeverityBadge</code>.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Alvos de toque
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Ações primárias e clicáveis em listas → mínimo{' '}
+            <strong>44×44px</strong> (mobile-first). Botões de admin usam{' '}
+            <code className="font-mono">size="sm"</code> com{' '}
+            <code className="font-mono">min-h-11</code> quando aparecem em
+            contexto touch. <code className="font-mono">AdminActionMenu</code> e
+            os steppers do wizard já respeitam esse contrato.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">Motion</h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Motion tem <strong>propósito</strong>: transição do wizard, entrada
+            de chips/cards, feedback de sucesso, expand/collapse em tabelas.{' '}
+            <strong>Nunca</strong> em hover/focus, KPI estático ou fade
+            genérico. Duração {'>'}300ms em UI = exagero — reduzir.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">Flat design</h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            <strong>Sem shadow em cards.</strong> Emphasize com{' '}
+            <code className="font-mono">border-l-4</code> +{' '}
+            <code className="font-mono">border-l-&lt;color&gt;</code> para
+            status/urgência. Shadow é reservado a elementos flutuantes (popover,
+            dropdown, dialog, DnD drag state). Radius padrão:{' '}
+            <code className="font-mono">rounded-xl</code>.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Tipografia crítica
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Dado crítico (horário, status, valor, contagem) →{' '}
+            <code className="font-mono">text-xs</code> mínimo com contraste AA.
+            Labels de KPI e timestamps discretos podem ficar em{' '}
+            <code className="font-mono">text-[11px]</code>.{' '}
+            <strong>Nunca</strong> <code className="font-mono">text-[9px]</code>{' '}
+            em qualquer contexto.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Gráficos vs. layout CSS
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Recharts entra <strong>só</strong> quando há{' '}
+            <strong>≥15 pontos</strong> de dado ou eixo contínuo real (série
+            temporal, distribuição). Para o resto (mini-bars, distribuição
+            categórica &lt;10 itens): flex + Tailwind, mais leve e legível.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Feedback (toasts)
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Criação: <em>"&lt;Entidade&gt; criada com sucesso."</em> · Edição:{' '}
+            <em>"Alterações salvas."</em> · Exclusão:{' '}
+            <em>"&lt;Entidade&gt; removida."</em> · Erros: descrição curta.
+            Duração <strong>3s</strong> para sucesso (default do Toaster),{' '}
+            <strong>5s</strong> para erro.
+          </p>
+        </article>
+
+        <article className="border-border rounded-xl border p-5">
+          <h3 className="text-foreground text-sm font-semibold">
+            Loading & empty
+          </h3>
+          <p className="text-muted-foreground mt-2 text-[13px] leading-relaxed">
+            Tabelas: <strong>skeleton rows</strong> (nunca spinner overlay).
+            KPIs: skeleton do próprio card. Empty states com tom encorajador +
+            CTA; celebrar quando "vazio" é notícia boa (delays sem registros).
+          </p>
+        </article>
+      </section>
     </div>
   )
 }
@@ -930,7 +1176,10 @@ const previewRoutes = [
   },
 ]
 
-const STATUS_BORDER_PREVIEW: Record<'active' | 'suspended' | 'inactive', string> = {
+const STATUS_BORDER_PREVIEW: Record<
+  'active' | 'suspended' | 'inactive',
+  string
+> = {
   active: 'border-l-emerald-500',
   suspended: 'border-l-amber-500',
   inactive: 'border-l-slate-400',
@@ -1254,7 +1503,11 @@ function SchedulesPr11Preview() {
               </p>
               <p className="text-muted-foreground text-[11px]">19/04/2026</p>
             </div>
-            <StatusChip tone="warning" icon={PlayCircle} label="Serviço extra" />
+            <StatusChip
+              tone="warning"
+              icon={PlayCircle}
+              label="Serviço extra"
+            />
           </div>
         </div>
       </div>
@@ -1281,10 +1534,7 @@ function SchedulesPr11Preview() {
           </div>
           <ul>
             {exceptions.map((exc, i) => (
-              <li
-                key={i}
-                className="border-b px-3 py-2.5 last:border-b-0"
-              >
+              <li key={i} className="border-b px-3 py-2.5 last:border-b-0">
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-1.5">
                     <span
@@ -1362,8 +1612,8 @@ function SchedulesPr11Preview() {
           <code className="font-mono">routeId</code> e{' '}
           <code className="font-mono">cooperativeId</code> (UUIDs) além do
           display <code className="font-mono">routeCode</code>. Filtros e
-          navegação passam por id; o wizard de atraso quick recebe os ids
-          direto do contexto e não depende mais do fallback via{' '}
+          navegação passam por id; o wizard de atraso quick recebe os ids direto
+          do contexto e não depende mais do fallback via{' '}
           <code className="font-mono">routeCode</code>.
         </p>
       </div>

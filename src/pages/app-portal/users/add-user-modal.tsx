@@ -33,11 +33,13 @@ export function AddUserModal({
     mutationFn: (data: CreateUserInput) => mockUsersApi.createUser(data),
     onSuccess: (user) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.users.all() })
-      toast.success(`Usuário "${user.name}" criado com sucesso`)
+      toast.success(`Usuário "${user.name}" criado com sucesso.`)
       onClose()
     },
     onError: (error) => {
-      toast.error(`Erro ao criar usuário: ${error.message}`)
+      toast.error(`Erro ao criar usuário: ${error.message}`, {
+        duration: 5000,
+      })
     },
   })
 

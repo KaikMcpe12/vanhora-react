@@ -254,12 +254,12 @@ export function CooperativeDelaysPage() {
             title={
               hasFilters
                 ? 'Nenhum atraso nos filtros'
-                : 'Sem atrasos reportados'
+                : 'Nenhum atraso reportado ✓'
             }
             description={
               hasFilters
                 ? 'Ajuste os filtros para ver mais registros.'
-                : 'Nenhum atraso foi reportado no período selecionado.'
+                : 'Ótimas notícias — nenhum atraso reportado nas rotas da cooperativa no período.'
             }
             action={
               hasFilters

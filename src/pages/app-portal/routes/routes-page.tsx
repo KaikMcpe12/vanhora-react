@@ -74,7 +74,8 @@ const STATUS_BORDER: Record<RouteRowStatus, string> = {
 
 const ALL_STATUSES: RouteRowStatus[] = ['active', 'suspended', 'inactive']
 const PAGE_SIZE = 9
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 interface Filters extends Record<string, unknown> {
   search: string
@@ -147,7 +148,8 @@ export function RoutesPage() {
     const q = filters.search.trim().toLowerCase()
     const statusSet = filters.status
     return routes.filter((route) => {
-      if (statusSet.length > 0 && !statusSet.includes(route.status)) return false
+      if (statusSet.length > 0 && !statusSet.includes(route.status))
+        return false
       if (filters.cooperative && route.cooperativeId !== filters.cooperative)
         return false
       if (filters.driver && route.driverId !== filters.driver) return false
@@ -224,7 +226,12 @@ export function RoutesPage() {
       setDrawerState({ mode: 'create' })
     } else if (editParam) {
       const route = routes.find((r) => r.id === editParam)
-      if (route && (!drawerState || drawerState.mode !== 'edit' || drawerState.id !== editParam)) {
+      if (
+        route &&
+        (!drawerState ||
+          drawerState.mode !== 'edit' ||
+          drawerState.id !== editParam)
+      ) {
         setDrawerState({ mode: 'edit', id: editParam })
       }
     } else if (drawerState) {
@@ -595,8 +602,8 @@ export function RoutesPage() {
         onSaved={(saved, wasCreate) => {
           toast.success(
             wasCreate
-              ? `Rota "${saved.name}" criada`
-              : `Rota "${saved.name}" atualizada`,
+              ? `Rota "${saved.name}" criada com sucesso.`
+              : 'Alterações salvas.',
           )
           closeDrawer()
         }}
@@ -624,8 +631,8 @@ export function RoutesPage() {
           })
           toast.success(
             confirmIsReactivate
-              ? `Rota "${confirmRoute.name}" reativada`
-              : `Rota "${confirmRoute.name}" suspensa`,
+              ? `Rota "${confirmRoute.name}" reativada.`
+              : `Rota "${confirmRoute.name}" suspensa.`,
           )
           setConfirmRoute(null)
         }}

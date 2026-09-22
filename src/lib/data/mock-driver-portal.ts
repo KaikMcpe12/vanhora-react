@@ -1,3 +1,5 @@
+import type { Weekday } from '@/components/pickers/weekday-picker'
+
 // id do motorista associado ao usuário mock de role 'driver'
 export const MOCK_DRIVER_USER_ID = 'user-driver-1'
 
@@ -35,6 +37,12 @@ export interface DriverScheduleEntry {
   arrivalEstimate: string
   status: 'scheduled' | 'on_time' | 'delayed' | 'completed' | 'cancelled'
   delayMinutes?: number
+  /** Dias da semana em que este horário recorre (usado em /meus-horarios). */
+  activeDays?: Weekday[]
+  /** Há exceção aberta (cancelamento/reagendamento) prevista nos próximos dias. */
+  hasOpenException?: boolean
+  /** Serviço extra pontual: existe só em uma data específica, não recorre. */
+  isTemporary?: boolean
 }
 
 export const MOCK_DRIVER_PROFILE: DriverProfile = {
@@ -76,6 +84,10 @@ export const MOCK_DRIVER_ROUTES: DriverRoute[] = [
 const fmt = (h: number, m: number) =>
   `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 
+const WEEKDAYS: Weekday[] = ['seg', 'ter', 'qua', 'qui', 'sex']
+const WEEKEND: Weekday[] = ['sab', 'dom']
+const EVERY_DAY: Weekday[] = [...WEEKDAYS, ...WEEKEND]
+
 const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
   {
     id: 'sch-d-001',
@@ -86,6 +98,7 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(7, 30),
     arrivalEstimate: fmt(8, 15),
     status: 'completed',
+    activeDays: WEEKDAYS,
   },
   {
     id: 'sch-d-002',
@@ -96,6 +109,8 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(10, 0),
     arrivalEstimate: fmt(10, 45),
     status: 'completed',
+    activeDays: EVERY_DAY,
+    hasOpenException: true,
   },
   {
     id: 'sch-d-003',
@@ -106,6 +121,7 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(13, 0),
     arrivalEstimate: fmt(13, 50),
     status: 'completed',
+    activeDays: WEEKDAYS,
   },
   {
     // viagem em andamento no "agora" simulado (15:50) — janela 15:30→16:15
@@ -117,6 +133,7 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(15, 30),
     arrivalEstimate: fmt(16, 15),
     status: 'on_time',
+    activeDays: WEEKDAYS,
   },
   {
     id: 'sch-d-005',
@@ -127,6 +144,7 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(17, 0),
     arrivalEstimate: fmt(17, 50),
     status: 'scheduled',
+    activeDays: WEEKDAYS,
   },
   {
     id: 'sch-d-006',
@@ -137,6 +155,59 @@ const ALL_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] = [
     departureTime: fmt(19, 0),
     arrivalEstimate: fmt(19, 45),
     status: 'scheduled',
+    activeDays: [...WEEKDAYS, 'sab'],
+  },
+]
+
+/**
+ * Recorrência semanal completa dos horários atribuídos ao motorista. Cobre os
+ * dois casos que o cronograma de hoje sozinho não expõe: horários que rodam só
+ * no fim de semana e serviços extras pontuais (isTemporary).
+ */
+const ALL_DRIVER_SCHEDULES_WEEKLY: DriverScheduleEntry[] = [
+  ...ALL_DRIVER_SCHEDULES_TODAY.map((s) => ({
+    ...s,
+    // No panorama semanal os status "agora" (on_time/delayed/completed) viram
+    // "programado" — só ganham status real dentro do dia.
+    status:
+      s.status === 'on_time' || s.status === 'delayed' || s.status === 'completed'
+        ? ('scheduled' as const)
+        : s.status,
+  })),
+  {
+    id: 'sch-d-007',
+    routeCode: 'R-330',
+    routeName: 'Litoral Fim de Semana',
+    origin: 'Terminal Central',
+    destination: 'Praia do Futuro',
+    departureTime: fmt(9, 0),
+    arrivalEstimate: fmt(9, 45),
+    status: 'scheduled',
+    activeDays: WEEKEND,
+  },
+  {
+    id: 'sch-d-008',
+    routeCode: 'R-330',
+    routeName: 'Litoral Fim de Semana',
+    origin: 'Terminal Central',
+    destination: 'Praia do Futuro',
+    departureTime: fmt(14, 0),
+    arrivalEstimate: fmt(14, 50),
+    status: 'scheduled',
+    activeDays: WEEKEND,
+  },
+  {
+    // serviço extra pontual — não recorre; existe só na data
+    id: 'sch-d-tmp-01',
+    routeCode: 'R-204',
+    routeName: 'Alta demanda feriado',
+    origin: 'Terminal Central',
+    destination: 'Zona Industrial',
+    departureTime: fmt(21, 0),
+    arrivalEstimate: fmt(21, 40),
+    status: 'scheduled',
+    activeDays: [],
+    isTemporary: true,
   },
 ]
 
@@ -175,3 +246,11 @@ export const MOCK_DRIVER_NOW: Date =
 
 export const MOCK_DRIVER_SCHEDULES_TODAY: DriverScheduleEntry[] =
   DRIVER_HOME_SCENARIO === 'empty' ? [] : ALL_DRIVER_SCHEDULES_TODAY
+
+/**
+ * Panorama semanal recorrente (usado em /meus-horarios). Diferente de
+ * `MOCK_DRIVER_SCHEDULES_TODAY`, este dataset inclui horários que rodam só em
+ * outros dias da semana e serviços extras pontuais.
+ */
+export const MOCK_DRIVER_SCHEDULES_WEEKLY: DriverScheduleEntry[] =
+  ALL_DRIVER_SCHEDULES_WEEKLY

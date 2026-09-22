@@ -9,6 +9,7 @@ import {
   MOCK_DRIVER_PROFILE,
   MOCK_DRIVER_ROUTES,
   MOCK_DRIVER_SCHEDULES_TODAY,
+  MOCK_DRIVER_SCHEDULES_WEEKLY,
 } from '@/lib/data/mock-driver-portal'
 import { queryKeys } from '@/lib/query-keys'
 import type { DelayCause } from '@/lib/schemas/report-delay'
@@ -51,6 +52,11 @@ export const mockDriverPortalApi = {
   async getSchedulesToday(): Promise<DriverScheduleEntry[]> {
     await delay(API_DELAY)
     return MOCK_DRIVER_SCHEDULES_TODAY
+  },
+
+  async getSchedulesWeekly(): Promise<DriverScheduleEntry[]> {
+    await delay(API_DELAY)
+    return MOCK_DRIVER_SCHEDULES_WEEKLY
   },
 
   async reportDelay(payload: ReportDelayPayload): Promise<void> {
@@ -104,6 +110,13 @@ export function useDriverSchedulesToday() {
   return useQuery({
     queryKey: queryKeys.driver.portal.schedulesToday(),
     queryFn: () => mockDriverPortalApi.getSchedulesToday(),
+  })
+}
+
+export function useDriverSchedulesWeekly() {
+  return useQuery({
+    queryKey: queryKeys.driver.portal.schedulesWeekly(),
+    queryFn: () => mockDriverPortalApi.getSchedulesWeekly(),
   })
 }
 

@@ -102,6 +102,7 @@ export const queryKeys = {
       profile: () => ['driver', 'portal', 'profile'] as const,
       routes: () => ['driver', 'portal', 'routes'] as const,
       schedulesToday: () => ['driver', 'portal', 'schedules-today'] as const,
+      schedulesWeekly: () => ['driver', 'portal', 'schedules-weekly'] as const,
     },
   },
 

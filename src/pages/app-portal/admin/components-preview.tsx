@@ -38,6 +38,10 @@ import {
   AdminTable,
   type AdminTableColumn,
 } from '@/components/admin'
+import { LiveUpdatedAt } from '@/components/cooperative/live-updated-at'
+import { OperationsBoard } from '@/components/cooperative/operations-board'
+import { DelayForm } from '@/components/delays/delay-form'
+import { CurrentTripCard } from '@/components/driver/current-trip-card'
 import { ChoiceChips } from '@/components/forms/choice-chips'
 import { MinuteStepper } from '@/components/forms/minute-stepper'
 import { SelectableCard } from '@/components/forms/selectable-card'
@@ -1016,6 +1020,47 @@ export function AdminComponentsPreviewPage() {
       </PreviewSection>
 
       <CategoryHeader
+        title="Parte 1 (operacional)"
+        description="Fluxos motorista + cooperativa consolidados na Parte 1 (PR1–PR5), alinhados aos padrões admin nesta PR6."
+      />
+
+      <PreviewSection
+        title="Wizard de atraso (PR1)"
+        description="DelayForm em dois modos: `quick` (contexto já traz rota/horário) e `wizard` (3 passos com Rota → Horário → Detalhes). Motion de entrada em 220ms, severidade automática por minutos."
+        when={{
+          use: 'Reporte de atraso pelo motorista.',
+          avoid:
+            'Registro administrativo em massa — nesses casos usar o admin/delays direto.',
+        }}
+      >
+        <DelayFormPr1Preview />
+      </PreviewSection>
+
+      <PreviewSection
+        title="Viagem em andamento (PR4)"
+        description="CurrentTripCard: cabine de comando da viagem atual. Três estados (in_progress, upcoming, empty). QuickActions com alvos ≥48px."
+        when={{
+          use: 'Home do motorista quando existe viagem no relógio.',
+          avoid:
+            'Fallback estático — quando não há viagem, prefira EmptyState ou Próxima saída.',
+        }}
+      >
+        <CurrentTripPr4Preview />
+      </PreviewSection>
+
+      <PreviewSection
+        title="Painel operacional (PR5)"
+        description="OperationsBoard + LiveUpdatedAt: cartões por operação em execução com border-l semântico (emerald/amber/red), progresso linear por tempo e selo `ao vivo` no header."
+        when={{
+          use: 'Dashboard da cooperativa e admin — visão do agora.',
+          avoid:
+            'Listagens completas de rotas/horários — use a página dedicada com filtros.',
+        }}
+      >
+        <OperationsBoardPr5Preview />
+      </PreviewSection>
+
+      <CategoryHeader
         title="Sistema de design — resumo"
         description="Regras que valem para todos os componentes acima. Se algo aqui parece novo, ele já está aplicado — este bloco é a fonte de verdade para revisões."
       />
@@ -1638,6 +1683,148 @@ function SchedulesPr11Preview() {
             />
           )
         })()}
+    </div>
+  )
+}
+
+// ── Parte 1 — Wizard de atraso (PR1) ────────────────────────────────────────
+
+function DelayFormPr1Preview() {
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">
+          Modo <code className="font-mono">quick</code> — contexto
+          pré-selecionado, tela única. Uso: card da viagem atual na home do
+          motorista.
+        </p>
+        <div className="bg-card rounded-xl border p-4">
+          <DelayForm
+            mode="quick"
+            context={{
+              routeId: 'route-1',
+              routeCode: 'R-204',
+              routeName: 'Expresso Norte',
+            }}
+          />
+        </div>
+      </div>
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">
+          Modo <code className="font-mono">wizard</code> — sem contexto, 3
+          passos. Uso: <code className="font-mono">/driver/report-delay</code>.
+        </p>
+        <div className="bg-card rounded-xl border p-4">
+          <DelayForm mode="wizard" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Parte 1 — CurrentTripCard (PR4) ─────────────────────────────────────────
+
+function CurrentTripPr4Preview() {
+  const running = {
+    entry: {
+      id: 'preview-run',
+      routeCode: 'R-204',
+      routeName: 'Expresso Norte',
+      origin: 'Terminal Central',
+      destination: 'Zona Industrial',
+      departureTime: '15:30',
+      arrivalEstimate: '16:15',
+      status: 'on_time' as const,
+    },
+    progressPct: 60,
+    nextStopHint: 'Terminal 2',
+    minutesRemaining: 18,
+  }
+
+  return (
+    <div className="grid gap-4 xl:grid-cols-3">
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">Em andamento</p>
+        <CurrentTripCard
+          trip={running}
+          onReportDelay={() => {}}
+          onViewDetails={() => {}}
+        />
+      </div>
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">Próxima saída</p>
+        <div className="bg-card rounded-xl border border-l-4 border-l-slate-300 p-5">
+          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+            Próxima saída
+          </p>
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-foreground text-xl font-bold">às 17:00</p>
+              <p className="text-muted-foreground text-sm">
+                R-101 → Distrito Industrial
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              className="min-h-11 rounded-full"
+            >
+              Ver detalhes
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <p className="text-muted-foreground text-[12px]">Sem viagem hoje</p>
+        <AdminEmptyState
+          icon={CircleCheck}
+          title="Nenhuma viagem programada"
+          description="Seu dia está livre ou os horários ainda não foram atribuídos."
+        />
+      </div>
+    </div>
+  )
+}
+
+// ── Parte 1 — Painel operacional (PR5) ──────────────────────────────────────
+
+function OperationsBoardPr5Preview() {
+  const operations = [
+    {
+      id: 'op-1',
+      routeCode: 'R-204',
+      origin: 'Juazeiro',
+      destination: 'Petrolina',
+      departureTime: '15:30',
+      arrivalEstimate: '16:15',
+      operationalStatus: 'in_operation' as const,
+      driverName: 'João S.',
+      progressPct: 60,
+      minutesRemaining: 18,
+    },
+    {
+      id: 'op-2',
+      routeCode: 'R-319',
+      origin: 'Praça da Sé',
+      destination: 'Aeroporto',
+      departureTime: '15:45',
+      arrivalEstimate: '16:20',
+      operationalStatus: 'delayed' as const,
+      driverName: 'Ana P.',
+      progressPct: 40,
+      minutesRemaining: 22,
+    },
+  ]
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-muted-foreground text-[12px]">
+          `OperationsBoard` + selo `LiveUpdatedAt` no header.
+        </p>
+        <LiveUpdatedAt updatedAt={Date.now() - 4_000} />
+      </div>
+      <OperationsBoard operations={operations} />
     </div>
   )
 }

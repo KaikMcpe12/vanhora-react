@@ -1,7 +1,7 @@
 # VanHora — Roadmap de Execução
 
-> **Versão:** 1.0.0 — 2026-10-08
-> **Status:** Mapa macro de execução das Fases Pré-backend, Onda 1 e Onda 2.
+> **Versão:** 1.1.0 — 2026-10-08
+> **Status:** Mapa macro de execução das Fases Pré-backend, Onda 1 e Onda 2. Decisões Q1–Q10 formalizadas como D21–D30.
 > **Fonte canônica (única):** `docs/vanhora-decisoes-e-casos-de-uso.md` v1.0.0. Toda decisão vem desse arquivo. §6 (Escopo Negativo) é lei — nenhum item descartado reaparece aqui.
 > **Escopo deste arquivo:** apenas o mapa. **Não** contém PRDs, API-spec, migrations ou código. Esses são insumos de worktrees subsequentes.
 
@@ -16,23 +16,24 @@
 5. [Onda 2 — Pós-MVP backend](#5-onda-2--pós-mvp-backend)
 6. [Riscos e pontos de atenção](#6-riscos-e-pontos-de-atenção)
 7. [Critério de "fase concluída"](#7-critério-de-fase-concluída)
-8. [Perguntas abertas](#8-perguntas-abertas)
+8. [Decisões Tomadas (Q1–Q10)](#8-decisões-tomadas-q1q10)
+9. [Apêndice A — Histórico de Revisões](#apêndice-a--histórico-de-revisões)
 
 ---
 
 ## 1. Resumo executivo
 
-- **Volume total em escopo:** 18 UCs organizados em 3 fases, derivados exclusivamente de `vanhora-decisoes-e-casos-de-uso.md` §5 e consolidados em §8. Nada aqui é novo em relação ao documento base.
-- **Backend ainda não começou** (§2.2 base). A Fase 1 (Pré-backend) destrava valor zero-contrato enquanto o backend é iniciado em paralelo. Onda 1 entra junto com o backend inicial (todos os 19 aditivos de schema de §7 são implementados nessa fase). Onda 2 só avança depois do MVP do backend em produção.
-- **Esforço estimado agregado (do documento base):** Fase 1 ≈ 3 dias; Onda 1 ≈ 20 dias; Onda 2 ≈ 20 dias. Revisão item a item em §4 e §5 — divergências estão sinalizadas como "Esforço revisto".
+- **Volume total em escopo:** 20 UCs organizados em 3 fases, derivados exclusivamente de `vanhora-decisoes-e-casos-de-uso.md` §5 e consolidados em §8. UC-P1 e UC-P2 incorporados na Onda 1 por D21 (v1.1.0).
+- **Backend ainda não começou** (§2.2 base). A Fase 1 (Pré-backend) destrava valor zero-contrato enquanto o backend é iniciado em paralelo. Onda 1 entra junto com o backend inicial (todos os 19 aditivos de schema de §7 são implementados nessa fase + 2 endpoints novos de D21 para UC-P1/P2). Onda 2 só avança depois do MVP do backend em produção.
+- **Esforço estimado agregado (revisto por D28):** Fase 1 ≈ 3 dias; Onda 1 ≈ 22–25.5 dias (inclui +2d de UC-P1/P2); Onda 2 ≈ 20–26 dias.
 - **Princípio de simplicidade preservado:** não há entidade nova fora das 3 aprovadas (`announcements`, `announcements_reads`, `operational_events`) e das 2 colunas aditivas em `delays`, `routes`, `schedules_temporary`. Workarounds degradados (A15, F2) permanecem como workaround — não viram entidade.
-- **Dependência crítica:** UC-A2 reusa o endpoint `POST /api/admin/schedules-exceptions/bulk` do UC-A1. UC-A1 é pré-requisito duro de UC-A2. O resto da Onda 1 é majoritariamente paralelo. Onda 2 depende da estabilidade do CRUD base da Onda 1.
+- **Dependência crítica:** UC-A2 reusa o endpoint `POST /api/admin/schedules-exceptions/bulk` do UC-A1. UC-A1 é pré-requisito duro de UC-A2 (confirmado em D26: dois PRDs separados). O resto da Onda 1 é majoritariamente paralelo. Onda 2 depende da estabilidade do CRUD base da Onda 1.
 
 ---
 
 ## 2. Dependências entre UCs
 
-Grafo em texto. Toda dependência é entre UCs **em escopo** (18 bundles). Setas `→` indicam "pré-requisito duro". Setas `~>` indicam "acoplamento recomendado" (não bloqueia, mas convém sincronizar).
+Grafo em texto. Toda dependência é entre UCs **em escopo** (20 bundles após D21). Setas `→` indicam "pré-requisito duro". Setas `~>` indicam "acoplamento recomendado" (não bloqueia, mas convém sincronizar).
 
 ### 2.1 Fase 1 — Pré-backend
 
@@ -50,6 +51,11 @@ higiene-mock (filtro automático cooperative_id em páginas compartilhadas)
 ```
 Pré-requisito transversal: início do backend com migrations §7.1 (12 itens herdados do api-spec)
                            + JWT (access 15min / refresh 7d) + CORS + role scoping.
+
+Bloco P — Pré-existentes do PRD, puro front sobre endpoint novo do backend inicial (D21):
+    P1  — /about consome GET /api/cities/served           (endpoint entra no backend inicial)
+    P2  — PopularRoutesSection consome GET /api/destinations/popular
+          └ Nenhuma dependência interna; podem subir junto com Bloco Z.
 
 Bloco Z — zero contrato novo (podem subir primeiro, destravam valor para motorista/admin):
     A13 — Histórico próprio motorista       (reusa GET /admin/delays?reported_by=self)
@@ -122,14 +128,16 @@ A16 — Broadcast interno mínimo
       ~> coop board (PR5) ganha coluna "Iniciou" alimentada por trip_started.
 ```
 
-### 2.4 Síntese: cobertura dos 18 UCs em escopo
+### 2.4 Síntese: cobertura dos 20 UCs em escopo
 
-| Fase | UCs (bundles contam como 1) | Qtd |
-|------|------------------------------|-----|
+| Fase | UCs (bundles contam como 1 por D30) | Qtd |
+|------|-------------------------------------|-----|
 | Fase 1 | UC-P4+PA2, UC-PA1 | 2 |
-| Onda 1 | UC-A1, UC-A2, UC-A6, UC-A7, UC-A10, UC-A13, UC-A17, UC-A18+F4, UC-F1 | 9 |
+| Onda 1 | UC-P1, UC-P2, UC-A1, UC-A2, UC-A6, UC-A7, UC-A10, UC-A13, UC-A17, UC-A18+F4, UC-F1 | 11 |
 | Onda 2 | UC-A3, UC-A4, UC-A8, UC-A9, UC-A15+F2, UC-A16, UC-4.5 | 7 |
-| **Total** | | **18** |
+| **Total** | | **20** |
+
+Delta vs v1.0.0: +2 UCs (UC-P1, UC-P2) incorporados na Onda 1 por D21.
 
 Nenhum item descartado em §6 do documento base aparece neste grafo. Confirmado contra §6.1 (10 features), §6.2 (14 entidades), §6.3 (10 regras globais).
 
@@ -181,11 +189,18 @@ Nenhum item descartado em §6 do documento base aparece neste grafo. Confirmado 
 
 ## 4. Onda 1 — Contrato + backend inicial
 
-**Objetivo:** entregar os 9 UCs que mudam contrato, acoplados ao primeiro deploy funcional do backend. Todas as 7 novas mudanças de schema de §7.2 do documento base são aplicadas nesta onda, junto com as 12 mudanças herdadas de §7.1.
+**Objetivo:** entregar os 11 UCs da Onda 1 (9 que mudam contrato + 2 pré-existentes do PRD incorporados por D21), acoplados ao primeiro deploy funcional do backend. Todas as 7 novas mudanças de schema de §7.2 do documento base são aplicadas nesta onda, junto com as 12 mudanças herdadas de §7.1. **D21** adiciona 2 endpoints novos ao backend inicial (`GET /api/cities/served`, `GET /api/destinations/popular`).
 
-**Pré-requisito transversal:** início do backend com migrations §7.1 aplicadas + JWT + CORS + role scoping funcionando em dev.
+**Pré-requisito transversal:** início do backend com migrations §7.1 aplicadas + JWT + CORS + role scoping funcionando em dev. Backend inicial precisa expor os 2 endpoints de D21 para que UC-P1 e UC-P2 possam consumir.
 
 ### 4.1 Agrupamento por paralelismo
+
+#### Bloco P — Pré-existentes do PRD (puro front sobre endpoint do backend inicial — D21)
+
+| UC | Esforço (base) | Esforço revisto | Nota |
+|----|----------------|-----------------|------|
+| **UC-P1** — `/about` consome `GET /api/cities/served` | — | 1d | Hook `useCitiesServed()` com React Query, substituir constante hardcoded em `about.tsx`, fallback silencioso em erro. Backend inicial expõe o endpoint (D21). **Destrava consumer de `cities.photo_url`** (resolve R9). |
+| **UC-P2** — `PopularRoutesSection` consome `GET /api/destinations/popular` | — | 1d | Hook `usePopularDestinations({ limit, date })`, substituir array hardcoded, loading com skeleton de 6 cards, fallback estático em erro. |
 
 #### Bloco Z — Zero contrato novo (podem subir primeiro)
 
@@ -215,10 +230,11 @@ Nenhum item descartado em §6 do documento base aparece neste grafo. Confirmado 
 
 | Agrupamento | Base | Revisto |
 |-------------|------|---------|
+| Bloco P (D21) | — | 2d |
 | Bloco Z | 3d | 3–4d |
 | Bloco S | 7d | 7.5d |
 | Bloco D | 9–11d | 9.5–12d |
-| **Total Onda 1** | **~20d** | **~20–23.5d** |
+| **Total Onda 1** | **~20d** | **~22–25.5d** |
 
 ### 4.3 Sequência recomendada (com 2 devs em paralelo)
 
@@ -228,7 +244,8 @@ Semana 1:
   Dev2: A1 (item mais pesado, começar cedo)
 
 Semana 2:
-  Dev1: A13 → A17 → A10
+  Dev1: A13 → A17 → P1 → P2 → A10
+         (P1 e P2 só começam após backend expor GET /cities/served e /destinations/popular)
   Dev2: A1 (conclusão) → A2 (dependente de A1)
 
 Semana 3:
@@ -238,7 +255,7 @@ Semana 3:
 Semana 4: estabilização + catalogação em components-preview + revisões cruzadas.
 ```
 
-Com 1 dev: executar na ordem Z → S → D (minimiza bloqueio esperando backend).
+Com 1 dev: executar na ordem P → Z → S → D (P depende de endpoint pronto; Z/S/D minimizam bloqueio esperando backend).
 
 ---
 
@@ -306,14 +323,14 @@ Semana 4–5:
 | # | Risco | UC(s) afetado(s) | Mitigação sugerida |
 |---|-------|------------------|-------------------|
 | R1 | **UC-4.5 convive com `delays.cause='mechanical'`** sem deprecação (§5.4 doc base, "NÃO depreciar"). Ambiguidade real para motorista: "quebrou e parou" é `vehicle_breakdown`; "atrasou 20min por mecânica" é `delays.cause='mechanical'`. Risco de dupla entrada e métricas inconsistentes. | UC-4.5 | Explicar em UI/microcopy do motorista: "Parou totalmente?" → evento; "Atrasou mas vai operar?" → atraso. Documentar em `/admin/components-preview` com exemplo. |
-| R2 | **D4 (passageiros do driver — origem do dado indefinida)** continua sem decisão formal no doc base §3.5. Afeta `/meus-horarios` do motorista e indiretamente UC-4.5 (`type='passenger_issue'`). | UC-4.5, UC-A13 (secundário), driver UI em geral | **Decidir antes de iniciar Onda 1** entre: (a) contagem manual pelo motorista, (b) estimativa da cooperativa, ou (c) campo opcional não exibido no front. Ver pergunta aberta Q3 em §8. |
-| R3 | **UC-A16 política de retenção** (deletar aviso com `expires_at < now() - 90d` via job batch) é opcional conforme §5 do doc base. Decisão não cristalizada. | UC-A16 | Sinalizar em §8 (Q7). Default: NÃO implementar job batch na Onda 2; aguardar sinal operacional. |
-| R4 | **UC-4.5 severidade** pode ser derivada do `type` no backend (ex: `accident` = `high` obrigatório) **OU** informada pelo motorista (§5.4 doc base). Decisão híbrida não cristalizada. | UC-4.5 | Decidir no PRD: default proponho severity derivada + override manual permitido apenas se `type='other'`. Ver Q4. |
+| ~~R2~~ | **RESOLVIDO por D23 (v1.1.0):** D4 definido como opção (c) — campo opcional no backend, front NÃO exibe até feature própria. Remover `18/22` do mock no mesmo PR que resolver a dívida. Movido para §6.4 "Riscos resolvidos". | — | — |
+| R3 | **UC-A16 política de retenção** (deletar aviso com `expires_at < now() - 90d` via job batch) — **D27 (v1.1.0): NÃO implementar na Onda 2**, vira dívida operacional em §3.5 do doc base. | UC-A16 | Decisão formalizada. Reavaliar apenas se operação apontar necessidade. |
+| R4 | **UC-4.5 severidade** — **D24 (v1.1.0):** derivada do `type` por default + override manual permitido APENAS se `type='other'`. Backend valida; UI oculta campo de severidade quando `type ≠ 'other'`. | UC-4.5 | Decisão formalizada. Aplicar no PRD de UC-4.5. |
 | R5 | **UC-A1 vs UC-A2 limites de range divergem** — A1 rejeita range > 90 dias; A2 (recesso) sugere limite 60 dias. Dois limites coabitando no mesmo endpoint `/bulk`. | UC-A1, UC-A2 | Discriminar no endpoint por presença de `schedule_ids` (A1, limite 90d) vs `route_ids` (A2, limite 60d) — já previsto em §5.2 doc base. Documentar explicitamente no PRD. |
 | R6 | **UC-A6 campo `password_hash`** dispara `updated_at` — decisão aceita no doc base (§5.2 UC-A6: "qualquer mudança é mudança"), mas gera "ruído" visual no detalhe do usuário quando a última ação foi troca de senha. | UC-A6 | UI mostra apenas "por {nome} em {data}" — não revela o campo alterado (nunca mostrar diff). Risco baixo, mitigado por design. |
 | R7 | **UC-A17 Cmd+K pode colidir com atalhos nativos do browser** (Firefox em alguns OS). | UC-A17 | Documentar em `/admin/components-preview`. Oferecer fallback `Ctrl+/` ou similar se detectar colisão. Baixa prioridade. |
 | R8 | **UC-A18 + F4 fluxo de "re-abrir"** permite admin A resolver e admin B reabrir indefinidamente (loop sem auditoria granular). | UC-F4, UC-A6 | UC-A6 (`updated_by`/`updated_at` em `delays`) cobre indiretamente — última ação registrada. Aceitar. |
-| R9 | **`cities.photo_url`** entra como migration herdada §7.1 item 7, mas UC-P1 explicitamente **NÃO** consome o campo (`escopo negativo` em §5.1). Risco de código "morto" na Onda 1. | UC-P1 (fora de escopo deste roadmap — ver Q1), §7.1 item 7 | Aceitar coluna sem consumidor temporariamente. Documentar no PR de migration que o consumer vem em revisão futura. |
+| ~~R9~~ | **RESOLVIDO por D21 (v1.1.0):** UC-P1 entra na Onda 1 e passa a ser o consumer natural de `cities.photo_url`. Nota: o próprio UC-P1 §5.1 do doc base ainda marca `photo_url` como escopo negativo *daquele UC específico*; o consumer efetivo da coluna fica como item de reavaliação quando houver dado real. Risco de "código morto" temporariamente mitigado pela presença do UC-P1. Movido para §6.4 "Riscos resolvidos". | — | — |
 | R10 | **UC-A10 (rotas órfãs) vira trigger natural de UC-A8** (reatribuição) — mas estão em ondas diferentes. Entre Onda 1 e Onda 2, badge "Motorista afastado — reatribuir" aponta para... nada. | UC-A10, UC-A8 | Na Onda 1, badge de A10 leva para `/admin/users?user=<driver_id>` (ação manual). Quando A8 entra na Onda 2, badge passa a abrir o `DriverReassignmentModal` direto. |
 
 ### 6.2 Riscos técnicos / infra
@@ -330,6 +347,13 @@ Semana 4–5:
 
 - **Backend inicial não começou (§2.2 doc base).** Toda Onda 1 depende do backend arrancar. Se backend atrasar, Onda 1 inteira trava. Fase 1 continua rodando contra mocks.
 - **Dívidas técnicas §3.5 doc base** (renames, materializações, colunas ausentes) precisam ser **todas** parte da migration inicial do backend. Esquecer qualquer uma delas gera retrabalho na Onda 1.
+
+### 6.4 Riscos resolvidos (histórico v1.0.0 → v1.1.0)
+
+| # | Risco original | Resolvido por | Observação |
+|---|----------------|---------------|------------|
+| R2 | D4 — origem do dado "passageiros" no driver sem decisão formal | D23 (opção c: campo opcional no backend, não exibido no front) | Remover `18/22` do mock no PR que aplicar D23. |
+| R9 | `cities.photo_url` sem consumer na Onda 1 | D21 (UC-P1 entra na Onda 1) | O escopo negativo original de UC-P1 §5.1 permanece: `photo_url` como consumer efetivo da coluna é item de reavaliação futura. A coluna deixa de ser "código morto" imediato. |
 
 ---
 
@@ -351,14 +375,15 @@ Cada fase tem um conjunto fechado de condições. Enquanto **todas** não estive
 
 ### 7.2 Onda 1 concluída quando
 
-- [ ] Backend MVP em produção (não só dev) com os 12 endpoints base + os 13 endpoints novos de §7.3 doc base aplicáveis à Onda 1 (bulk, duplicate NÃO, impact-summary NÃO, reassign NÃO, driver_status filtro, announcements NÃO, operational-events NÃO, check-in NÃO, delays resolve/reopen, routes announcement campos).
+- [ ] Backend MVP em produção (não só dev) com os 12 endpoints base + os 13 endpoints novos de §7.3 doc base aplicáveis à Onda 1 (bulk, duplicate NÃO, impact-summary NÃO, reassign NÃO, driver_status filtro, announcements NÃO, operational-events NÃO, check-in NÃO, delays resolve/reopen, routes announcement campos) **+ 2 endpoints novos de D21 (`GET /api/cities/served`, `GET /api/destinations/popular`)**.
 - [ ] Migrations §7.1 (12 itens herdados) + §7.2 itens 13, 14, 15, 16 aplicadas em produção.
-- [ ] Dívidas técnicas §3.5 doc base **todas** resolvidas na migration inicial (renames, materializações, colunas ausentes, exceto `cities.photo_url` que pode ficar sem consumer — ver R9).
-- [ ] 9 UCs em `main` (A1, A2, A6, A7, A10, A13, A17, A18+F4, F1).
+- [ ] Dívidas técnicas §3.5 doc base **todas** resolvidas na migration inicial (renames, materializações, colunas ausentes). `cities.photo_url` entra; consumer efetivo é item de reavaliação futura (ver §6.4).
+- [ ] 11 UCs em `main` (P1, P2, A1, A2, A6, A7, A10, A13, A17, A18+F4, F1).
+- [ ] UC-P1 e UC-P2 consomem endpoints reais (não mais hardcoded em `about.tsx` e `PopularRoutesSection`).
+- [ ] **Decisão D23 aplicada:** campo "passageiros" removido do front (`/meus-horarios` e qualquer outro consumer de mock que o exiba — grep `18/22` ou `passengers` no front do driver).
 - [ ] JWT (access 15min + refresh 7d) + CORS + role scoping funcionando em produção.
 - [ ] Middleware `updated_by`/`updated_at` cobre **todas** as 5 tabelas listadas em §5.2 UC-A6 (routes, schedules, users, cooperatives, cities) — não só algumas.
 - [ ] `AdminConfirmDialog` com confirmação typed continua obrigatório mesmo com impacto zero (padrão PR9/PR10/PR11 preservado).
-- [ ] Decisão formal sobre **D4** (origem de "passageiros" no driver) tomada e registrada no doc base (bump de versão minor). Ver Q3.
 - [ ] Todos os componentes novos catalogados em `/admin/components-preview` (AdminBulkBar, BulkExceptionModal, RecessModal, DriverReassignmentModal — este último entra na Onda 2, mas pode já ter stub, DateRangeField, CommandPalette).
 - [ ] Zero item descartado em §6 doc base implementado "por acidente" (grep nos PRs da onda).
 - [ ] `npx tsc --noEmit`, `npm run lint`, `npm run build` verdes em todos os PRs mergeados.
@@ -375,28 +400,110 @@ Cada fase tem um conjunto fechado de condições. Enquanto **todas** não estive
 - [ ] Coluna "Iniciou" com relógio no board "Agora" da cooperativa (PR5) alimentada por `trip_started`.
 - [ ] Convivência explícita entre `delays.cause='mechanical'` e `operational_events.type='vehicle_breakdown'` documentada em `/admin/components-preview` + microcopy em UI motorista.
 - [ ] Todos os componentes novos catalogados em `/admin/components-preview`.
-- [ ] Backend tem política de retenção decidida (Q7): job batch ou não.
+- [ ] Política de retenção de avisos (UC-A16) **NÃO** implementada nesta onda — conforme D27 (vira dívida operacional em §3.5 do doc base).
 - [ ] `npx tsc --noEmit`, `npm run lint`, `npm run build` verdes.
 
 ---
 
-## 8. Perguntas abertas
+## 8. Decisões Tomadas (Q1–Q10)
 
-> Essas perguntas **não** foram resolvidas durante a produção deste mapa. Preciso de decisão formal antes de gerar os PRDs individuais na próxima worktree.
+> As 10 perguntas abertas da v1.0.0 foram resolvidas por Kaik em 2026-10-08 e formalizadas como D21–D30 nesta v1.1.0. Nenhuma pergunta permanece em aberto. Esta seção serve como registro histórico e ponte para a próxima worktree (geração de PRDs).
 
-| # | Pergunta | Impacto se não decidido |
-|---|----------|-------------------------|
-| **Q1** | **UC-P1 e UC-P2 estão aprovados em §5.1 e §4.1 do doc base, mas não aparecem em nenhuma onda em §8.** Entram em qual fase? Opções: (a) Onda 1 (adicionar os endpoints `GET /api/cities/served` e `GET /api/destinations/popular` ao backend inicial); (b) Onda 2; (c) ficar sem onda. | Sem decisão: `/about` e `PopularRoutesSection` continuam com lista hardcoded indefinidamente. Também afeta se `cities.photo_url` (§7.1 item 7) tem consumer na Onda 1 ou não (ver R9). |
-| **Q2** | **UC-P3 (filtro `date`/`dayOfWeek` funcional em `/schedules`)** está listado em §4.1 e detalhado em §5.1, mas o roadmap §8.1 bundla a parte de mock dentro de UC-P4+PA2. **Entendo que no backend essa feature é parte da Onda 1 (sem UC próprio) ou precisa de UC separado?** | Sem decisão: o PRD de UC-P4+PA2 pode acabar com responsabilidade dupla (tabs + endpoint real), ou o backend pode esquecer de implementar o filtro. |
-| **Q3** | **D4 (origem de "passageiros" no driver) continua sem decisão formal no doc base §3.5.** As 3 opções candidatas: (a) contagem manual pelo motorista; (b) estimativa agregada da cooperativa; (c) campo opcional no backend que o front não exibe até feature própria. | Sem decisão: UI atual do driver mostra campo "passageiros" vindo de mock. Backend inicial precisa saber se o campo entra no response ou não. Afeta UC-4.5 (`passenger_issue`). |
-| **Q4** | **UC-4.5 severidade — derivada do `type` ou informada pelo motorista?** O doc base §5.4 lista as duas opções sem cristalizar. | Sem decisão: PRD de UC-4.5 pode acabar inconsistente entre backend (que valida) e UI (que oferece). Proposta minha: default derivada + override manual permitido só se `type='other'`. |
-| **Q5** | **UC-A17 Command Palette deve listar atalhos nomeados (?today, ?mine) como comandos**, criando acoplamento com UC-A18? Marquei como "soft" no grafo (`~>`), mas pode virar duro se decidirmos que o command palette é a interface primária de atalhos. | Sem decisão: dois atalhos (menu lateral + command palette) podem acabar divergindo. |
-| **Q6** | **UC-A1 bundle com UC-A2 vs tickets separados.** Compartilham o endpoint `/bulk`. Devem ser dois PRDs separados (com dependência explícita) ou um PRD unificado "bulk de exceções"? | Sem decisão: ambos aceitáveis, mas a próxima worktree de PRD precisa saber. |
-| **Q7** | **UC-A16 política de retenção** (deletar aviso com `expires_at < now() - 90d` via job batch) é implementada na Onda 2 ou aguarda sinal operacional? Doc base §5.3 marca como "opcional". | Sem decisão: aceitar que não entra na Onda 2 (default conservador). Mas se decidir implementar depois, vira dívida operacional. |
-| **Q8** | **Esforço revisto diverge do doc base em 6 UCs** (A17, A10, A18+F4, A16, 4.5, A15+F2) — soma +3 a +6 dias na Onda 1 e +0 a +6 dias na Onda 2. Aceitar a revisão ou manter os números do doc base? | Sem decisão: afeta planning. |
-| **Q9** | **Skills `/to-spec` e `/to-tickets`** não estão disponíveis no ambiente desta sessão (não aparecem na lista de skills do agent). Confirma que elas são para a próxima worktree (geração de PRDs), não para esta (que só produz o mapa)? | Sem decisão: posso ter interpretado errado a seção "Skills a usar" do briefing. Se eram para esta worktree, preciso parar e pedir configuração. |
-| **Q10** | **UC-A18 + UC-F4 — contagem.** O doc base §8.2 lista como 1 linha ("A18 Deep-links nomeados + UC-F4"), e o briefing pede "cobertura de todos os 18 UCs". Mantenho a contagem de 18 (bundles como 1) ou devo tratar F4 como UC independente (que daria 19 ou 20 dependendo de A15+F2)? | Sem decisão: afeta métricas de progresso e granularidade de tickets. Default proponho: bundles contam como 1 na gestão macro, mas podem virar 2 tickets filhos. |
+### D21 — UC-P1 e UC-P2 (resolve Q1)
+
+- **Pergunta original (Q1):** UC-P1 e UC-P2 estão aprovados em §5.1 e §4.1 do doc base, mas não aparecem em nenhuma onda em §8 do doc base. Entram em qual fase?
+- **Decisão:** UC-P1 e UC-P2 entram na **Onda 1**. Adicionar `GET /api/cities/served` e `GET /api/destinations/popular` ao backlog do backend inicial.
+- **Impacto neste roadmap:**
+  - §1 Resumo executivo: total passa a 20 UCs.
+  - §2.2 Grafo: Bloco P novo documentado.
+  - §2.4 Síntese: Onda 1 passa a 11 bundles; total 20.
+  - §4.1 Agrupamento: Bloco P novo (1d cada).
+  - §4.2 Esforço: +2d na Onda 1 (22–25.5d revistos).
+  - §4.3 Sequência: P1/P2 encaixados na semana 2 do Dev1.
+  - §6.4 R9 resolvido: `cities.photo_url` ganha consumer natural.
+
+### D22 — UC-P3 absorvido (resolve Q2)
+
+- **Pergunta original (Q2):** UC-P3 (filtro `date`/`dayOfWeek` funcional em `/schedules`) vira UC próprio ou fica absorvido em UC-P4+PA2?
+- **Decisão:** UC-P3 **NÃO vira UC próprio**. Fica absorvido em UC-P4+PA2 (Fase 1, destravar mock) + obrigação implícita do backend inicial em `api-spec.md §2.1`.
+- **Impacto neste roadmap:** nenhuma mudança estrutural (já estava assim). Confirmação para a próxima worktree: PRD de UC-P4+PA2 cobre o destravamento do filtro no mock; backend inicial expõe `date`/`dayOfWeek` sem PRD separado.
+
+### D23 — D4 passageiros do driver (resolve Q3)
+
+- **Pergunta original (Q3):** D4 (origem de "passageiros" no driver) continua sem decisão formal. Opções: (a) contagem manual pelo motorista; (b) estimativa agregada da cooperativa; (c) campo opcional no backend que o front não exibe.
+- **Decisão:** **Opção (c)** — campo opcional no backend, **front NÃO exibe** até feature própria. Remover `18/22` do mock no mesmo PR que resolver essa dívida.
+- **Impacto neste roadmap:**
+  - §6.4 R2 resolvido.
+  - §7.2 Onda 1 checklist: novo item "D23 aplicada — passageiros removido do front".
+  - Afeta UC-A13 (não exibe passageiros), UC-4.5 (`passenger_issue` mantém `type` sem acoplamento com ocupação real), `/meus-horarios` do motorista.
+
+### D24 — UC-4.5 severidade (resolve Q4)
+
+- **Pergunta original (Q4):** UC-4.5 severidade — derivada do `type` ou informada pelo motorista?
+- **Decisão:** **Derivada do `type` por default + override manual permitido APENAS se `type='other'`**. Backend valida; UI oculta campo de severidade quando `type ≠ 'other'`.
+- **Impacto neste roadmap:** §6.1 R4 atualizado com decisão formalizada. Aplicar no PRD de UC-4.5.
+
+### D25 — UC-A17 x UC-A18 acoplamento (resolve Q5)
+
+- **Pergunta original (Q5):** UC-A17 Command Palette deve listar atalhos nomeados (`?today`, `?mine`) como comandos, criando acoplamento duro com UC-A18?
+- **Decisão:** Acoplamento **soft (`~>`)**. Command palette **pode** listar `?today`/`?mine` como comandos mas não é obrigatório ter paridade com menu lateral.
+- **Impacto neste roadmap:** nenhuma mudança estrutural (grafo §2.2 já marca como `~>`). Confirmação para a próxima worktree: PRD de UC-A17 pode omitir atalhos nomeados sem bloqueio.
+
+### D26 — UC-A1 e UC-A2 PRDs separados (resolve Q6)
+
+- **Pergunta original (Q6):** UC-A1 e UC-A2 compartilham endpoint `/bulk`. Dois PRDs separados ou um unificado?
+- **Decisão:** **Dois PRDs separados** com dependência explícita de A2 → A1. Compartilham endpoint `/bulk`, mas cada um tem user story e critérios próprios.
+- **Impacto neste roadmap:** confirmação para a próxima worktree. §1 Resumo atualizado com referência explícita a D26.
+
+### D27 — UC-A16 política de retenção (resolve Q7)
+
+- **Pergunta original (Q7):** UC-A16 política de retenção (job batch deletando avisos expirados há 90d) é implementada na Onda 2 ou aguarda sinal operacional?
+- **Decisão:** **NÃO implementar na Onda 2**. Vira dívida operacional registrada em §3.5 do doc base.
+- **Impacto neste roadmap:**
+  - §6.1 R3 atualizado com decisão formalizada.
+  - §7.3 Onda 2 checklist: item "política de retenção NÃO implementada nesta onda" confirmado.
+
+### D28 — Esforço revisto oficial (resolve Q8)
+
+- **Pergunta original (Q8):** Esforço revisto diverge do doc base em 6 UCs (A17, A10, A18+F4, A16, 4.5, A15+F2). Aceitar a revisão?
+- **Decisão:** **Aceitar esforço revisto**. Totais revisados viram oficiais.
+- **Impacto neste roadmap:**
+  - §1 Resumo executivo: totais revistos citados diretamente (Fase 1 ≈ 3d; Onda 1 ≈ 22–25.5d; Onda 2 ≈ 20–26d).
+  - §4.2 e §5.3 permanecem como fonte autoritativa de esforço.
+
+### D29 — Skills `/to-spec` e `/to-tickets` (resolve Q9)
+
+- **Pergunta original (Q9):** Skills `/to-spec` e `/to-tickets` são para esta worktree ou para a próxima?
+- **Decisão:** São para o **Passo 3 e Passo 4** (worktrees seguintes de geração de PRDs/tickets). **Não** para esta worktree, que produziu apenas o mapa.
+- **Impacto neste roadmap:** nenhuma mudança estrutural. Confirmação para a continuidade do fluxo.
+
+### D30 — Contagem de bundles (resolve Q10)
+
+- **Pergunta original (Q10):** Bundles (UC-A18+F4, UC-A15+F2, UC-P4+PA2) contam como 1 UC ou cada subitem é UC independente?
+- **Decisão:** Bundles contam como **1 UC na gestão macro** mas podem virar **2+ tickets filhos** quando `/to-tickets` for executado.
+- **Impacto neste roadmap:**
+  - §2.4 Síntese usa a convenção "bundles contam como 1 por D30".
+  - §4 e §5 preservam a visão de bundle no planning.
+  - Próxima worktree de tickets granulariza (ex: UC-A18+F4 pode virar 2 tickets: um para `?today`/`?mine` e outro para `resolved_by`/`resolved_at` + endpoints resolve/reopen).
 
 ---
 
-**Fim do roadmap.** Próximo passo esperado: minha revisão e, só então, próxima worktree para geração de PRDs por UC (base em `vanhora-decisoes-e-casos-de-uso.md` §5 + este mapa §4 e §5 + decisões de §8).
+## Apêndice A — Histórico de Revisões
+
+| Versão | Data | Autor | Mudanças |
+|--------|------|-------|----------|
+| 1.0.0 | 2026-10-08 | Kaik + Claude | Produção inicial do roadmap. 18 UCs em escopo (Fase 1 + Onda 1 + Onda 2). §8 com 10 perguntas abertas Q1–Q10. |
+| 1.1.0 | 2026-10-08 | Kaik + Claude | Formalização de D21–D30 resolvendo todas as 10 perguntas Q1–Q10. UC-P1 e UC-P2 incorporados na Onda 1 (D21). Total passa a 20 UCs. Bloco P novo em §4.1 (2d). Esforço Onda 1 revisto para 22–25.5d. R2 e R9 marcados como resolvidos em §6.4. §8 renomeada para "Decisões Tomadas (Q1–Q10)". §7.2 Onda 1 checklist atualizado com D21 (endpoints novos) e D23 (remoção de `18/22` do mock). |
+
+### A.1 Convenções de versionamento
+
+Alinhadas com `vanhora-decisoes-e-casos-de-uso.md` Apêndice A.1:
+- **Major (X.0.0):** reorganização estrutural (ex: fusão/divisão de ondas, mudança de posicionamento).
+- **Minor (0.X.0):** adição/remoção de UCs no escopo, formalização de novas decisões, revisão de esforço.
+- **Patch (0.0.X):** correção de redação, clarificação de regra existente, link quebrado.
+
+Versionamento feito **exclusivamente via Git**. Toda mudança deste documento é um commit com mensagem descritiva.
+
+---
+
+**Fim do roadmap.** Próximo passo esperado: Passo 2 (atualização de `vanhora-decisoes-e-casos-de-uso.md` para refletir D21–D30 e UC-P1/P2 em §8.2), depois Passo 3 (geração de PRDs por UC via `/to-spec`) e Passo 4 (tickets granulares via `/to-tickets`).

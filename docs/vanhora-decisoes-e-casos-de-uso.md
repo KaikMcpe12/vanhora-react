@@ -1,6 +1,6 @@
 # VanHora — Especificação de Decisões e Casos de Uso
 
-> **Versão:** 1.0.0 — 2026-10-08 (versionamento via Git)
+> **Versão:** 1.1.0 — 2026-10-08 (versionamento via Git)
 > **Autor:** Kaik (frakaik2018@gmail.com)
 > **Status:** Documento vivo — fonte canônica de decisões de produto
 > **Propósito:** Insumo definitivo para geração de PRDs e tickets de implementação. **Anti-alucinação**: cada caso de uso tem escopo negativo explícito. Qualquer feature que não esteja descrita aqui ou nos documentos canônicos (`VanHora Especificação.md`, `database.md`, `api-spec.md`, `design_system.md`, `guia_inspiracao_vanhora.md`) **não deve ser implementada sem decisão formal registrada neste arquivo**.
@@ -156,7 +156,8 @@ Pendências conhecidas que **não bloqueiam o backend**, mas devem ser resolvida
 | `cooperatives.brand_color`, `email`, `description` ausentes no schema | `api-spec.md §5` | Migration backend inicial |
 | `routes.origin_city_id`, `destination_city_id`, `description` ausentes | `api-spec.md §5` | Migration backend inicial |
 | `cities.photo_url` ausente | `api-spec.md §5` | Migration backend inicial |
-| **Passageiros do driver (D4):** origem do dado indefinida | PR4 | Decidir antes do backend expor esse campo: contagem manual pelo motorista, estimativa cooperativa, ou campo opcional |
+| ~~Passageiros do driver (D4): origem do dado indefinida~~ **RESOLVIDO em D23 (2026-10-08)** | PR4 | Passageiros é campo opcional no backend; **front NÃO exibe**. Remover `18/22` de `/meus-horarios` + qualquer outro consumer de mock que mostre o campo no PR da Onda 1. Backend pode entregar o campo preenchido ou NULL — front ignora. |
+| **UC-A16 política de retenção (D27):** job batch deletando avisos expirados há 90d NÃO implementado na Onda 2 | 2026-10-08 | Decidido em D27. Vira dívida operacional — reavaliar quando volume de avisos crescer (gatilho: cooperativas reclamarem de "painel de avisos poluído" OU >1000 avisos arquivados por cooperativa). |
 
 ### 3.6 Convenções de API (consolidadas)
 
@@ -167,6 +168,23 @@ Pendências conhecidas que **não bloqueiam o backend**, mas devem ser resolvida
 - IDs são **UUID v4** (nunca slugs — cirurgia pré-PR9 migrou todos os slugs de mock para UUID)
 - CORS configurável; não usar `*` em produção (cookies de sessão)
 - Session-based rating com `X-Session-Id` + IP para passageiro público
+
+### 3.7 Decisões pós-roadmap v1.1.0 (D21–D30)
+
+Formalizadas após conclusão do roadmap de execução v1.1.0 (`docs/roadmap-execucao.md` §8). Resolvem as 10 perguntas abertas (Q1–Q10) levantadas durante a produção do roadmap.
+
+| ID | Decisão | Origem | Status |
+|----|---------|--------|--------|
+| D21 | **UC-P1 e UC-P2 entram na Onda 1.** Adicionar `GET /api/cities/served` e `GET /api/destinations/popular` ao backlog do backend inicial. Destrava consumer natural de `cities.photo_url` (R9 resolvido no roadmap). | Q1 (roadmap v1.0.0) → 2026-10-08 | Firme |
+| D22 | **UC-P3 NÃO vira UC próprio.** Front: absorvido em UC-P4+PA2 (Fase 1, remover TODOs em `mock-schedules-api.ts:71,111`). Backend: obrigação implícita do contrato inicial em `api-spec.md §2.1`. Mantido em §5.1 apenas para referência contratual. | Q2 → 2026-10-08 | Firme |
+| D23 | **D4 resolvido com opção (c):** passageiros é campo opcional no backend; **front NÃO exibe** até feature própria. Remover `18/22` do mock no mesmo PR da Onda 1. Afeta UC-A13, UC-4.5 (`passenger_issue` mantém `type` sem acoplamento com ocupação real), `/meus-horarios`. | Q3 → 2026-10-08 | Firme |
+| D24 | **UC-4.5 severidade: derivada do `type` por default + override manual permitido APENAS se `type='other'`.** Backend valida (ex: `accident` ⇒ `high` obrigatório, `vehicle_breakdown` ⇒ `high` default, `other` ⇒ `low` default). UI oculta campo de severidade quando `type ≠ 'other'`. | Q4 → 2026-10-08 | Firme |
+| D25 | **UC-A17 acoplamento com UC-A18 é SOFT.** Command palette **pode** listar `?today`/`?mine` como comandos mas não é obrigatório ter paridade com menu lateral. Decisão fica a critério do PRD de UC-A17. | Q5 → 2026-10-08 | Firme |
+| D26 | **UC-A1 e UC-A2 viram PRDs separados** com dependência explícita de A2 → A1. Compartilham `POST /api/admin/schedules-exceptions/bulk`, mas cada um tem user story, UI e critérios de aceite próprios. | Q6 → 2026-10-08 | Firme |
+| D27 | **UC-A16 política de retenção (job batch deletando avisos expirados há 90d) NÃO implementada na Onda 2.** Vira dívida operacional em §3.5. Reavaliar quando volume de avisos crescer. | Q7 → 2026-10-08 | Firme (reversível com gatilho operacional) |
+| D28 | **Esforço revisto no roadmap v1.1.0 §4.2 e §5.3 vira oficial** para os 6 UCs com divergência (A17, A10, A18+F4, A16, 4.5, A15+F2). Totais revistos: Onda 1 ≈ 22–25.5d; Onda 2 ≈ 20–26d. Esforço aqui em §8 reflete os números revistos. | Q8 → 2026-10-08 | Firme |
+| D29 | **Skills `/to-spec` e `/to-tickets` são para Passos 3 e 4** (worktrees seguintes de geração de PRDs/tickets). Não são usadas na worktree que produziu o roadmap nem na que atualiza este doc base. | Q9 → 2026-10-08 | Firme |
+| D30 | **Bundles contam como 1 UC na gestão macro** (UC-A18+F4, UC-A15+F2, UC-P4+PA2) mas podem virar 2+ tickets filhos quando `/to-tickets` for executado (Passo 4). Síntese do roadmap §2.4 segue essa convenção. | Q10 → 2026-10-08 | Firme |
 
 ---
 
@@ -183,7 +201,7 @@ Pendências conhecidas que **não bloqueiam o backend**, mas devem ser resolvida
 - Ver detalhes de rota/cooperativa com estatísticas 30d
 - Ver cancelamentos e exceções
 
-**Casos de uso aprovados neste doc:** P1, P2, P3, P4+PA2 (unificados), PA1, F1
+**Casos de uso aprovados neste doc:** P1, P2, P3 (absorvido em P4+PA2 — ver D22), P4+PA2 (unificados), PA1, F1
 
 ### 4.2 Admin Geral
 
@@ -237,6 +255,8 @@ Cada UC segue a estrutura:
 
 #### UC-P1 — Página `/about` consome `GET /api/cities/served`
 
+> **Status (v1.1.0):** Aprovado na Onda 1 por D21. Entra junto do backend inicial para destravar consumer de `cities.photo_url`.
+
 **1. Descrição e Objetivo**
 Substituir a lista hardcoded de cidades atendidas na página `/about` (`about.tsx:126`) pela chamada ao endpoint `GET /api/cities/served`, já definido em `api-spec.md §2.3`. Objetivo: mostrar dado real conforme a plataforma cresce, sem reeditar código a cada cidade nova.
 
@@ -266,6 +286,8 @@ Substituir a lista hardcoded de cidades atendidas na página `/about` (`about.ts
 
 #### UC-P2 — `PopularRoutesSection` consome `GET /api/destinations/popular`
 
+> **Status (v1.1.0):** Aprovado na Onda 1 por D21. Entra na Onda 1 do backend inicial.
+
 **1. Descrição e Objetivo**
 Substituir a lista hardcoded de 6 destinos populares na home pela chamada ao endpoint `GET /api/destinations/popular` (`api-spec.md §2.5`). Objetivo: destinos refletirem volume real de busca/schedules, não decisão editorial estática.
 
@@ -293,6 +315,11 @@ Substituir a lista hardcoded de 6 destinos populares na home pela chamada ao end
 ---
 
 #### UC-P3 — Filtro de data e dia da semana funcional em `/schedules`
+
+> **Status (v1.1.0 — D22): NÃO é UC próprio.**
+> Front: absorvido em UC-P4+PA2 (Fase 1, remover TODOs em `mock-schedules-api.ts:71,111`).
+> Backend: obrigação implícita do contrato inicial em `api-spec.md §2.1`.
+> Mantido aqui para referência contratual. Nenhum PRD separado será gerado para este UC.
 
 **1. Descrição e Objetivo**
 Hoje `mock-schedules-api.ts:71,111` tem TODOs explícitos: o filtro `date` e `dayOfWeek` está exposto na UI mas não filtra. PRD e `api-spec.md §2.1` prometem o filtro. Este UC destrava a feature.
@@ -437,6 +464,8 @@ Cooperativa precisa comunicar passageiros sobre: *"Rota R-204 vai atrasar hoje p
 
 #### UC-A1 — Cancelar N horários de motorista em janela de datas
 
+> **Status (v1.1.0 — D26): PRD separado de UC-A2.** Compartilham `POST /api/admin/schedules-exceptions/bulk`, mas user stories, UI e critérios de aceite distintos. UC-A2 depende de UC-A1 (ordem sequencial no bloco D da Onda 1).
+
 **1. Descrição e Objetivo**
 Admin ou cooperativa precisa cancelar todos os horários de um motorista específico em uma faixa de datas (ex: motorista em cirurgia por 1 semana). Hoje: filtro não aceita `driver_id` arbitrário, não há bulk action, cada exceção é criada 1 por vez.
 
@@ -475,6 +504,8 @@ Admin ou cooperativa precisa cancelar todos os horários de um motorista especí
 ---
 
 #### UC-A2 — Exceção em intervalo de datas (recesso)
+
+> **Status (v1.1.0 — D26): PRD separado de UC-A1.** Depende de UC-A1 (reusa endpoint `/bulk`). UI (`RecessModal`), user stories e critérios de aceite próprios.
 
 **1. Descrição e Objetivo**
 Marcar recesso (ex: 24/12 a 02/01) para uma ou várias rotas em um fluxo único. Hoje: `ExceptionModal` aceita 1 data por horário — 10 dias × 5 horários = 50 modais.
@@ -621,6 +652,7 @@ Atalho global para ações comuns: "Novo usuário", "Ir para rota R-204", "Ver a
 - Catálogo de comandos em `src/lib/command-palette/commands.ts`, cada comando com `{ id, label, icon, action, visibleIfRole, keywords }`.
 - Hook global `useCommandPalette` com atalho de teclado.
 - Comandos "ir para X" fazem `navigate()`; "criar Y" abrem modal.
+- **Acoplamento com UC-A18 (D25 — soft):** command palette pode listar os atalhos `?today`/`?mine` como comandos, mas **não é obrigatório** para paridade com menu lateral. Decisão fica a critério do PRD de UC-A17.
 - **Edge case:** usuário sem role (não logado) — palette não abre.
 - **Edge case:** comando pede permissão que o usuário não tem — oculto do filtro.
 - **Backend:** nenhuma mudança.
@@ -973,9 +1005,16 @@ Motorista reporta ocorrências que **não são atraso**: quebra de veículo, aci
   - `reported_by` uuid FK
   - `reported_at` timestamp
 - **Sem upload de imagem** (restrição explícita — D9).
-- Severidade pode ser derivada do `type` no backend (ex: `accident` = `high` obrigatório) OU informada pelo motorista.
+- **Severidade derivada automaticamente por `type` no backend (D24, v1.1.0):**
+  - `accident` ⇒ `high` **obrigatório** (sem override)
+  - `vehicle_breakdown` ⇒ `high` default
+  - `security_incident` ⇒ `high` default
+  - `passenger_issue` ⇒ `medium` default
+  - `trip_started` ⇒ `low` fixo
+  - `other` ⇒ `low` default **com override manual permitido**
+- Front **oculta campo de severidade** quando `type ≠ 'other'`. Apenas `type='other'` permite override manual via UI.
 - Visibilidade: cooperativa vê eventos próprios; admin vê todos.
-- UI motorista: tela com `ChoiceChips` para `type` + textarea description + `SeverityBadge` auto (ou editável).
+- UI motorista: tela com `ChoiceChips` para `type` + textarea description + `SeverityBadge` auto (editável apenas se `type='other'`).
 
 **3. Guia de Implementação**
 - **Schema:** 1 tabela nova. Índices em `(cooperative_id, occurrence_date DESC)` e `(schedule_id)`.
@@ -1147,10 +1186,12 @@ Itens que destravam valor sem bloquear o backend. **Nenhum item desta onda muda 
 
 ### 8.2 Onda 1 — Contrato novo que entra JUNTO com backend inicial
 
-Itens que **mudam contrato** (adicionam campos ou endpoints) e devem estar decididos antes do primeiro commit do backend. Já aprovados em D7-D10.
+Itens que **mudam contrato** (adicionam campos ou endpoints) e devem estar decididos antes do primeiro commit do backend. Já aprovados em D7-D10 e D21 (v1.1.0).
 
 | # | UC | Esforço | Impacto schema |
 |---|-----|---------|---------------|
+| P1 | `/about` consome `GET /api/cities/served` (D21) | 1d | Endpoint novo (sem schema aditivo) |
+| P2 | `PopularRoutesSection` consome `GET /api/destinations/popular` (D21) | 1d | Endpoint novo (sem schema aditivo) |
 | A1 | Cancelar N horários em janela | 5-7d | Endpoint bulk novo + query param |
 | A2 | Exceção em intervalo (recesso) | 2d | Reusa endpoint bulk de A1 |
 | A6 | `updated_by`/`updated_at` embrionário | 2d | 10 colunas (5 tabelas × 2) |
@@ -1161,7 +1202,7 @@ Itens que **mudam contrato** (adicionam campos ou endpoints) e devem estar decid
 | A18 | Deep-links nomeados + UC-F4 | 2d | 2 colunas em `delays` + 2 endpoints |
 | F1 | Aviso cooperativa→passageiro | 2d | 2 colunas em `routes` |
 
-**Total Onda 1:** ~20d. Rodam contra backend em desenvolvimento.
+**Total Onda 1:** ~22d (base). Esforço revisto no roadmap v1.1.0 §4.2 em ~22–25.5d por D28. Rodam contra backend em desenvolvimento.
 
 ### 8.3 Onda 2 — Após MVP backend no ar
 
@@ -1277,6 +1318,7 @@ Dashboard/compliance: Optibus, Swiftly, Samsara, Fleetio
 | Versão | Data | Autor | Mudanças |
 |--------|------|-------|----------|
 | 1.0.0 | 2026-10-08 | Kaik | Consolidação inicial. Baseado em: PR1-PR13 + PR6 concluídos, auditoria 2026-09, mapeamento 2026-09, respostas Q1-Q5, aprovações F1/F2/F4, descartes D11-D17, julgamento em "a considerar" (4.5 in, 4.3/4.7/5.1/5.6 out). |
+| 1.1.0 | 2026-10-08 | Kaik | D21–D30 formalizadas após conclusão do roadmap v1.1.0. UC-P1 e UC-P2 entram oficialmente na Onda 1 (D21) — §8.2 atualizada. D4 resolvido em §3.5 (D23). §5.1 UC-P3 clarificado como não-UC (D22). UC-A1/UC-A2 marcados como PRDs separados (D26). UC-4.5 severidade cristalizada (D24). UC-A17 acoplamento soft com UC-A18 documentado (D25). Nenhuma mudança em §6 Escopo Negativo ou §7 Schema. |
 
 ### A.1 Convenções de versionamento
 
